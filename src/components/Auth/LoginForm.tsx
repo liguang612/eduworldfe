@@ -33,7 +33,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const response = await axios.post('/api/auth/login', data);
       if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
-        authLogin(response.data.token); // Cập nhật context
+        authLogin(response.data.token, {
+          id: response.data.id,
+          name: response.data.name,
+          email: data.email,
+          avatar: response.data.avatar
+        });
         if (onLoginSuccess) onLoginSuccess();
       } else {
         setLoginError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
@@ -58,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col w-[512px] max-w-[512px] py-5 max-w-[960px] flex-1">
             <h1 className="text-[#0e141b] tracking-light text-[28px] font-bold leading-tight px-4 text-left pb-3 pt-5">
-              Log in
+              Đăng nhập
             </h1>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-0">
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
@@ -92,12 +97,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                     type="checkbox"
                     className="h-5 w-5 rounded border-[#d0dbe7] border-2 bg-transparent text-[#1980e6] checked:bg-[#1980e6] checked:border-[#1980e6] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#d0dbe7] focus:outline-none"
                   />
-                  <p className="text-[#0e141b] text-base font-normal leading-normal">Remember me</p>
+                  <p className="text-[#0e141b] text-base font-normal leading-normal">Ghi nhớ tài khoản</p>
                 </label>
               </div>
-              <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline">
-                Forgot your password?
-              </p>
               {loginError && <p className="text-red-500 text-sm text-center pb-2">{loginError}</p>}
               <div className="flex px-4 py-3">
                 <button
@@ -105,12 +107,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   disabled={isSubmitting}
                   className="flex min-w-[84px] max-w-[480px] items-center justify-center rounded-xl h-10 px-4 flex-1 bg-[#1A80E5] text-white text-sm font-bold tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span className="truncate">{isSubmitting ? 'Đang đăng nhập...' : 'Log in'}</span>
+                  <span className="truncate">{isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
                 </button>
               </div>
             </form>
             <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center">
-              Don't have an account?
+              Chưa có tài khoản?
             </p>
             <div className="flex px-4 py-3">
               <button
@@ -118,7 +120,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 onClick={() => navigate('/register')}
                 type="button"
               >
-                <span className="truncate">Sign up</span>
+                <span className="truncate">Đăng ký</span>
               </button>
             </div>
           </div>

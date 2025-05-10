@@ -40,16 +40,19 @@ const Header: React.FC<HeaderProps> = () => {
       <div className="flex flex-1 justify-end gap-8">
         <div className="flex items-center gap-9">
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
-            Home
+            Trang chủ
           </a>
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
-            Features
+            Lớp học
           </a>
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
-            Pricing
+            Bài giảng
           </a>
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
-            Company
+            Ngân hàng câu hỏi
+          </a>
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+            Đề thi
           </a>
         </div>
         {!isAuthenticated ? (
