@@ -9,14 +9,11 @@ import RegisterPage from '../pages/RegisterPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Layout from '../components/Common/Layout';
 import AccountPage from '../pages/AccountPage';
+import ChangePassword from '../pages/ChangePassword';
 
 const AppRoutes: React.FC = () => (
   <Routes>
-    <Route path="/login" element={
-      <LoginPage />
-    }
-    />
-    <Route path="/register" element={<RegisterPage />} />
+    {/* Homepage */}
     <Route
       path="/"
       element={
@@ -27,6 +24,32 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+
+    {/* Auth */}
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/register" element={<RegisterPage />} />
+    <Route
+      path="/account"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <AccountPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/change-password"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <ChangePassword />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Courses */}
     <Route
       path="/courses"
       element={
@@ -67,14 +90,7 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/account"
-      element={
-        <ProtectedRoute>
-          <AccountPage />
-        </ProtectedRoute>
-      }
-    />
+
   </Routes>
 );
 

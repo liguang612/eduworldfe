@@ -80,7 +80,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               </div>
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
-                  <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Password</p>
+                  <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mật khẩu</p>
                   <input
                     placeholder="••••••••••••••••"
                     type="password"

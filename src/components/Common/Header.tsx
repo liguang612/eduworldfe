@@ -8,7 +8,7 @@ interface HeaderProps { } // Hiện tại Header không nhận props, bạn có 
 const Header: React.FC<HeaderProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,36 +39,36 @@ const Header: React.FC<HeaderProps> = () => {
       </div>
       <div className="flex flex-1 justify-end gap-8">
         <div className="flex items-center gap-9">
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/')}>
             Trang chủ
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/courses')}>
             Lớp học
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/lectures')}>
             Bài giảng
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/questions')}>
             Ngân hàng câu hỏi
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#">
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exams')}>
             Đề thi
           </a>
         </div>
-        {!isAuthenticated ? (
+        {!user ? (
           location.pathname === '/register' ? (
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]"
               onClick={() => navigate('/login')}
             >
-              <span className="truncate">Login</span>
+              <span className="truncate">Đăng nhập</span>
             </button>
           ) : (
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]"
               onClick={() => navigate('/register')}
             >
-              <span className="truncate">Sign up</span>
+              <span className="truncate">Đăng ký</span>
             </button>
           )
         ) : (
@@ -93,6 +93,12 @@ const Header: React.FC<HeaderProps> = () => {
                   onClick={() => { setMenuOpen(false); navigate('/account'); }}
                 >
                   Thông tin cá nhân
+                </button>
+                <button
+                  className="w-full text-left px-4 py-3 hover:bg-slate-100 text-[#0e141b] text-base font-medium rounded-b-xl"
+                  onClick={() => { setMenuOpen(false); navigate('/change-password'); }}
+                >
+                  Đổi mật khẩu
                 </button>
                 <button
                   className="w-full text-left px-4 py-3 hover:bg-slate-100 text-red-600 text-base font-medium rounded-b-xl"
