@@ -10,6 +10,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import Layout from '../components/Common/Layout';
 import AccountPage from '../pages/AccountPage';
 import ChangePassword from '../pages/ChangePassword';
+import CreateCoursePage from '../pages/CreateCoursePage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -85,7 +86,7 @@ const AppRoutes: React.FC = () => (
       element={
         <ProtectedRoute>
           <Layout>
-            <CourseEditPage />
+            <CreateCoursePage />
           </Layout>
         </ProtectedRoute>
       }
