@@ -175,7 +175,11 @@ const CoursesPage: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
                 {courses.map((course) => (
-                  <div key={course.id} className="flex flex-col gap-3 pb-3 max-w-[300px]">
+                  <div
+                    key={course.id}
+                    className="flex flex-col gap-3 pb-3 max-w-[300px] cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => navigate(`/courses/${course.id}`)}
+                  >
                     <div
                       className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
                       style={{ backgroundImage: `url("${API_URL}${course.avatar}")` }}

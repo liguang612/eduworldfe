@@ -1,22 +1,30 @@
 import axios from '../config/axios';
+import type { User } from '../contexts/AuthContext';
+import type { Lecture } from './lectureApi';
 
 const API_URL = '/api';
 
 export type Course = {
   id: string;
   name: string;
+  avatar: string | null;
   subjectId: string;
   allCategories: string[];
-  teacher: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
+  teacher: User;
+  teacherAssistants: any[];
   students: any[];
+  chapters: Chapter[];
+  reviewIds: string[];
   averageRating: number;
   hidden: boolean;
-  avatar: string;
 }
+
+export interface Chapter {
+  id: string; // Hoặc number, dùng cho key khi map
+  name: string;
+  lectures: Lecture[];
+}
+
 
 export type Subject = {
   id: string;
@@ -65,11 +73,10 @@ export const getCoursesBySubject = async (subjectId: string, enrolled: boolean, 
 export const searchUserByEmail = async (email: string, role: number): Promise<SearchUser[]> => {
   if (!email.trim()) return [];
   try {
-    const response = await fetch(
-      `http://localhost:8080/api/auth/users/search?email=${encodeURIComponent(email)}&role=${role}`
+    const response = await axios.get(
+      `${API_URL}/auth/users/search?email=${encodeURIComponent(email)}&role=${role}`
     );
-    if (!response.ok) throw new Error('Network response was not ok');
-    const data = await response.json();
+    const data = response.data;
     // Map API response về đúng định dạng Teacher
     return data.map((user: any) => ({
       id: user.id,
@@ -81,6 +88,21 @@ export const searchUserByEmail = async (email: string, role: number): Promise<Se
     }));
   } catch (error) {
     console.error('Error searching teachers:', error);
+    throw error;
+  }
+};
+
+export const getCourseById = async (courseId: string): Promise<Course> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/courses/${courseId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch course:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
