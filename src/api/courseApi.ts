@@ -7,6 +7,7 @@ const API_URL = '/api';
 export type Course = {
   id: string;
   name: string;
+  description: string;
   avatar: string | null;
   subjectId: string;
   allCategories: string[];
@@ -141,6 +142,41 @@ export const updateCoruseAvatar = async (courseId: string, avatar: File): Promis
     return response.data;
   } catch (error: any) {
     console.error('Failed to update course avatar:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const deleteCourse = async (courseId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/courses/${courseId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to delete course:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateCourse = async (courseId: string, courseData: {
+  name: string;
+  description: string;
+  hidden: boolean;
+  teacherAssistantIds: string[];
+  studentIds: string[];
+}): Promise<Course> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/courses/${courseId}`, courseData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update course:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

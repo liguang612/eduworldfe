@@ -8,6 +8,7 @@ import { searchUserByEmail } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
+import { baseURL } from '../config/axios';
 
 const CreateCoursePage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const CreateCoursePage: React.FC = () => {
   const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [className, setClassName] = useState('');
+  const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [classNameError, setClassNameError] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(true);
@@ -90,7 +92,7 @@ const CreateCoursePage: React.FC = () => {
       <div className="flex items-center gap-4">
         <div
           className="bg-center bg-no-repeat bg-cover aspect-square h-12 w-12 rounded-full"
-          style={{ backgroundImage: `url("${teacher.avatar}")` }}
+          style={{ backgroundImage: `url("${baseURL}${teacher.avatar}")` }}
         ></div>
         <div className="flex flex-col justify-center">
           <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{teacher.name}</p>
@@ -138,8 +140,9 @@ const CreateCoursePage: React.FC = () => {
         },
         body: JSON.stringify({
           name: className,
+          description: description,
           subjectId: selectedSubjectId,
-          tAIds: selectedAssistants.map(ta => ta.id),
+          teacherAssistantIds: selectedAssistants.map(ta => ta.id),
           studentIds: selectedStudents.map(student => student.id),
           hidden: !isPublic,
         }),
@@ -244,7 +247,8 @@ const CreateCoursePage: React.FC = () => {
                       <textarea
                         placeholder="Class description"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] min-h-36 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
-                        defaultValue=""
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                       ></textarea>
                     </label>
                   </div>
@@ -324,7 +328,7 @@ const CreateCoursePage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div
                         className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-                        style={{ backgroundImage: `url("${teacher.avatar}")` }}
+                        style={{ backgroundImage: `url("${baseURL}${teacher.avatar}")` }}
                       ></div>
                       <div className="flex flex-col justify-center">
                         <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{teacher.name}</p>
@@ -363,7 +367,7 @@ const CreateCoursePage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div
                         className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-                        style={{ backgroundImage: `url("${student.avatar}")` }}
+                        style={{ backgroundImage: `url("${baseURL}${student.avatar}")` }}
                       ></div>
                       <div className="flex flex-col justify-center">
                         <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{student.name}</p>

@@ -5,6 +5,8 @@ import type { Course, Subject } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
 
 const CoursesPage: React.FC = () => {
+  const role = JSON.parse(localStorage.getItem('user') || '{}').role;
+
   const navigate = useNavigate();
   const API_URL = 'http://localhost:8080';
   const grades = ['Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
@@ -80,13 +82,13 @@ const CoursesPage: React.FC = () => {
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight min-w-72">Danh sách lớp học</p>
-              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal"
+              {role == 1 && <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal"
                 onClick={() => navigate('/courses/new')}
               >
                 <span className="truncate">Tạo lớp học</span>
-              </button>
+              </button>}
             </div>
-            {JSON.parse(localStorage.getItem('user') || '{}').role === 0 && <div className="flex border-b border-[#d0dbe7] px-4 justify-between">
+            {role == 0 && <div className="flex border-b border-[#d0dbe7] px-4 justify-between">
               <button
                 onClick={() => setEnrolledCourses(false)}
                 className={`flex flex-col items-center justify-center pb-[13px] pt-4 flex-1 border-b-[3px] ${!enrolledCourses ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'
