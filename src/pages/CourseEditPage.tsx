@@ -1,35 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar } from '../api/courseApi';
-import type { Course } from '../api/courseApi';
+import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar, createChapter } from '../api/courseApi';
+import type { Chapter, Course } from '../api/courseApi';
 import { SearchableDialog } from '../components/Common/SearchableDialog';
 import { InputDialog } from '../components/Common/InputDialog';
 import AddIcon from '../assets/add.svg';
 import RemoveIcon from '../assets/remove.svg';
 import { toast } from 'react-toastify';
 import { baseURL } from '../config/axios';
-
-interface ChapterProps {
-  title: string;
-  studentCount: number;
-  defaultOpen?: boolean;
-}
-
-const ChapterItem: React.FC<ChapterProps> = ({ title, studentCount, defaultOpen = false }) => {
-  return (
-    <details className="flex flex-col border-t border-t-[#d0dbe7] py-2 group" open={defaultOpen}>
-      <summary className="flex cursor-pointer items-center justify-between gap-6 py-2">
-        <p className="text-[#0e141b] text-sm font-medium leading-normal">{title}</p>
-        <div className="text-[#0e141b] group-open:rotate-180" data-icon="CaretDown" data-size="20px" data-weight="regular">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-          </svg>
-        </div>
-      </summary>
-      <p className="text-[#4e7397] text-sm font-normal leading-normal pb-2">{studentCount} students</p>
-    </details>
-  );
-};
+import { ChapterItem } from '../components/Course/ChapterItem';
 
 interface MemberItemProps {
   id: string;
@@ -100,9 +79,9 @@ const CourseEditPage: React.FC = () => {
   const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('general');
-  const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string | null>(null);
+  const [_, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'general' | 'chapters' | 'members'>('general');
+  const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
   const [hidden, setHidden] = useState<boolean>(false);
 
   // State cho teacher assistants và students
@@ -112,23 +91,10 @@ const CourseEditPage: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<SearchUser[]>([]);
 
   // State cho chapters
-  const [chaptersData, setChaptersData] = useState<ChapterProps[]>([
-    { title: "The Real Numbers", studentCount: 83, defaultOpen: true },
-    { title: "Linear Equations and Inequalities", studentCount: 83 },
-    { title: "Graphs and Functions", studentCount: 83 },
-    { title: "Systems of Linear Equations", studentCount: 83 },
-    { title: "Exponents and Polynomials", studentCount: 83 },
-    { title: "Factoring Polynomials", studentCount: 83 },
-    { title: "Rational Expressions", studentCount: 83 },
-    { title: "Radicals and Complex Numbers", studentCount: 83 },
-    { title: "Quadratic Equations", studentCount: 83 },
-    { title: "The Conic Sections", studentCount: 83 },
-    { title: "Sequences and Series", studentCount: 83 },
-    { title: "Probability and Statistics", studentCount: 83 },
-    { title: "Trigonometry", studentCount: 83 },
-  ]);
+  const [chaptersData, setChaptersData] = useState<Chapter[]>([]);
+  const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
+  const [isCreatingChapter, setIsCreatingChapter] = useState(false); // New state for chapter creation loading
 
-  const [isNewChapterDialogOpen, setIsNewChapterDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -145,18 +111,18 @@ const CourseEditPage: React.FC = () => {
       try {
         const courseData = await getCourseById(courseId);
         setCourse(courseData);
-        setSelectedAvatarPreview(courseData.avatar ? `${baseURL}${courseData.avatar}` : null);
+        setSelectedAvatarPreview(courseData.avatar ? `${baseURL}${courseData.avatar}` : '');
         setHidden(courseData.hidden);
         setSelectedAssistants(courseData.teacherAssistants);
         setSelectedStudents(courseData.students);
 
-        // Initialize new states
         setCourseName(courseData.name);
         setCourseDescription(courseData.description);
 
+        setChaptersData(courseData.chapters);
       } catch (error) {
         console.error('Failed to load course:', error);
-        navigate('/courses');
+        setError('Không thể tải dữ liệu khóa học.');
       } finally {
         setLoading(false);
       }
@@ -184,23 +150,6 @@ const CourseEditPage: React.FC = () => {
   const handlePrivacyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setHidden(event.target.value === 'private');
   };
-
-  // Chuyển đổi dữ liệu từ API thành định dạng phù hợp cho UI
-  const teacherAssistantsData: MemberItemProps[] = course?.teacherAssistants.map(ta => ({
-    id: ta.id,
-    name: ta.name,
-    avatar: ta.avatar,
-    email: ta.email,
-    onRemove: (id) => setSelectedAssistants(prev => prev.filter(t => t.id !== id))
-  })) || [];
-
-  const studentsData: MemberItemProps[] = course?.students.map(student => ({
-    id: student.id,
-    name: student.name,
-    avatar: student.avatar,
-    email: student.email,
-    onRemove: (id) => setSelectedStudents(prev => prev.filter(s => s.id !== id))
-  })) || [];
 
   // Handlers cho teacher assistants
   const openTeacherSearchDialog = () => {
@@ -244,12 +193,22 @@ const CourseEditPage: React.FC = () => {
     </div>
   );
 
-  const handleNewChapter = (chapterTitle: string) => {
-    const newChapter: ChapterProps = {
-      title: chapterTitle,
-      studentCount: 0,
-    };
-    setChaptersData(prev => [...prev, newChapter]);
+  const handleNewChapter = async (chapterTitle: string) => {
+    if (!courseId) return;
+    setIsCreatingChapter(true);
+    try {
+      const newChapter = await createChapter({
+        name: chapterTitle,
+        courseId: courseId,
+      });
+      setChaptersData(prev => [...prev, newChapter]);
+      toast.success('Thêm Chapter mới thành công!');
+    } catch (error: any) {
+      console.error('Failed to create chapter:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm Chapter mới');
+    } finally {
+      setIsCreatingChapter(false);
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -282,6 +241,10 @@ const CourseEditPage: React.FC = () => {
     }
   };
 
+  const handleChapterUpdated = async (chapter: Chapter) => {
+    setChaptersData(prev => prev.map(c => c.id === chapter.id ? chapter : c));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -297,6 +260,11 @@ const CourseEditPage: React.FC = () => {
       </div>
     );
   }
+
+  const handleChapterDeleted = async (chapterId: string) => {
+    setChaptersData(prev => prev.filter(chapter => chapter.id !== chapterId));
+  };
+
 
   return (
     <div
@@ -457,18 +425,25 @@ const CourseEditPage: React.FC = () => {
 
             {activeTab === 'chapters' && (
               <div>
-                <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Chương</h3>
+                <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Chương và bài giảng</h3>
                 <div className="flex flex-col p-4">
                   {chaptersData.map((chapter, index) => (
-                    <ChapterItem key={index} title={`Chương ${index + 1}: ${chapter.title}`} studentCount={chapter.studentCount} defaultOpen={chapter.defaultOpen} />
+                    <ChapterItem
+                      key={chapter.id}
+                      index={index}
+                      chapter={chapter}
+                      onChapterUpdated={handleChapterUpdated}
+                      onChapterDeleted={handleChapterDeleted}
+                    />
                   ))}
                 </div>
                 <div className="flex px-4 py-3">
                   <button
-                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]"
-                    onClick={() => setIsNewChapterDialogOpen(true)}
+                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setIsChapterDialogOpen(true)}
+                    disabled={isCreatingChapter}
                   >
-                    <span className="truncate">Chương mới</span>
+                    <span className="truncate">{isCreatingChapter ? 'Đang tạo...' : 'Chương mới'}</span>
                   </button>
                 </div>
               </div>
@@ -562,14 +537,13 @@ const CourseEditPage: React.FC = () => {
         itemContainerClassName="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 overflow-y-auto max-h-[50vh]"
       />
 
-      {/* Add InputDialog for new chapter */}
       <InputDialog
-        isOpen={isNewChapterDialogOpen}
-        onClose={() => setIsNewChapterDialogOpen(false)}
-        title="Add New Chapter"
-        placeholder="Enter chapter title"
+        isOpen={isChapterDialogOpen}
+        onClose={() => setIsChapterDialogOpen(false)}
+        title="Thêm Chapter mới"
+        placeholder="Nhập tên Chapter"
         onSubmit={handleNewChapter}
-        submitButtonText="Add"
+        submitButtonText="Tạo"
       />
     </div>
   );

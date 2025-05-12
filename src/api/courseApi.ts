@@ -124,6 +124,24 @@ export const createCourse = async (courseData: Course): Promise<Course> => {
   }
 };
 
+export const createChapter = async (chapterData: {
+  name: string;
+  courseId: string;
+}): Promise<Chapter> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/chapters`, chapterData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to create chapter:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
 // UPDATE
 export const updateCoruseAvatar = async (courseId: string, avatar: File): Promise<Course> => {
   try {
@@ -177,6 +195,37 @@ export const updateCourse = async (courseId: string, courseData: {
     return response.data;
   } catch (error: any) {
     console.error('Failed to update course:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateChapter = async (chapterId: string, chapterData: {
+  name: string;
+}): Promise<Chapter> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/chapters/${chapterId}`, chapterData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update chapter:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const deleteChapter = async (chapterId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/chapters/${chapterId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to delete chapter:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

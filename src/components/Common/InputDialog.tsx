@@ -7,7 +7,7 @@ interface InputDialogProps {
   placeholder: string;
   onSubmit: (value: string) => void;
   submitButtonText?: string;
-  cancelButtonText?: string;
+  initialValue?: string;
 }
 
 export function InputDialog({
@@ -16,15 +16,14 @@ export function InputDialog({
   title,
   placeholder,
   onSubmit,
-  submitButtonText = "OK",
-  cancelButtonText = "Cancel"
+  submitButtonText = "Submit",
+  initialValue = ""
 }: InputDialogProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(initialValue);
 
-  // Reset input value when dialog opens/closes
   useEffect(() => {
     if (isOpen) {
-      setInputValue('');
+      setInputValue(initialValue);
     }
   }, [isOpen]);
 
@@ -52,7 +51,8 @@ export function InputDialog({
     return null;
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (inputValue.trim()) {
       onSubmit(inputValue.trim());
       onClose();
@@ -78,28 +78,27 @@ export function InputDialog({
           </button>
         </div>
 
-        <div className="p-4">
+        <form onSubmit={handleSubmit} className="p-4">
           <input
             type="text"
-            placeholder={placeholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#1980e6] h-14 placeholder:text-[#4e7397] p-4 text-base font-normal leading-normal"
+            placeholder={placeholder}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoFocus
           />
-        </div>
+        </form>
 
         <div className="p-4 flex justify-end gap-3">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
           >
-            {cancelButtonText}
+            Huỷ
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!inputValue.trim()}
-            className="px-4 py-2 bg-[#1980e6] text-white rounded-md hover:bg-[#1670cc] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
           >
             {submitButtonText}
           </button>
