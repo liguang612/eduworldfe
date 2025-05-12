@@ -24,8 +24,12 @@ export interface RegisterPayload {
   avatar?: string;
 }
 
-export const register = async (payload: RegisterPayload) => {
-  const response = await axios.post(`${API_URL}/register`, payload);
+export const registerUser = async (payload: FormData) => {
+  const response = await axios.post(`${API_URL}/register`, payload, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
   return response.data;
 };
 
@@ -45,6 +49,27 @@ export const updateUser = async (userId: string, payload: RegisterPayload) => {
     return response.data;
   } catch (error: any) {
     console.error('Failed to update user:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateUserAvatar = async (avatar: File) => {
+  try {
+    const token = localStorage.getItem('token');
+
+    const formData = new FormData();
+    formData.append('file', avatar);
+
+    const response = await axios.post(`${API_URL}/users/avatar`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update user avatar:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

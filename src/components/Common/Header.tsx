@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Logo from '../../assets/logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { baseURL } from '../../config/axios';
 
 interface HeaderProps { } // Hiện tại Header không nhận props, bạn có thể thêm nếu cần
 
@@ -78,7 +79,7 @@ const Header: React.FC<HeaderProps> = () => {
               onClick={() => setMenuOpen((open) => !open)}
             >
               <img
-                src={user?.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
+                src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
                 alt="avatar"
                 className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
               />

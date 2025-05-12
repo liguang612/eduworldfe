@@ -7,9 +7,11 @@ import type { SearchUser } from '../api/courseApi';
 import { searchUserByEmail } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 
 const CreateCoursePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -185,7 +187,6 @@ const CreateCoursePage: React.FC = () => {
               <div className="flex flex-wrap justify-between gap-3 p-4">
                 <div className="flex min-w-72 flex-col gap-3">
                   <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Create a class</p>
-                  <p className="text-[#4e7397] text-sm font-normal leading-normal">Step 1 of 2</p>
                 </div>
               </div>
               <div className="flex flex-col md:flex-row gap-8 p-4">
@@ -292,11 +293,11 @@ const CreateCoursePage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div
                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-fit"
-                    style={{ backgroundImage: 'url("https://cdn.usegalileo.ai/sdxl10/948bf6fa-6431-44b6-b787-d05277a79bf7.png")' }}
+                    style={{ backgroundImage: `url("${user?.avatar || ''}")` }}
                   ></div>
                   <div className="flex flex-col justify-center">
-                    <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">John Doe</p>
-                    <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">johndoe@gmail.com</p>
+                    <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{user?.name || 'Unknown'}</p>
+                    <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{user?.email || 'No email'}</p>
                   </div>
                 </div>
               </div>

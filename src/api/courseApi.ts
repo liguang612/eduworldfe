@@ -133,7 +133,8 @@ export const updateCoruseAvatar = async (courseId: string, avatar: File): Promis
 
     const response = await axios.post(`${API_URL}/courses/${courseId}/avatar`, formData, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       }
     });
 
