@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import StarRatingDisplay from '../components/Course/StarRatingDisplay';
 import { getSubjectsByGrade, getCoursesBySubject } from '../api/courseApi';
 import type { Course, Subject } from '../api/courseApi';
@@ -13,6 +13,9 @@ const CoursesPage: React.FC = () => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
+  const [enrolledCourses, setEnrolledCourses] = useState<boolean>(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -36,7 +39,7 @@ const CoursesPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const data = await getCoursesBySubject(selectedSubjectId);
+        const data = await getCoursesBySubject(selectedSubjectId, enrolledCourses, searchKeyword);
         setCourses(data);
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -46,7 +49,7 @@ const CoursesPage: React.FC = () => {
     };
 
     fetchCourses();
-  }, [selectedSubjectId]);
+  }, [selectedSubjectId, enrolledCourses, searchKeyword]);
 
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const gradeNumber = parseInt(event.target.value.replace('Lớp ', ''));
@@ -55,6 +58,16 @@ const CoursesPage: React.FC = () => {
 
   const handleSubjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSubjectId(event.target.value);
+    setSearchKeyword('');
+    if (searchInputRef.current) {
+      searchInputRef.current.value = '';
+    }
+  };
+
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      setSearchKeyword(event.currentTarget.value);
+    }
   };
 
   return (
@@ -73,6 +86,26 @@ const CoursesPage: React.FC = () => {
                 <span className="truncate">Tạo lớp học</span>
               </button>
             </div>
+            {JSON.parse(localStorage.getItem('user') || '{}').role === 0 && <div className="flex border-b border-[#d0dbe7] px-4 justify-between">
+              <button
+                onClick={() => setEnrolledCourses(false)}
+                className={`flex flex-col items-center justify-center pb-[13px] pt-4 flex-1 border-b-[3px] ${!enrolledCourses ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'
+                  }`}
+              >
+                <p className="text-sm font-bold leading-normal tracking-[0.015em]">
+                  Tất cả
+                </p>
+              </button>
+              <button
+                onClick={() => setEnrolledCourses(true)}
+                className={`flex flex-col items-center justify-center pb-[13px] pt-4 flex-1 border-b-[3px] ${enrolledCourses ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'
+                  }`}
+              >
+                <p className="text-sm font-bold leading-normal tracking-[0.015em]">
+                  Đã tham gia
+                </p>
+              </button>
+            </div>}
             <div className="px-4 py-3">
               <label className="flex flex-col min-w-40 h-12 w-full">
                 <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
@@ -87,9 +120,11 @@ const CoursesPage: React.FC = () => {
                     </svg>
                   </div>
                   <input
+                    ref={searchInputRef}
                     placeholder="Tìm kiếm lớp học"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border-none bg-[#e7edf3] focus:border-none h-full placeholder:text-[#4e7397] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                    defaultValue="" // Sử dụng defaultValue thay vì value cho input không kiểm soát
+                    onKeyDown={handleSearch}
+                    defaultValue=""
                   />
                 </div>
               </label>
@@ -138,9 +173,9 @@ const CoursesPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1980e6]"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-6 p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
                 {courses.map((course) => (
-                  <div key={course.id} className="flex flex-col gap-3 pb-3">
+                  <div key={course.id} className="flex flex-col gap-3 pb-3 max-w-[300px]">
                     <div
                       className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
                       style={{ backgroundImage: `url("${API_URL}${course.avatar}")` }}
@@ -160,8 +195,6 @@ const CoursesPage: React.FC = () => {
                 ))}
               </div>
             )}
-
-            {/* ... Phần code còn lại của CoursesPage component ... */}
           </div>
         </div>
       </div>

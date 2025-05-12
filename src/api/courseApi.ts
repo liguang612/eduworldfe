@@ -44,12 +44,12 @@ export const getSubjectsByGrade = async (grade: number): Promise<Subject[]> => {
   }
 };
 
-export const getCoursesBySubject = async (subjectId: string): Promise<Course[]> => {
+export const getCoursesBySubject = async (subjectId: string, enrolled: boolean, keyword: string): Promise<Course[]> => {
   try {
     const token = localStorage.getItem('token');
 
     const response = await axios.get(`${API_URL}/courses`, {
-      params: { 'subjectId': subjectId },
+      params: { 'subjectId': subjectId, 'enrolled': enrolled, 'keyword': keyword },
       headers: {
         Authorization: `Bearer ${token}`
       }

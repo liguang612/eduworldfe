@@ -67,7 +67,7 @@ export default function AccountPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/auth/users`, formData, {
+      await axios.put(`/api/auth/users`, formData, {
         headers: {
           Authorization: `Bearer ${token}`
         }

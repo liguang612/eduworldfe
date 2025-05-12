@@ -28,3 +28,23 @@ export const register = async (payload: RegisterPayload) => {
   const response = await axios.post(`${API_URL}/register`, payload);
   return response.data;
 };
+
+export const getUser = async (userId: string) => {
+  const response = await axios.get(`${API_URL}/users/${userId}`);
+  return response.data;
+};
+
+export const updateUser = async (userId: string, payload: RegisterPayload) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/users/${userId}`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update user:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

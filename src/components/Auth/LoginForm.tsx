@@ -37,7 +37,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           id: response.data.id,
           name: response.data.name,
           email: data.email,
-          avatar: response.data.avatar
+          avatar: response.data.avatar,
+          role: response.data.role,
         });
         if (onLoginSuccess) onLoginSuccess();
       } else {
