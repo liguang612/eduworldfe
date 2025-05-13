@@ -12,7 +12,7 @@ import AccountPage from '../pages/AccountPage';
 import ChangePassword from '../pages/ChangePassword';
 import CreateCoursePage from '../pages/CreateCoursePage';
 import LecturesPage from '../pages/LecturesPage';
-import MyEditor from '../pages/MyEditor';
+import LectureCreatePage from '@/pages/LectureCreatePage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -105,13 +105,12 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
-
     <Route
-      path="/my-editor"
+      path="/lectures/create"
       element={
         <ProtectedRoute>
           <Layout>
-            <MyEditor />
+            <LectureCreatePage />
           </Layout>
         </ProtectedRoute>
       }

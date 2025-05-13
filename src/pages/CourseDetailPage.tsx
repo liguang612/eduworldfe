@@ -279,9 +279,9 @@ const CourseDetailPage: React.FC = () => {
               </div>
               <div className="flex justify-stretch">
                 <div className="flex flex-1 gap-3 max-w-[480px] flex-col items-stretch px-4 py-3">
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] w-full">
+                  {role == 0 && <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] w-full">
                     <span className="truncate">Viết đánh giá</span>
-                  </button>
+                  </button>}
                   <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] w-full">
                     <span className="truncate">Xem tất cả đánh giá</span>
                   </button>
