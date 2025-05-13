@@ -1,25 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import RatingStars from '../components/Common/RatingStars';
 import { useNavigate } from 'react-router-dom';
 import { getSubjectsByGrade } from '../api/courseApi';
 import type { Subject } from '../api/courseApi';
-
-interface Lecture {
-  id: number;
-  title: string;
-  duration: string;
-  rating: number;
-  questions: number;
-}
-
-const lecturesData: Lecture[] = [
-  { id: 1, title: 'Lecture 1: Introduction to the Course', duration: '3m', rating: 4.5, questions: 20 },
-  { id: 2, title: 'Lecture 2: Overview of Chapter 1', duration: '3m', rating: 4.5, questions: 20 },
-  { id: 3, title: 'Lecture 3: Chapter 1.1', duration: '3m', rating: 4.5, questions: 20 },
-  { id: 4, title: 'Lecture 4: Chapter 1.2', duration: '3m', rating: 4.5, questions: 20 },
-  { id: 5, title: 'Lecture 5: Chapter 1.3', duration: '3m', rating: 4.5, questions: 20 },
-  { id: 6, title: 'Lecture 6: Chapter 1.4', duration: '3m', rating: 4.5, questions: 20 },
-];
+import { getLectures, type LectureResponse } from '../api/lectureApi';
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -29,7 +13,9 @@ const LectureListPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState(1);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
-
+  const [lectures, setLectures] = useState<LectureResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -46,6 +32,24 @@ const LectureListPage: React.FC = () => {
     fetchSubjects();
   }, [selectedGrade]);
 
+  useEffect(() => {
+    const fetchLectures = async () => {
+      if (!selectedSubjectId) return;
+
+      setLoading(true);
+      try {
+        const data = await getLectures(selectedSubjectId, searchKeyword);
+        setLectures(data);
+      } catch (error) {
+        console.error('Error fetching lectures:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLectures();
+  }, [selectedSubjectId, searchKeyword]);
+
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const gradeNumber = parseInt(event.target.value);
     setSelectedGrade(gradeNumber);
@@ -53,6 +57,13 @@ const LectureListPage: React.FC = () => {
 
   const handleSubjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSubjectId(event.target.value);
+  };
+
+  const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      setSearchKeyword(event.currentTarget.value);
+      console.log(searchKeyword);
+    }
   };
 
   return (
@@ -89,6 +100,7 @@ const LectureListPage: React.FC = () => {
                     placeholder="Search by lecture name"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border-none bg-[#e7edf3] focus:border-none h-full placeholder:text-[#4e7397] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     defaultValue=""
+                    onKeyDown={handleSearch}
                   />
                 </div>
               </label>
@@ -143,29 +155,35 @@ const LectureListPage: React.FC = () => {
               </button>
             </div>
 
-            {lecturesData.map((lecture) => (
-              <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{lecture.title}</p>
-                    <div className="flex items-center gap-1 text-[#4e7397] text-sm font-normal leading-normal">
-                      <span>{lecture.duration}</span>
-                      <span className="mx-1">•</span>
-                      <RatingStars rating={lecture.rating} />
-                      <span>{`(${lecture.rating})`}</span>
+            {loading ? (
+              <div className="flex justify-center items-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1980e6]"></div>
+              </div>
+            ) : (
+              lectures.map((lecture) => (
+                <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
+                      </svg>
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{lecture.name}</p>
+                      <div className="flex items-center gap-1 text-[#4e7397] text-sm font-normal leading-normal">
+                        <span>{`${lecture.duration}m`}</span>
+                        <span className="mx-1">•</span>
+                        <RatingStars rating={4.5} />
+                        <span>(4.5)</span>
+                      </div>
                     </div>
                   </div>
+                  <div className="shrink-0">
+                    <p className="text-[#0e141b] text-base font-normal leading-normal">{lecture.endQuestions.length} Questions</p>
+                  </div>
                 </div>
-                <div className="shrink-0">
-                  <p className="text-[#0e141b] text-base font-normal leading-normal">{lecture.questions} Questions</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

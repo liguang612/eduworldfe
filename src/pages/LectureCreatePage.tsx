@@ -6,6 +6,7 @@ import { uploadFile, createLecture } from '../api/lectureApi';
 import type { Subject } from '../api/courseApi';
 import { toast } from 'react-toastify';
 import { baseURL } from '@/config/axios';
+import { useNavigate } from 'react-router-dom';
 
 const LectureEditPage: React.FC = () => {
   const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -17,6 +18,9 @@ const LectureEditPage: React.FC = () => {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<MyEditorRef>(null);
+  const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = Array.from({ length: 12 }, (_, i) => i * 5);
@@ -64,6 +68,9 @@ const LectureEditPage: React.FC = () => {
     const lectureName = nameInputRef.current?.value || '';
     const lectureDescription = descriptionTextareaRef.current?.value || '';
 
+    setLoading(true);
+    setStatusMessage(null);
+
     try {
       const contents = [...editorValue.value];
 
@@ -77,6 +84,7 @@ const LectureEditPage: React.FC = () => {
           const fileName = content.name && content.name !== '' ? content.name : `uploaded_file_${Date.now()}.${metadata[1] || 'bin'}`;
           const file = new File([blob], fileName, { type: blob.type });
 
+          setStatusMessage(`Đang tải ${metadata[0] === 'image' ? 'hình ảnh' : metadata[0] === 'video' ? 'video' : metadata[0] === 'audio' ? 'âm thanh' : 'file'}`);
           const fileUrl = await uploadFile(file, metadata[0]);
 
           const writableContent = { ...content };
@@ -88,8 +96,8 @@ const LectureEditPage: React.FC = () => {
         }
       }
 
+      setStatusMessage('Đang tạo bài giảng');
       const teacherId = (JSON.parse(localStorage.getItem('user') || '{}')).id;
-
       const lectureData = {
         name: lectureName,
         description: lectureDescription,
@@ -101,7 +109,12 @@ const LectureEditPage: React.FC = () => {
 
       await createLecture(lectureData);
       toast.success('Tạo bài giảng thành công');
+      setLoading(false);
+      setStatusMessage(null);
+      navigate('/lectures');
     } catch (error) {
+      setLoading(false);
+      setStatusMessage(null);
       console.error('Error saving lecture:', error);
       toast.error('Có lỗi xảy ra, vui lòng thử lại sau.');
       toast.warning('Bạn có thể export bài giảng dưới dạng HTML (khuyến nghị) hoặc Markdown để import lại sau.');
@@ -231,12 +244,20 @@ const LectureEditPage: React.FC = () => {
                 Câu hỏi ôn tập
               </h3>
 
-              <div className="flex px-4 py-3 justify-end">
+              <div className="flex px-4 py-3 flex-col items-end gap-2">
+                {statusMessage && (
+                  <div className="text-sm text-blue-600 font-medium mb-2 w-full text-right">{statusMessage}</div>
+                )}
                 <button
-                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em]"
+                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handleSave}
+                  disabled={loading}
                 >
-                  <span className="truncate">Tạo bài giảng</span>
+                  {loading ? (
+                    <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Đang xử lý...</span>
+                  ) : (
+                    <span className="truncate">Tạo bài giảng</span>
+                  )}
                 </button>
               </div>
             </div>
