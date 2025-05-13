@@ -14,6 +14,7 @@ export type Course = {
   teacher: User;
   teacherAssistants: any[];
   students: any[];
+  pendingStudents: any[];
   chapters: Chapter[];
   reviewIds: string[];
   averageRating: number;
@@ -226,6 +227,51 @@ export const deleteChapter = async (chapterId: string): Promise<void> => {
     });
   } catch (error: any) {
     console.error('Failed to delete chapter:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const requestJoinCourse = async (courseId: string): Promise<number> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/courses/${courseId}/request-join`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to request join course:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const rejectJoinRequest = async (courseId: string, studentId: string): Promise<Course> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/courses/${courseId}/reject-join/${studentId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to reject join request:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const approveJoinRequest = async (courseId: string, studentId: string): Promise<Course> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/courses/${courseId}/approve-join/${studentId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to approve join request:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

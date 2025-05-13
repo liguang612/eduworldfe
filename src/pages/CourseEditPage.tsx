@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar, createChapter } from '../api/courseApi';
+import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar, createChapter, rejectJoinRequest, approveJoinRequest } from '../api/courseApi';
 import type { Chapter, Course } from '../api/courseApi';
 import { SearchableDialog } from '../components/Common/SearchableDialog';
 import { InputDialog } from '../components/Common/InputDialog';
 import AddIcon from '../assets/add.svg';
 import RemoveIcon from '../assets/remove.svg';
-import { toast } from 'react-toastify';
+import ApproveIcon from '../assets/approve.svg';
+import RejectIcon from '../assets/reject.svg';
+import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '../config/axios';
 import { ChapterItem } from '../components/Course/ChapterItem';
 
@@ -16,6 +18,8 @@ interface MemberItemProps {
   avatar: string;
   email: string;
   onRemove: (id: string) => void;
+  onReject: (id: string) => void;
+  onApprove: (id: string) => void;
 }
 
 const AssistantItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onRemove }) => {
@@ -74,6 +78,42 @@ const StudentItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onRem
   );
 };
 
+const RequestItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onReject, onApprove }) => {
+  return (
+    <div
+      key={id}
+      className="w-full sm:w-[calc((100%_-_16px)_/_2)] lg:w-[calc((100%_-_32px)_/_3)] bg-slate-50 px-4 py-2 min-h-[72px] rounded-lg flex items-center justify-between"
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
+          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
+        ></div>
+        <div className="flex flex-col justify-center">
+          <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
+          <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onReject(id)}
+        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
+        aria-label="Reject request"
+      >
+        <img src={RejectIcon} alt="Reject" className="size-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onApprove(id)}
+        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
+        aria-label="Approve request"
+      >
+        <img src={ApproveIcon} alt="Approve" className="size-5" />
+      </button>
+    </div>
+  );
+};
+
 const CourseEditPage: React.FC = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -89,6 +129,9 @@ const CourseEditPage: React.FC = () => {
   const [isStudentSearchOpen, setIsStudentSearchOpen] = useState(false);
   const [selectedAssistants, setSelectedAssistants] = useState<SearchUser[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<SearchUser[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<SearchUser[]>([]);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   // State cho chapters
   const [chaptersData, setChaptersData] = useState<Chapter[]>([]);
@@ -115,6 +158,7 @@ const CourseEditPage: React.FC = () => {
         setHidden(courseData.hidden);
         setSelectedAssistants(courseData.teacherAssistants);
         setSelectedStudents(courseData.students);
+        setPendingRequests(courseData.pendingStudents || []);
 
         setCourseName(courseData.name);
         setCourseDescription(courseData.description);
@@ -243,6 +287,37 @@ const CourseEditPage: React.FC = () => {
 
   const handleChapterUpdated = async (chapter: Chapter) => {
     setChaptersData(prev => prev.map(c => c.id === chapter.id ? chapter : c));
+  };
+
+  const handleRejectRequest = async (studentId: string) => {
+    if (!courseId) return;
+    try {
+      setIsRejecting(true);
+      const updatedCourse = await rejectJoinRequest(courseId, studentId);
+      setPendingRequests(updatedCourse.pendingStudents || []);
+      toast.success('Từ chối yêu cầu tham gia thành công!');
+    } catch (error: any) {
+      console.error('Failed to reject request:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi từ chối yêu cầu');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  const handleApproveRequest = async (studentId: string) => {
+    if (!courseId) return;
+    try {
+      setIsApproving(true);
+      const updatedCourse = await approveJoinRequest(courseId, studentId);
+      setPendingRequests(updatedCourse.pendingStudents || []);
+      setSelectedStudents(updatedCourse.students);
+      toast.success('Chấp nhận yêu cầu tham gia thành công!');
+    } catch (error: any) {
+      console.error('Failed to approve request:', error);
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi chấp nhận yêu cầu');
+    } finally {
+      setIsApproving(false);
+    }
   };
 
   if (loading) {
@@ -471,6 +546,8 @@ const CourseEditPage: React.FC = () => {
                       avatar={assistant.avatar}
                       email={assistant.email}
                       onRemove={(id) => setSelectedAssistants(prev => prev.filter(t => t.id !== id))}
+                      onReject={(_) => { }}
+                      onApprove={(_) => { }}
                     />
                   ))}
                 </div>
@@ -496,6 +573,27 @@ const CourseEditPage: React.FC = () => {
                       avatar={student.avatar}
                       email={student.email}
                       onRemove={(id) => setSelectedStudents(prev => prev.filter(s => s.id !== id))}
+                      onReject={(_) => { }}
+                      onApprove={(_) => { }}
+                    />
+                  ))}
+                </div>
+
+                {/* Request Section */}
+                <div className="flex flex-row gap-4 items-center">
+                  <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Yêu cầu tham gia</h3>
+                </div>
+                <div className="flex flex-wrap gap-4 px-4">
+                  {pendingRequests.map((request) => (
+                    <RequestItem
+                      key={request.id}
+                      id={request.id}
+                      name={request.name}
+                      avatar={request.avatar}
+                      email={request.email}
+                      onRemove={(_) => { }}
+                      onReject={handleRejectRequest}
+                      onApprove={handleApproveRequest}
                     />
                   ))}
                 </div>
@@ -545,6 +643,7 @@ const CourseEditPage: React.FC = () => {
         onSubmit={handleNewChapter}
         submitButtonText="Tạo"
       />
+      <ToastContainer />
     </div>
   );
 };

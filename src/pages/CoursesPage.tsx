@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import StarRatingDisplay from '../components/Course/StarRatingDisplay';
-import { getSubjectsByGrade, getCoursesBySubject } from '../api/courseApi';
+import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '../api/courseApi';
 import type { Course, Subject } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
+import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
+import { toast, ToastContainer } from 'react-toastify';
 
 const CoursesPage: React.FC = () => {
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
-
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
   const navigate = useNavigate();
   const API_URL = 'http://localhost:8080';
   const grades = ['Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
@@ -18,6 +20,8 @@ const CoursesPage: React.FC = () => {
   const [enrolledCourses, setEnrolledCourses] = useState<boolean>(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -69,6 +73,35 @@ const CoursesPage: React.FC = () => {
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       setSearchKeyword(event.currentTarget.value);
+    }
+  };
+
+  const handleCourseClick = (course: Course) => {
+    if (role === 0 && !course.students.some(student => student.id === userId)) {
+      setSelectedCourse(course);
+      setShowJoinDialog(true);
+    } else {
+      navigate(`/courses/${course.id}`);
+    }
+  };
+
+  const handleJoinRequest = async () => {
+    if (!selectedCourse) return;
+
+    try {
+      const response = await requestJoinCourse(selectedCourse.id);
+      if (response === 200000) {
+        toast.success('Gửi yêu cầu thành công');
+      } else if (response === 200001) {
+        toast.warning('Bạn đã gửi yêu cầu tham gia lớp học rồi');
+      } else if (response === 200002) {
+        toast.error('Bạn đã tham gia lớp học này. Hãy reload lại trang để truy cập lớp học');
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setShowJoinDialog(false);
+      setSelectedCourse(null);
     }
   };
 
@@ -180,7 +213,7 @@ const CoursesPage: React.FC = () => {
                   <div
                     key={course.id}
                     className="flex flex-col gap-3 pb-3 max-w-[300px] cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => navigate(`/courses/${course.id}`)}
+                    onClick={() => handleCourseClick(course)}
                   >
                     <div
                       className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
@@ -204,6 +237,20 @@ const CoursesPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={showJoinDialog}
+        onClose={() => {
+          setShowJoinDialog(false);
+          setSelectedCourse(null);
+        }}
+        title="Yêu cầu tham gia lớp học"
+        message="Bạn chưa tham gia vào lớp học này. Gửi yêu cầu vào lớp tới giáo viên chứ?"
+        onConfirm={handleJoinRequest}
+        confirmButtonText="Gửi yêu cầu"
+        cancelButtonText="Hủy"
+      />
+      <ToastContainer />
     </>
   );
 };

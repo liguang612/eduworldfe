@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { Chapter, Course } from '../api/courseApi';
+import type { Course } from '../api/courseApi';
 import { getCourseById, deleteCourse } from '../api/courseApi';
 import { baseURL } from '../config/axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,86 +19,6 @@ const CourseDetailPage: React.FC = () => {
 
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
 
-  const mockChapters: Chapter[] = [
-    {
-      id: '1',
-      name: 'Chapter 1',
-      lectures: [
-        {
-          id: '1',
-          number: '1',
-          title: 'Lecture 1',
-          duration: '10:00'
-        },
-        {
-          id: '2',
-          number: '2',
-          title: 'Lecture 2',
-          duration: '10:00'
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Chapter 2',
-      lectures: [
-        {
-          id: '2',
-          number: '2',
-          title: 'Lecture 2',
-          duration: '10:00'
-        },
-        {
-          id: '3',
-          number: '3',
-          title: 'Lecture 3',
-          duration: '10:00'
-        },
-        {
-          id: '4',
-          number: '4',
-          title: 'Lecture 4',
-          duration: '10:00'
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Chapter 3',
-      lectures: [
-        {
-          id: '3',
-          number: '3',
-          title: 'Lecture 3',
-          duration: '10:00'
-        }
-      ]
-    },
-    {
-      id: '4',
-      name: 'Chapter 4',
-      lectures: [
-        {
-          id: '4',
-          number: '4',
-          title: 'Lecture 4',
-          duration: '10:00'
-        },
-        {
-          id: '5',
-          number: '5',
-          title: 'Lecture 5',
-          duration: '10:00'
-        },
-        {
-          id: '6',
-          number: '6',
-          title: 'Lecture 6',
-          duration: '10:00'
-        }
-      ]
-    }
-  ]
   useEffect(() => {
     const fetchCourse = async () => {
       if (!id) {

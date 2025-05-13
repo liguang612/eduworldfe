@@ -3,4 +3,6 @@ export interface Lecture {
   number: string;
   title: string;
   duration: string;
+  rating: number;
+  questions: number;
 }
