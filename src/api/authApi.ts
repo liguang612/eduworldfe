@@ -1,14 +1,19 @@
+import type { AxiosResponse } from 'axios';
 import axios from '../config/axios';
 
 const API_URL = '/api/auth';
 
-export const login = async (email: string, password: string): Promise<{ token: string }> => {
+export const login = async (email: string, password: string): Promise<AxiosResponse<any, any>> => {
   try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
-    return response.data; // Backend trả về { token: "..." }
+    const response = await axios.post(`${API_URL}/login`, { email, password }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    return response;
   } catch (error: any) {
     console.error('Login failed:', error.response ? error.response.data : error.message);
-    throw error; // Re-throw lỗi để component LoginForm có thể xử lý
+    throw error;
   }
 };
 

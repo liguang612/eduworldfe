@@ -12,6 +12,7 @@ import AccountPage from '../pages/AccountPage';
 import ChangePassword from '../pages/ChangePassword';
 import CreateCoursePage from '../pages/CreateCoursePage';
 import LecturesPage from '../pages/LecturesPage';
+import MyEditor from '../pages/MyEditor';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -105,7 +106,18 @@ const AppRoutes: React.FC = () => (
       }
     />
 
-  </Routes>
+    <Route
+      path="/my-editor"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <MyEditor />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+
+  </Routes >
 );
 
 export default AppRoutes;

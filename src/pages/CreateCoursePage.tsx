@@ -189,7 +189,7 @@ const CreateCoursePage: React.FC = () => {
             <div className="layout-content-container flex flex-col py-5 flex-1">
               <div className="flex flex-wrap justify-between gap-3 p-4">
                 <div className="flex min-w-72 flex-col gap-3">
-                  <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Create a class</p>
+                  <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Tạo lớp học</p>
                 </div>
               </div>
               <div className="flex flex-col md:flex-row gap-8 p-4">
@@ -214,11 +214,11 @@ const CreateCoursePage: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <p className="text-[#0e141b] text-base font-medium leading-normal mb-1">Class avatar</p>
+                        <p className="text-[#0e141b] text-base font-medium leading-normal mb-1">Ảnh đại diện lớp học</p>
                         <p className="text-[#4e7397] text-sm font-normal leading-normal">
-                          Drag & drop or <span className="text-blue-600 font-semibold">click to upload</span>
+                          Kéo thả hoặc <span className="text-blue-600 font-semibold">click để tải lên</span>
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 5MB</p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF</p>
                       </div>
                     )}
                     <input
@@ -234,7 +234,7 @@ const CreateCoursePage: React.FC = () => {
                   <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                     <label className="flex flex-col min-w-40 flex-1">
                       <input
-                        placeholder="Class name"
+                        placeholder="Tên lớp học"
                         className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${classNameError ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal`}
                         value={className}
                         onChange={handleClassNameChange}
@@ -245,7 +245,7 @@ const CreateCoursePage: React.FC = () => {
                   <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                     <label className="flex flex-col min-w-40 flex-1">
                       <textarea
-                        placeholder="Class description"
+                        placeholder="Mô tả lớp học"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] min-h-36 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
@@ -292,12 +292,12 @@ const CreateCoursePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 w-fit">Teachers</h3>
+              <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 w-fit">Giáo viên</h3>
               <div className="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between">
                 <div className="flex items-center gap-4">
                   <div
                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-fit"
-                    style={{ backgroundImage: `url("${user?.avatar || ''}")` }}
+                    style={{ backgroundImage: `url("${baseURL}${user?.avatar || ''}")` }}
                   ></div>
                   <div className="flex flex-col justify-center">
                     <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{user?.name || 'Unknown'}</p>
@@ -308,7 +308,7 @@ const CreateCoursePage: React.FC = () => {
               {/* Teacher assistants */}
               <div className="flex flex-row gap-4 items-center">
                 <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 w-fit">
-                  Teacher assistants
+                  Trợ giảng
                 </h3>
                 <button
                   type="button"
@@ -341,14 +341,14 @@ const CreateCoursePage: React.FC = () => {
                       className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
                       aria-label="Remove teacher"
                     >
-                      <img src={RemoveIcon} alt="Remove" className="size-5" /> {/* Giả sử bạn có RemoveIcon */}
+                      <img src={RemoveIcon} alt="Remove" className="size-5" />
                     </button>
                   </div>
                 ))}
               </div>
               {/* Students */}
               <div className="flex flex-row gap-4 items-center">
-                <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 w-fit">Students</h3>
+                <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 w-fit">Học sinh</h3>
                 <button
                   type="button"
                   className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition"
@@ -412,14 +412,14 @@ const CreateCoursePage: React.FC = () => {
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-transparent text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]"
                     onClick={() => navigate("/courses")}
                   >
-                    <span className="truncate">Cancel</span>
+                    <span className="truncate">Hủy bỏ</span>
                   </button>
                   <button
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                   >
-                    <span className="truncate">{isSubmitting ? 'Đang xử lý...' : 'Next'}</span>
+                    <span className="truncate">{isSubmitting ? 'Đang xử lý...' : 'Tạo lớp học'}</span>
                   </button>
                 </div>
               </div>

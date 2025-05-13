@@ -5,6 +5,8 @@ import type { Resolver } from 'react-hook-form';
 import * as yup from 'yup';
 import { Link } from 'react-router-dom';
 import { registerUser } from '../../api/authApi';
+import { ToastContainer, toast } from 'react-toastify';
+
 
 interface RegisterFormProps {
   onRegisterSuccess: () => void;
@@ -88,10 +90,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
 
       await registerUser(formData);
 
+      toast.success('Đăng ký thành công');
       onRegisterSuccess();
     } catch (error: any) {
       setRegisterError(error?.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại sau.');
       console.error('Registration error:', error);
+
+      toast.error('Đăng ký thất bại. Vui lòng thử lại sau.');
     } finally {
       setIsLoading(false);
     }
@@ -312,6 +317,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
           </form>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

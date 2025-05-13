@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import StarRatingDisplay from '../components/Course/StarRatingDisplay';
+
 import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '../api/courseApi';
 import type { Course, Subject } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';

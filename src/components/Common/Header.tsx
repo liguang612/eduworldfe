@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = () => {
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/questions')}>
             Ngân hàng câu hỏi
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exams')}>
+          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/my-editor')}>
             Đề thi
           </a>
         </div>

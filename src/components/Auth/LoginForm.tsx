@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from '../../config/axios'; // Đảm bảo axios đã được cấu hình baseURL
+import { login } from '../../api/authApi';
 
 const schema = yup.object().shape({
   email: yup.string().email('Email không hợp lệ').required('Email là bắt buộc'),
@@ -30,7 +30,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const onSubmit = async (data: { email: string; password: string }) => {
     setLoginError(null);
     try {
-      const response = await axios.post('/api/auth/login', data);
+      console.log(data);
+      const response = await login(data.email, data.password);
       if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
         authLogin(response.data.token, {

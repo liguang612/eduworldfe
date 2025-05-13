@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import RegisterForm from '../components/Auth/RegisterForm';
 import Header from '../components/Common/Header';
 
@@ -14,7 +14,6 @@ const RegisterPage: React.FC = () => {
     <div >
       <Header />
       <RegisterForm onRegisterSuccess={handleRegisterSuccess} />
-
     </div>
   );
 };
