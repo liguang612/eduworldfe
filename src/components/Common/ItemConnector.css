@@ -1,0 +1,88 @@
+/* src/components/ItemConnector.css */
+.item-connector-wrapper {
+  position: relative;
+  /* Cần thiết cho react-xarrows để định vị đúng */
+}
+
+.item-connector-container {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  gap: 100px;
+  /* Khoảng cách giữa hai cột */
+}
+
+.column {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  min-width: 200px;
+  /* Chiều rộng tối thiểu của cột */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Khoảng cách giữa các item trong cột */
+}
+
+.column h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.item {
+  padding: 12px 18px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: white;
+  text-align: center;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item:not(.readonly) {
+  cursor: pointer;
+}
+
+
+.item:not(.readonly):hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.item.selected {
+  background-color: #007bff;
+  /* Bootstrap primary blue */
+  color: white;
+  border-color: #0056b3;
+  font-weight: bold;
+}
+
+.item.connected-to-selected {
+  background-color: #28a745;
+  /* Bootstrap success green */
+  color: white;
+}
+
+
+.item.readonly {
+  cursor: default;
+  background-color: #e9ecef;
+  /* Màu nền cho item ở chế độ chỉ đọc */
+  color: #495057;
+}
+
+/* CSS cho Xarrow (tùy chọn) */
+.xarrow-editable {
+  /* Có thể thêm hiệu ứng hover cho đường nối nếu muốn */
+  /* cursor: pointer; */
+}
+
+.xarrow-readonly path {
+  /* stroke-dasharray: 5 5; */
+  /* làm cho đường nối nét đứt ở chế độ chỉ đọc */
+}
