@@ -44,7 +44,7 @@ export function SearchableDialog<T extends SearchResultItem>({
     setIsLoading(true);
     setHasSearched(true);
     try {
-      const results = await Promise.resolve(onSearch(term)); // Đảm bảo onSearch có thể là promise
+      const results = await Promise.resolve(onSearch(term));
       setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
@@ -63,7 +63,6 @@ export function SearchableDialog<T extends SearchResultItem>({
     handleSearch(searchTerm);
   };
 
-  // Xử lý đóng dialog khi bấm phím Esc
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

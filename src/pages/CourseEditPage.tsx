@@ -509,6 +509,7 @@ const CourseEditPage: React.FC = () => {
                       chapter={chapter}
                       onChapterUpdated={handleChapterUpdated}
                       onChapterDeleted={handleChapterDeleted}
+                      subjectId={course.subjectId}
                     />
                   ))}
                 </div>

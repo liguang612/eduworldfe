@@ -125,3 +125,18 @@ export const updateLecture = async (lectureId: string, lectureData: {
     throw error;
   }
 };
+
+export const getLecturesByIds = async (lectureIds: string[]): Promise<LectureResponse[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/lectures/by-ids`, lectureIds, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch lectures by IDs:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

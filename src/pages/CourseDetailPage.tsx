@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Course } from '../api/courseApi';
-import { getCourseById, deleteCourse } from '../api/courseApi';
+import { getCourseById, deleteCourse, getSubjectById } from '../api/courseApi';
 import { baseURL } from '../config/axios';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getLecturesByIds, type LectureResponse } from '../api/lectureApi';
+
+interface Subject {
+  id: string;
+  name: string;
+  grade: number;
+}
 
 const CourseDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +21,10 @@ const CourseDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
-  const [openChapterId, setOpenChapterId] = useState<string | null>(null);
+  const [openChapterIds, setOpenChapterIds] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [subject, setSubject] = useState<Subject | null>(null);
+  const [chapterLectures, setChapterLectures] = useState<{ [key: string]: LectureResponse[] }>({});
 
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
 
@@ -32,7 +41,16 @@ const CourseDetailPage: React.FC = () => {
         setCourse(data);
 
         if (data && data.chapters && data.chapters.length > 0) {
-          setOpenChapterId(data.chapters[0].id);
+          setOpenChapterIds([data.chapters[0].id]);
+        }
+
+        if (data?.subjectId) {
+          try {
+            const subjectResponse = await getSubjectById(data.subjectId);
+            setSubject(subjectResponse);
+          } catch (error) {
+            console.error('Error fetching subject:', error);
+          }
         }
       } catch (error) {
         console.error('Error fetching course:', error);
@@ -42,10 +60,27 @@ const CourseDetailPage: React.FC = () => {
     };
 
     fetchCourse();
-  }, [id]); // Thêm id vào dependency array để fetch lại nếu id thay đổi
+  }, [id]);
 
-  const handleToggleChapter = (chapterId: string) => {
-    setOpenChapterId(prevOpenChapterId => prevOpenChapterId === chapterId ? null : chapterId);
+  const handleToggleChapter = async (chapterId: string) => {
+    if (openChapterIds.includes(chapterId)) {
+      setOpenChapterIds(prev => prev.filter(id => id !== chapterId));
+    } else {
+      setOpenChapterIds(prev => [...prev, chapterId]);
+      const chapter = course?.chapters.find(c => c.id === chapterId);
+      if (chapter && chapter.lectureIds && chapter.lectureIds.length > 0 && !chapterLectures[chapterId]) {
+        try {
+          const lectures = await getLecturesByIds(chapter.lectureIds);
+          setChapterLectures(prev => ({
+            ...prev,
+            [chapterId]: lectures
+          }));
+        } catch (error) {
+          console.error('Error fetching lectures:', error);
+          toast.error('Không thể tải danh sách bài giảng');
+        }
+      }
+    }
   };
 
   const openDeleteDialog = () => {
@@ -124,9 +159,12 @@ const CourseDetailPage: React.FC = () => {
                       <p className="text-[#0e141b] text-[22px] font-bold leading-tight tracking-[-0.015em]">
                         {course.name}
                       </p>
-                      <p className="text-[#4e7397] text-base font-normal leading-normal">
+                      <div className="text-[#4e7397] text-base font-normal leading-normal">
                         Giáo viên: {course.teacher?.name || 'N/A'}
-                      </p>
+                      </div>
+                      <div className="text-[#4e7397] text-base font-normal leading-normal">
+                        Môn học: {subject ? `${subject.name} - Lớp ${subject.grade}` : 'N/A'}
+                      </div>
                     </div>
                   </div>
                   {role == 0 && <div className="flex w-full max-w-[480px] gap-3 @[480px]:w-auto">
@@ -171,55 +209,59 @@ const CourseDetailPage: React.FC = () => {
                   <details
                     key={chapter.id || chapterIndex}
                     className="flex flex-col border-t border-t-[#d0dbe7] py-2 group"
-                    open={openChapterId === chapter.id}
+                    open={openChapterIds.includes(chapter.id)}
                     onToggle={(e) => {
                       const currentTarget = e.target as HTMLDetailsElement;
                       if (currentTarget.open) {
-                        setOpenChapterId(chapter.id);
-                      } else if (openChapterId === chapter.id) {
-                        setOpenChapterId(null);
+                        handleToggleChapter(chapter.id);
                       }
                     }}
                   >
                     <summary
                       className="flex cursor-pointer items-center justify-between gap-6 py-2 list-none"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleToggleChapter(chapter.id);
-                      }}
                     >
                       <p className="text-[#0e141b] text-sm font-medium leading-normal">{chapter.name}</p>
-                      <div className={`text-[#0e141b] transition-transform duration-200 ${openChapterId === chapter.id ? 'rotate-180' : ''}`} data-icon="CaretDown" data-size="20px" data-weight="regular">
+                      <div className={`text-[#0e141b] transition-transform duration-200 ${openChapterIds.includes(chapter.id) ? 'rotate-180' : ''}`} data-icon="CaretDown" data-size="20px" data-weight="regular">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
                           <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
                         </svg>
                       </div>
                     </summary>
-                    {openChapterId === chapter.id && Array.isArray(chapter.lectures) && chapter.lectures.map((lecture, lectureIndex) => (
-                      <div
-                        key={lecture.id || lectureIndex}
-                        className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between border-b border-b-gray-100 last:border-b-0"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                              <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
-                            </svg>
+                    {openChapterIds.includes(chapter.id) && Array.isArray(chapter.lectureIds) && chapter.lectureIds.length > 0 && (
+                      <div className="flex flex-col">
+                        {chapterLectures[chapter.id] ? (
+                          chapterLectures[chapter.id].map((lecture, lectureIndex) => (
+                            <div
+                              key={lecture.id}
+                              className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between border-b border-b-gray-100 last:border-b-0"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                                    <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
+                                  </svg>
+                                </div>
+                                <div className="flex flex-col justify-center">
+                                  <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">
+                                    {`Bài ${lectureIndex + 1}: `}
+                                  </p>
+                                  <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">
+                                    {lecture.name}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="shrink-0">
+                                <p className="text-[#4e7397] text-sm font-normal leading-normal">{lecture.duration} phút</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center justify-center py-4 text-[#4e7397]">
+                            Đang tải bài giảng...
                           </div>
-                          <div className="flex flex-col justify-center">
-                            <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">
-                              {lecture.number}
-                            </p>
-                            <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">
-                              {lecture.title}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="shrink-0">
-                          <p className="text-[#4e7397] text-sm font-normal leading-normal">{lecture.duration}</p>
-                        </div>
+                        )}
                       </div>
-                    ))}
+                    )}
                   </details>
                 ))}
               </div>

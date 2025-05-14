@@ -1,6 +1,5 @@
 import axios from '../config/axios';
 import type { User } from '../contexts/AuthContext';
-import type { Lecture } from './lectureApi';
 
 const API_URL = '/api';
 
@@ -22,9 +21,10 @@ export type Course = {
 }
 
 export interface Chapter {
-  id: string; // Hoặc number, dùng cho key khi map
+  id: string;
   name: string;
-  lectures: Lecture[];
+  courseId: string;
+  lectureIds: string[];
 }
 
 
@@ -68,6 +68,16 @@ export const getCoursesBySubject = async (subjectId: string, enrolled: boolean, 
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch courses:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const getSubjectById = async (subjectId: string): Promise<Subject> => {
+  try {
+    const response = await axios.get(`${API_URL}/subjects/${subjectId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch subject:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
@@ -272,6 +282,40 @@ export const approveJoinRequest = async (courseId: string, studentId: string): P
     return response.data;
   } catch (error: any) {
     console.error('Failed to approve join request:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const addLectureToChapter = async (chapterId: string, lectureId: string): Promise<Chapter> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/chapters/${chapterId}/add-lecture`, {
+      lectureId
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to add lecture to chapter:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const removeLectureFromChapter = async (chapterId: string, lectureId: string): Promise<Chapter> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/chapters/${chapterId}/remove-lecture`, {
+      lectureId
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to remove lecture from chapter:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

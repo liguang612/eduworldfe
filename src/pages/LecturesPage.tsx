@@ -138,8 +138,6 @@ const LectureListPage: React.FC = () => {
                   className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
                 >
                   {subjects
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map((subject) => (
                       <option key={subject.id} value={subject.id}>
                         {subject.name}
@@ -147,16 +145,6 @@ const LectureListPage: React.FC = () => {
                     ))}
                 </select>
               </div>
-
-              {/* <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-[#e7edf3] pl-2 pr-2">
-                <div className="text-[#0e141b]" data-icon="Check" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>
-                </div>
-                <p className="text-[#0e141b] text-sm font-medium leading-normal">Sort</p>
-                <div className="text-[#0e141b]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></svg>
-                </div>
-              </button> */}
             </div>
 
             {loading ? (

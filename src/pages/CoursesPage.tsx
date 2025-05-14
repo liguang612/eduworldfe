@@ -28,9 +28,12 @@ const CoursesPage: React.FC = () => {
     const fetchSubjects = async () => {
       try {
         const data = await getSubjectsByGrade(selectedGrade);
-        setSubjects(data);
-        if (data.length > 0) {
-          setSelectedSubjectId(data[0].id);
+        const sortData = data
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setSubjects(sortData);
+        if (sortData.length > 0) {
+          setSelectedSubjectId(sortData[0].id);
         }
       } catch (error) {
         console.error('Error fetching subjects:', error);
@@ -193,8 +196,6 @@ const CoursesPage: React.FC = () => {
                   className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
                 >
                   {subjects
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map((subject) => (
                       <option key={subject.id} value={subject.id}>
                         {subject.name}
