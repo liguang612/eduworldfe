@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = () => {
   }, [menuOpen]);
 
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3 bg-white">
       <div className="flex items-center gap-4 text-[#0e141b]">
         <div className="size-4">
           <img src={Logo} alt="EduWorld Logo" className="size-full" />

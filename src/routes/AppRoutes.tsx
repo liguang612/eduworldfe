@@ -13,6 +13,8 @@ import ChangePassword from '../pages/ChangePassword';
 import CreateCoursePage from '../pages/CreateCoursePage';
 import LecturesPage from '../pages/LecturesPage';
 import LectureCreatePage from '@/pages/LectureCreatePage';
+import LectureDetailPage from '@/pages/LectureDetailPage';
+import LectureEditPage from '@/pages/LectureEditPage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -106,11 +108,31 @@ const AppRoutes: React.FC = () => (
       }
     />
     <Route
+      path="/lectures/:id"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <LectureDetailPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/lectures/create"
       element={
         <ProtectedRoute>
           <Layout>
             <LectureCreatePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/lectures/:id/edit"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <LectureEditPage />
           </Layout>
         </ProtectedRoute>
       }

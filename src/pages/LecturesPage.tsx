@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getSubjectsByGrade } from '../api/courseApi';
 import type { Subject } from '../api/courseApi';
 import { getLectures, type LectureResponse } from '../api/lectureApi';
+import { ToastContainer } from 'react-toastify';
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -20,9 +21,13 @@ const LectureListPage: React.FC = () => {
     const fetchSubjects = async () => {
       try {
         const data = await getSubjectsByGrade(selectedGrade);
-        setSubjects(data);
-        if (data.length > 0) {
-          setSelectedSubjectId(data[0].id);
+        const sortData = data
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        setSubjects(sortData);
+        if (sortData.length > 0) {
+          setSelectedSubjectId(sortData[0].id);
         }
       } catch (error) {
         console.error('Error fetching subjects:', error);
@@ -62,7 +67,6 @@ const LectureListPage: React.FC = () => {
   const handleSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       setSearchKeyword(event.currentTarget.value);
-      console.log(searchKeyword);
     }
   };
 
@@ -144,7 +148,7 @@ const LectureListPage: React.FC = () => {
                 </select>
               </div>
 
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-[#e7edf3] pl-2 pr-2">
+              {/* <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-[#e7edf3] pl-2 pr-2">
                 <div className="text-[#0e141b]" data-icon="Check" data-size="20px" data-weight="regular">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path></svg>
                 </div>
@@ -152,7 +156,7 @@ const LectureListPage: React.FC = () => {
                 <div className="text-[#0e141b]" data-icon="CaretDown" data-size="20px" data-weight="regular">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></svg>
                 </div>
-              </button>
+              </button> */}
             </div>
 
             {loading ? (
@@ -161,7 +165,9 @@ const LectureListPage: React.FC = () => {
               </div>
             ) : (
               lectures.map((lecture) => (
-                <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between">
+                <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between cursor-pointer"
+                  onClick={() => navigate(`/lectures/${lecture.id}`)}
+                >
                   <div className="flex items-center gap-4">
                     <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
@@ -187,6 +193,7 @@ const LectureListPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

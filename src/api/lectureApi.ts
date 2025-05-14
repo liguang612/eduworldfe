@@ -2,15 +2,6 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api';
 
-export interface Lecture {
-  id: string;
-  number: string;
-  title: string;
-  duration: string;
-  rating: number;
-  questions: number;
-}
-
 export interface LectureResponse {
   id: string;
   name: string;
@@ -55,8 +46,8 @@ export const getLectureById = async (lectureId: string): Promise<LectureResponse
     const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/lectures/${lectureId}`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
     return response.data;
   } catch (error: any) {
@@ -98,4 +89,39 @@ export const createLecture = async (lectureData: {
     },
   });
   return response.data;
+};
+
+export const deleteLecture = async (lectureId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/lectures/${lectureId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to delete lecture:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateLecture = async (lectureId: string, lectureData: {
+  name?: string;
+  description?: string;
+  contents?: string;
+  endQuestions?: any[];
+  duration?: number;
+}) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${API_URL}/lectures/${lectureId}`, lectureData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update lecture:', error.response ? error.response.data : error.message);
+    throw error;
+  }
 };

@@ -8,39 +8,51 @@ import { BulletedListPlugin, ListItemPlugin, ListPlugin, NumberedListPlugin } fr
 
 import { Editor } from '@/components/ui/editor';
 import { useCreateEditor } from '@/components/editor/use-create-editor';
-import { editorPlugins } from '@/components/editor/plugins/editor-plugins';
+import { editorPlugins, viewPlugins } from '@/components/editor/plugins/editor-plugins';
 import { DndPlugin } from '@udecode/plate-dnd';
 import { NodeIdPlugin } from '@udecode/plate-node-id';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { VideoPlugin } from '@udecode/plate-media/react';
+import { MediaVideoElement } from '@/components/ui/media-video-element';
+
 export interface MyEditorRef {
   getValue: () => any;
 }
 
-const MyEditor = forwardRef<MyEditorRef, {}>((_, ref) => {
+interface MyEditorProps {
+  initValue?: any[];
+  editable?: boolean;
+}
+
+const MyEditor = forwardRef<MyEditorRef, MyEditorProps>(({ initValue, editable = true }, ref) => {
   const editorRef = React.useRef<any>(null);
+
+  if (initValue != undefined) editorRef.current = initValue;
 
   useImperativeHandle(ref, () => ({
     getValue: () => editorRef.current
   }));
 
   const editor = useCreateEditor({
-    plugins: [...editorPlugins, DndPlugin, NodeIdPlugin, ListPlugin],
+    plugins: [...(editable ? editorPlugins : viewPlugins), DndPlugin, NodeIdPlugin, ListPlugin],
     components: {
       [BulletedListPlugin.key]: withProps(PlateElement, { as: 'ul', className: 'list-disc pl-6 mb-4' }),
       [NumberedListPlugin.key]: withProps(PlateElement, { as: 'ol', className: 'list-decimal pl-6 mb-4' }),
       [ListItemPlugin.key]: withProps(PlateElement, { as: 'li', className: 'mb-1' }),
+      [VideoPlugin.key]: MediaVideoElement,
     },
-    value: basicEditorValue,
+    value: initValue || basicEditorValue,
+    readOnly: !editable
   });
 
   return (
-    <div className="border rounded-lg bg-white shadow-sm flex flex-col max-h-[800px]">
+    <div className={`border rounded-lg bg-white shadow-sm flex flex-col ${editable ? 'max-h-[800px]' : ''}`}>
       <DndProvider backend={HTML5Backend}>
         <Plate
           editor={editor}
           onChange={(value) => {
-            editorRef.current = value;
+            editorRef.current = value.value;
           }}
         >
           <div className="flex-1 overflow-y-auto">
@@ -48,6 +60,7 @@ const MyEditor = forwardRef<MyEditorRef, {}>((_, ref) => {
               placeholder="Type..."
               autoFocus={false}
               spellCheck={false}
+              readOnly={!editable}
             />
           </div>
         </Plate>

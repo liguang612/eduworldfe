@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import MyEditor from '../components/Lecture/MyEditor';
 import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import { getSubjectsByGrade } from '../api/courseApi';
-import { uploadFile, createLecture } from '../api/lectureApi';
-import type { Subject } from '../api/courseApi';
-import { toast } from 'react-toastify';
+import { uploadFile, getLectureById, updateLecture } from '../api/lectureApi';
+import type { LectureResponse } from '../api/lectureApi';
+import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
-import { useNavigate } from 'react-router-dom';
 
 const LectureEditPage: React.FC = () => {
-  const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  const [selectedGrade, setSelectedGrade] = useState(1);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [durationHours, setDurationHours] = useState(0);
   const [durationMinutes, setDurationMinutes] = useState(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -20,38 +17,39 @@ const LectureEditPage: React.FC = () => {
   const editorRef = useRef<MyEditorRef>(null);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [lecture, setLecture] = useState<LectureResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = Array.from({ length: 12 }, (_, i) => i * 5);
 
   useEffect(() => {
-    const fetchSubjects = async () => {
+    const fetchLecture = async () => {
+      if (!id) return;
+      setIsLoading(true);
       try {
-        const data = await getSubjectsByGrade(selectedGrade);
-        setSubjects(data);
-        if (data.length > 0) {
-          const sortedData = [...data].sort((a, b) => a.name.localeCompare(b.name));
-          setSelectedSubjectId(sortedData[0].id);
-        } else {
-          setSelectedSubjectId('');
-        }
+        const data = await getLectureById(id);
+        setLecture(data);
+
+        // Set form values
+        if (nameInputRef.current) nameInputRef.current.value = data.name;
+        if (descriptionTextareaRef.current) descriptionTextareaRef.current.value = data.description;
+        if (editorRef.current) editorRef.current = (data.contents ? JSON.parse(data.contents) : undefined);
+
+        // Set duration
+        const totalMinutes = data.duration;
+        setDurationHours(Math.floor(totalMinutes / 60));
+        setDurationMinutes(totalMinutes % 60);
       } catch (error) {
-        console.error('Error fetching subjects:', error);
+        console.error('Error fetching lecture:', error);
+        toast.error('Không thể tải thông tin bài giảng');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchSubjects();
-  }, [selectedGrade]);
-
-  const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const gradeNumber = parseInt(event.target.value);
-    setSelectedGrade(gradeNumber);
-  };
-
-  const handleSubjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSubjectId(event.target.value);
-  };
+    fetchLecture();
+  }, [id]);
 
   const handleHoursChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setDurationHours(parseInt(event.target.value));
@@ -61,8 +59,41 @@ const LectureEditPage: React.FC = () => {
     setDurationMinutes(parseInt(event.target.value));
   };
 
+  const handleMedia = async (contents: any[]) => {
+    const newContents = [...contents]; // Create a new array copy
+
+    for (let i = 0; i < newContents.length; i++) {
+      let content = { ...newContents[i] }; // Create a new object copy
+
+      if (content.isUpload && content.url.startsWith('blob:')) {
+        const response = await fetch(content.url);
+        const blob = await response.blob();
+
+        const metadata = blob.type.split('/');
+        const fileName = content.name && content.name !== '' ? content.name : `uploaded_file_${Date.now()}.${metadata[1] || 'bin'}`;
+        const file = new File([blob], fileName, { type: blob.type });
+
+        setStatusMessage(`Đang tải ${metadata[0] === 'image' ? 'hình ảnh' : metadata[0] === 'video' ? 'video' : metadata[0] === 'audio' ? 'âm thanh' : 'file'}`);
+        const fileUrl = await uploadFile(file, metadata[0]);
+
+        content.url = `${baseURL}${fileUrl}`;
+        delete content.placeholderId;
+      }
+
+      if (content.children && content.children.length > 0) {
+        content.children = await handleMedia(content.children);
+      }
+
+      newContents[i] = content;
+    }
+
+    return newContents;
+  };
+
   const handleSave = async () => {
     const editorValue = editorRef.current?.getValue();
+    console.log(editorValue);
+
     if (!editorValue) return;
 
     const lectureName = nameInputRef.current?.value || '';
@@ -73,53 +104,43 @@ const LectureEditPage: React.FC = () => {
 
     try {
       const contents = [...editorValue];
+      const processedContents = await handleMedia(contents);
 
-      for (let i = 0; i < contents.length; i++) {
-        const content = contents[i];
-        if (content.isUpload && content.url.startsWith('blob:')) {
-          const response = await fetch(content.url);
-          const blob = await response.blob();
-
-          const metadata = blob.type.split('/');
-          const fileName = content.name && content.name !== '' ? content.name : `uploaded_file_${Date.now()}.${metadata[1] || 'bin'}`;
-          const file = new File([blob], fileName, { type: blob.type });
-
-          setStatusMessage(`Đang tải ${metadata[0] === 'image' ? 'hình ảnh' : metadata[0] === 'video' ? 'video' : metadata[0] === 'audio' ? 'âm thanh' : 'file'}`);
-          const fileUrl = await uploadFile(file, metadata[0]);
-
-          const writableContent = { ...content };
-          writableContent.url = `${baseURL}${fileUrl}`;
-
-          delete writableContent.placeholderId;
-
-          contents[i] = writableContent;
-        }
-      }
-
-      setStatusMessage('Đang tạo bài giảng');
-      const teacherId = (JSON.parse(localStorage.getItem('user') || '{}')).id;
+      setStatusMessage('Đang cập nhật bài giảng');
       const lectureData = {
         name: lectureName,
         description: lectureDescription,
-        contents: JSON.stringify(contents),
-        subjectId: selectedSubjectId,
-        teacherId: teacherId,
+        contents: JSON.stringify(processedContents),
         duration: durationHours * 60 + durationMinutes
       };
 
-      await createLecture(lectureData);
-      toast.success('Tạo bài giảng thành công');
+      await updateLecture(id!, lectureData);
+      toast.success('Sửa bài giảng thành công');
       setLoading(false);
       setStatusMessage(null);
-      navigate('/lectures');
+      navigate(`/lectures/${id}`);
     } catch (error) {
+      console.error('Error saving lecture:', error);
       setLoading(false);
       setStatusMessage(null);
-      console.error('Error saving lecture:', error);
       toast.error('Có lỗi xảy ra, vui lòng thử lại sau.');
       toast.warning('Bạn có thể export bài giảng dưới dạng HTML (khuyến nghị) hoặc Markdown để import lại sau.');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="flex items-center gap-2">
+          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+          <span className="text-blue-600">Đang tải...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -136,7 +157,7 @@ const LectureEditPage: React.FC = () => {
             <div className="layout-content-container flex flex-col max-w-[920px] flex-1">
               <div className="flex flex-wrap justify-between gap-3 p-4">
                 <div className="flex min-w-72 flex-col gap-3">
-                  <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Tạo bài giảng</p>
+                  <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Chỉnh sửa bài giảng</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-end gap-4 px-4 py-3">
@@ -145,7 +166,7 @@ const LectureEditPage: React.FC = () => {
                   <input
                     className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
                     ref={nameInputRef}
-                    defaultValue=""
+                    defaultValue={lecture?.name}
                   />
                 </label>
               </div>
@@ -155,52 +176,13 @@ const LectureEditPage: React.FC = () => {
                   <textarea
                     className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] min-h-36 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
                     ref={descriptionTextareaRef}
-                    defaultValue=""
+                    defaultValue={lecture?.description}
                   ></textarea>
                 </label>
               </div>
 
               {/* Grade, Subject, and Duration Selectors Row */}
-              <div className="flex items-center gap-x-6 gap-y-4 p-4 flex-wrap pr-4">
-                <div className="flex items-center">
-                  <label htmlFor="grade-select" className="sr-only">Chọn khối lớp</label>
-                  <select
-                    id="grade-select"
-                    name="grade"
-                    value={selectedGrade} // Controlled component
-                    onChange={handleGradeChange}
-                    className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-                  >
-                    {grades.map((grade) => (
-                      <option key={grade} value={grade}>
-                        {`Lớp ${grade}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center">
-                  <label htmlFor="subject-select" className="sr-only">Chọn môn học</label>
-                  <select
-                    id="subject-select"
-                    name="subject"
-                    value={selectedSubjectId}
-                    onChange={handleSubjectChange}
-                    disabled={subjects.length === 0} // Disable if no subjects
-                    className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-                  >
-                    {subjects.length === 0 && <option value="">-- Chọn lớp để xem môn --</option>}
-                    {subjects
-                      .slice()
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((subject) => (
-                        <option key={subject.id} value={subject.id}>
-                          {subject.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div className="flex flex-3"></div>
-                {/* Duration Selector */}
+              <div className="flex flex-wrap items-end gap-4 px-4 py-3 justify-end">
                 <div className="flex items-center gap-2">
                   <p className="text-[#0e141b] text-sm font-bold leading-normal whitespace-nowrap"><b>Thời lượng:</b></p>
                   <div className="flex items-center">
@@ -256,7 +238,7 @@ const LectureEditPage: React.FC = () => {
                   {loading ? (
                     <span className="flex items-center gap-2"><svg className="animate-spin h-4 w-4 mr-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>Đang xử lý...</span>
                   ) : (
-                    <span className="truncate">Tạo bài giảng</span>
+                    <span className="truncate">Sửa</span>
                   )}
                 </button>
               </div>
@@ -268,12 +250,18 @@ const LectureEditPage: React.FC = () => {
                 Nội dung
               </h3>
               <div className='max-h-[calc(70%)]'>
-                <MyEditor ref={editorRef} />
+                {lecture && (
+                  <MyEditor
+                    ref={editorRef}
+                    initValue={lecture.contents ? JSON.parse(lecture.contents) : undefined}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };
