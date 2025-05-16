@@ -2,6 +2,55 @@ import axios from '../config/axios';
 
 const API_URL = '/api';
 
+interface Choice {
+  id: string;
+  text: string;
+  value: string;
+  questionId: string;
+  orderIndex: number | null;
+  isCorrect: boolean;
+}
+
+interface SharedMedia {
+  id: string;
+  mediaUrl: string;
+  mediaType: number;
+  text: string | null;
+  title: string;
+}
+
+export interface Question {
+  id: string;
+  title: string;
+  subjectId: string;
+  type: string;
+  sharedMedia?: SharedMedia;
+  level: number;
+  createdBy: string;
+  categories: string[];
+  solutionIds: string[];
+  reviewIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  choices?: Array<{
+    id: string;
+    text: string;
+    orderIndex?: number;
+    isCorrect: boolean;
+    value: string;
+  }>;
+  matchingColumns?: Array<{
+    id: string;
+    label: string;
+    side: string;
+  }>;
+  matchingPairs?: Array<{
+    id: string;
+    from: string;
+    to: string;
+  }>;
+}
+
 interface CreateQuestionRequest {
   title: string;
   type: string;
@@ -144,4 +193,35 @@ export const convertQuestionTypeToApiType = (type: string): string => {
     'Fill in the Blank': 'shortAnswer'
   };
   return mapping[type] || type;
+};
+
+export const getQuestions = async (createdBy: string, subjectId: string): Promise<Question[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/questions`, {
+      params: { createdBy, subjectId },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch questions:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const getQuestionDetail = async (questionId: string): Promise<Question> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/questions/${questionId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch question detail:', error.response ? error.response.data : error.message);
+    throw error;
+  }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import type { IndividualQuestion, SharedMediaData, FullQuestionSetData } from '../components/Question/types';
+import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '../components/Question/types';
 import FullPreview from '../components/Question/FullPreview';
 import QuestionChoices from '../components/Question/QuestionChoices';
 import * as questionApi from '../api/questionApi';
@@ -183,10 +183,6 @@ const QuestionCreatePage: React.FC = () => {
       return;
     }
 
-    // console.log(questions);
-    // console.log(surveyValues);
-    // return;
-
     setIsSaving(true);
     try {
       let sharedMediaId = null;
@@ -213,7 +209,9 @@ const QuestionCreatePage: React.FC = () => {
       for (const question of questions) {
         const createdQuestion = await questionApi.createQuestion({
           title: question.questionText,
-          type: questionTypeToApiType[question.questionType],
+          type: question.questionType === 'Multiple Choice' && (question.choices as MultipleChoiceOption[])?.[0]?.allowMultiple
+            ? 'checkbox'
+            : questionTypeToApiType[question.questionType],
           level: questionApi.convertLevelToNumber(question.level),
           subjectId,
           sharedMediaId: sharedMediaId
@@ -285,7 +283,7 @@ const QuestionCreatePage: React.FC = () => {
         }
       }
       toast.success('Lưu câu hỏi thành công!');
-      // navigate('/question-bank');
+      navigate('/question-bank');
     } catch (error) {
       console.error('Error saving questions:', error);
       toast.error('Có lỗi xảy ra khi lưu câu hỏi. Vui lòng thử lại.');

@@ -1,75 +1,35 @@
 // QuestionBankPage.tsx
 
 import React, { useState, useEffect } from 'react';
-import { getSubjectsByGrade } from '../api/courseApi';
-import type { Subject } from '../api/courseApi';
+import { getQuestions, getQuestionDetail, type Question } from '../api/questionApi';
+import { type Subject, getSubjectsByGrade } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
-// Định nghĩa interface cho dữ liệu câu hỏi để đảm bảo type safety
-interface Question {
-  id: string;
-  text: string;
-  level: 'Easy' | 'Medium' | 'Hard';
-  created: string;
-  categories: string;
-  imageUrl: string;
-}
-
-// Dữ liệu mẫu cho câu hỏi - trong ứng dụng thực tế, dữ liệu này sẽ từ API
-const initialQuestions: Question[] = [
-  {
-    id: '1',
-    text: 'What is the most common cause of SBO?',
-    level: 'Easy',
-    created: '2 days ago',
-    categories: 'GI, Surgery, abc abcb ded ede de de de ',
-    imageUrl: 'https://cdn.usegalileo.ai/sdxl10/97eb846b-5bc3-4c15-9fad-957229c80b26.png',
-  },
-  {
-    id: '2',
-    text: 'What are the major risk factors for CAD?',
-    level: 'Medium',
-    created: '3 days ago',
-    categories: 'Cardiology',
-    imageUrl: 'https://cdn.usegalileo.ai/sdxl10/a60885b3-bb10-4937-9480-953d09d00177.png',
-  },
-  {
-    id: '3',
-    text: 'What is the management of a patient with COPD exacerbation?',
-    level: 'Hard',
-    created: '1 week ago',
-    categories: 'Pulmonology',
-    imageUrl: 'https://cdn.usegalileo.ai/sdxl10/1b68e2c5-48e1-48e6-8ad7-5c12de852340.png',
-  },
-  {
-    id: '4',
-    text: 'Describe the pathophysiology of Rheumatoid Arthritis',
-    level: 'Medium',
-    created: '2 weeks ago',
-    categories: 'Rheumatology',
-    imageUrl: 'https://cdn.usegalileo.ai/sdxl10/cf8334dd-292d-4e95-be21-fecb29ba775c.png',
-  },
-  {
-    id: '5',
-    text: 'What are the clinical features of Acute Pancreatitis?',
-    level: 'Easy',
-    created: '4 days ago',
-    categories: 'Gastroenterology',
-    imageUrl: 'https://cdn.usegalileo.ai/sdxl10/d0122a9f-d6f7-49d1-9f40-d395e7ff04ea.png',
-  },
-];
+import QuestionDetailPreview from '../components/Question/QuestionDetailPreview';
 
 const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
+const levelColorClasses: { [key: string]: string } = {
+  Easy: 'bg-green-100 text-green-800',
+  Medium: 'bg-blue-100 text-blue-800',
+  Hard: 'bg-orange-100 text-orange-800',
+  VeryHard: 'bg-red-100 text-red-800',
+};
+
 const QuestionBankPage: React.FC = () => {
   const navigate = useNavigate();
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
 
-  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
-  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(questions[0] || null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const [selectedGrade, setSelectedGrade] = useState<string>(grades[0]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
 
+  const [sortColumn, setSortColumn] = useState<'title' | 'level' | 'createdAt'>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
@@ -89,6 +49,31 @@ const QuestionBankPage: React.FC = () => {
     fetchSubjects();
   }, [selectedGrade]);
 
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!selectedSubjectId || !userId) return;
+
+      setLoading(true);
+      try {
+        const data = await getQuestions(userId, selectedSubjectId);
+        setQuestions(data);
+        if (data.length > 0) {
+          // Chọn câu hỏi đầu tiên sau khi fetch, áp dụng sắp xếp mặc định
+          const sortedData = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setSelectedQuestion(sortedData[0]);
+        } else {
+          setSelectedQuestion(null);
+        }
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [selectedSubjectId, userId]);
+
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedGrade(event.target.value);
   };
@@ -97,8 +82,16 @@ const QuestionBankPage: React.FC = () => {
     setSelectedSubjectId(event.target.value);
   };
 
-  const handleViewQuestion = (question: Question) => {
-    setSelectedQuestion(question);
+  const handleViewQuestion = async (question: Question) => {
+    setLoadingDetail(true);
+    try {
+      const detail = await getQuestionDetail(question.id);
+      setSelectedQuestion(detail);
+    } catch (error) {
+      console.error('Error fetching question detail:', error);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleCreateQuestion = () => {
@@ -108,6 +101,65 @@ const QuestionBankPage: React.FC = () => {
     }
     navigate('/question-bank/new', { state: { subjectId: selectedSubjectId } });
   };
+
+  const handleSort = (column: 'title' | 'level' | 'createdAt') => {
+    if (sortColumn === column) {
+      // Reverse
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection(column === 'createdAt' ? 'desc' : 'asc');
+    }
+  };
+
+  const getLevelText = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'Easy';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Hard';
+      case 4:
+        return 'VeryHard';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  // Hàm format ngày tháng
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // Sắp xếp danh sách câu hỏi trước khi hiển thị
+  const sortedQuestions = [...questions].sort((a, b) => {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    if (sortColumn === 'title') {
+      return a.title.localeCompare(b.title) * direction;
+    } else if (sortColumn === 'level') {
+      return (a.level - b.level) * direction;
+    } else if (sortColumn === 'createdAt') {
+      return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * direction;
+    }
+    return 0; // Không sắp xếp nếu cột không hợp lệ
+  });
 
   return (
     <div
@@ -121,7 +173,6 @@ const QuestionBankPage: React.FC = () => {
       }}
     >
       <div className="flex h-full grow flex-row">
-        {/* Khung bên trái - Tăng chiều rộng lên 40% */}
         <div className="layout-content-container flex flex-col w-2/5 border-r border-solid border-r-[#e7edf3]">
           <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-solid border-b-[#e7edf3]">
             <p className="text-[#0e141b] tracking-light text-[28px] font-bold leading-tight">Question Banks</p>
@@ -133,28 +184,7 @@ const QuestionBankPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Khu vực tìm kiếm và bộ lọc */}
           <div className="p-4 border-b border-solid border-b-[#e7edf3]">
-            <label className="flex flex-col min-w-40 !h-10 max-w-full mb-4">
-              <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
-                <div
-                  className="text-[#4e7397] flex border-none bg-[#e7edf3] items-center justify-center pl-4 rounded-l-xl border-r-0"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
-                    ></path>
-                  </svg>
-                </div>
-                <input
-                  placeholder="Search Questions"
-                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border-none bg-[#e7edf3] focus:border-none h-full placeholder:text-[#4e7397] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-                  defaultValue=""
-                />
-              </div>
-            </label>
-
-            {/* Dropdown chọn khối lớp và môn học */}
             <div className="flex gap-x-6 gap-y-3 flex-wrap">
               <div className="flex items-center">
                 <label htmlFor="grade-select" className="sr-only">Chọn khối lớp</label>
@@ -193,76 +223,87 @@ const QuestionBankPage: React.FC = () => {
           </div>
 
           <div className="px-4 py-3 overflow-y-auto flex-grow">
-            <div className="flex overflow-hidden rounded-xl border border-[#d0dbe7] bg-slate-50">
-              <table className="flex-1 w-full">
-                <thead>
-                  <tr className="bg-slate-50">
-                    <th className="px-4 py-3 text-left text-[#0e141b] w-[40%] text-sm font-bold leading-normal">Question</th>
-                    <th className="px-4 py-3 text-left text-[#0e141b] w-[15%] text-sm font-bold leading-normal">Level</th>
-                    <th className="px-4 py-3 text-left text-[#0e141b] w-[20%] text-sm font-bold leading-normal">Created</th>
-                    <th className="px-4 py-3 text-left text-[#0e141b] w-[25%] text-sm font-bold leading-normal">Categories</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {questions.map((q) => (
-                    <tr
-                      key={q.id}
-                      className="border-t border-t-[#d0dbe7] hover:bg-slate-100 cursor-pointer"
-                      onClick={() => handleViewQuestion(q)}
-                    >
-                      <td className="h-[72px] px-4 py-2 text-[#0e141b] text-sm font-normal leading-normal align-top pt-3">
-                        {q.text}
-                      </td>
-                      <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
-                        <button
-                          className="flex min-w-[70px] max-w-[120px] cursor-default items-center justify-center overflow-hidden rounded-md h-7 px-3 bg-[#d0dbe7] text-[#0e141b] text-xs font-medium leading-normal w-full"
-                        >
-                          <span className="truncate">{q.level}</span>
-                        </button>
-                      </td>
-                      <td className="h-[72px] px-4 py-2 text-[#4e7397] text-sm font-normal leading-normal align-top pt-3">
-                        {q.created}
-                      </td>
-                      <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
-                        <span className="block max-w-[150px]">{q.categories}</span>
-                      </td>
+            {loading ? (
+              <div className="flex justify-center items-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1980e6]"></div>
+              </div>
+            ) : (
+              <div className="flex overflow-hidden rounded-xl border border-[#d0dbe7] bg-white">
+                <table className="flex-1 w-full">
+                  <thead>
+                    <tr className="bg-white">
+                      <th
+                        className="px-4 py-3 text-left text-[#0e141b] w-[40%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort('title')}
+                      >
+                        Question
+                        {sortColumn === 'title' && (
+                          <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                        )}
+                      </th>
+                      <th
+                        className="px-4 py-3 text-left text-[#0e141b] w-[15%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort('level')}
+                      >
+                        Level
+                        {sortColumn === 'level' && (
+                          <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                        )}
+                      </th>
+                      <th
+                        className="px-4 py-3 text-left text-[#0e141b] w-[20%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
+                        onClick={() => handleSort('createdAt')}
+                      >
+                        Created
+                        {sortColumn === 'createdAt' && (
+                          <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                        )}
+                      </th>
+                      <th className="px-4 py-3 text-left text-[#0e141b] w-[25%] text-sm font-bold leading-normal">
+                        Categories
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {sortedQuestions.map((q) => (
+                      <tr
+                        key={q.id}
+                        className="border-t border-t-[#d0dbe7] hover:bg-slate-100 cursor-pointer"
+                        onClick={() => handleViewQuestion(q)}
+                      >
+                        <td className="h-[72px] px-4 py-2 text-[#0e141b] text-sm font-normal leading-normal align-top pt-3">
+                          {q.title}
+                        </td>
+                        <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
+                          <button
+                            className={`flex min-w-[70px] max-w-[120px] cursor-default items-center justify-center overflow-hidden rounded-md h-7 px-3 text-xs font-medium leading-normal w-full ${levelColorClasses[getLevelText(q.level)] || 'bg-[#d0dbe7] text-[#0e141b]'}`}
+                          >
+                            <span className="truncate">{getLevelText(q.level)}</span>
+                          </button>
+                        </td>
+                        <td className="h-[72px] px-4 py-2 text-[#4e7397] text-sm font-normal leading-normal align-top pt-3">
+                          {formatDate(q.createdAt)}
+                        </td>
+                        <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
+                          <span className="block max-w-[150px]">{q.categories.join(', ') || 'No categories'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          {/* Phân trang đã được bỏ */}
         </div>
 
-        {/* Khung bên phải - Chiều rộng còn lại (60%) */}
         <div className="layout-content-container flex flex-col w-3/5 flex-1 overflow-y-auto">
-          {selectedQuestion ? (
-            <div className="p-6"> {/* Tăng padding cho khung bên phải */}
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-6 rounded-xl bg-white shadow-lg p-6"> {/* Responsive và tăng gap, shadow */}
-                <div className="flex flex-col gap-2 flex-[2_2_0px] lg:order-1"> {/* Tăng gap */}
-                  <p className="text-[#0e141b] text-xl font-bold leading-tight">{selectedQuestion.text}</p>
-                  <p className="text-[#4e7397] text-base font-normal leading-normal"> {/* Tăng font-size */}
-                    <strong>Level:</strong> {selectedQuestion.level} <br />
-                    <strong>Created:</strong> {selectedQuestion.created} <br />
-                    <strong>Categories:</strong> {selectedQuestion.categories}
-                  </p>
-                  <div className="mt-4">
-                    <h3 className="text-[#0e141b] text-lg font-semibold mb-2">Details:</h3> {/* Tăng font-size */}
-                    <p className="text-[#4e7397] text-base leading-relaxed"> {/* Tăng font-size, leading */}
-                      This section can contain more detailed information about the selected question.
-                      For instance, if it's a multiple-choice question, the options could be listed here.
-                      The correct answer and an explanation or solution could also be provided.
-                      This area is flexible and can be customized to display any relevant content
-                      associated with the question.
-                    </p>
-                  </div>
-                </div>
-                <div
-                  className="w-full lg:max-w-md bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1 lg:order-2" /* max-width trên desktop */
-                  style={{ backgroundImage: `url("${selectedQuestion.imageUrl}")` }}
-                ></div>
-              </div>
+          {loadingDetail ? (
+            <div className="p-6 flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1980e6]"></div>
+            </div>
+          ) : selectedQuestion ? (
+            <div className="p-6">
+              <QuestionDetailPreview question={selectedQuestion} />
             </div>
           ) : (
             <div className="p-6 flex justify-center items-center h-full">

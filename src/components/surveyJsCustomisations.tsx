@@ -5,7 +5,7 @@ import { SurveyQuestionElementBase, ReactQuestionFactory } from "survey-react-ui
 
 import ItemConnector, { type Connection } from './Common/ItemConnector';
 
-const CUSTOM_QUESTION_TYPE = "itemConnector"; // Bạn có thể đặt tên khác
+const CUSTOM_QUESTION_TYPE = "itemConnector";
 
 // 1. Model cho câu hỏi
 export class QuestionItemConnectorModel extends Question {
@@ -13,7 +13,6 @@ export class QuestionItemConnectorModel extends Question {
     return CUSTOM_QUESTION_TYPE;
   }
 
-  // Các thuộc tính cho items cột trái và phải.
   get leftItems(): any {
     return this.getPropertyValue("leftItems");
   }
@@ -90,14 +89,12 @@ Serializer.addClass(
       serializationProperty: "leftItems", // Tên thuộc tính trong model
       category: "Data", // Nhóm thuộc tính trong Survey Creator
       displayName: "Các mục cột trái (JSON)",
-      // description: "Nhập một mảng JSON, ví dụ: [{\"id\":\"l1\",\"label\":\"Mục A\"}, {\"id\":\"l2\",\"label\":\"Mục B\"}]"
     },
     {
       name: "rightItems:text",
       serializationProperty: "rightItems",
       category: "Data",
       displayName: "Các mục cột phải (JSON)",
-      // description: "Nhập một mảng JSON, ví dụ: [{\"id\":\"r1\",\"label\":\"Lựa chọn 1\"}, {\"id\":\"r2\",\"label\":\"Lựa chọn 2\"}]"
     },
   ],
   function () {
@@ -120,15 +117,6 @@ export class SurveyQuestionItemConnector extends SurveyQuestionElementBase {
   renderElement(): JSX.Element {
     const leftItems = this.questionModel.parsedLeftItems;
     const rightItems = this.questionModel.parsedRightItems;
-
-    // Kiểm tra điều kiện số lượng item
-    // if (leftItems.length > 0 && rightItems.length < leftItems.length) {
-    //   return (
-    //     <div style={{ color: 'red', padding: '10px', border: '1px solid red', borderRadius: '4px' }}>
-    //       Lỗi cấu hình: Số lượng mục ở cột phải({rightItems.length}) phải lớn hơn hoặc bằng số lượng mục ở cột trái({leftItems.length}).
-    //     </div>
-    //   );
-    // }
 
     return (
       <ItemConnector

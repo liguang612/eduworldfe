@@ -1,5 +1,6 @@
 import axios from '../config/axios';
 import type { User } from '../contexts/AuthContext';
+import type { Question } from './questionApi';
 
 const API_URL = '/api';
 
@@ -42,6 +43,27 @@ export type SearchUser = {
   school: string;
   grade: number;
 }
+
+// export interface Question {
+//   id: string;
+//   title: string;
+//   subjectId: string;
+//   type: string;
+//   sharedMedia?: Object;
+//   level: number;
+//   createdBy: string;
+//   categories: string[];
+//   solutionIds: string[];
+//   reviewIds: string[];
+//   createdAt: string;
+//   updatedAt: string;
+//   choices?: Array<{
+//     id: string;
+//     text: string;
+//   }>;
+//   matchingColumns?: any,
+//   matchingPairs?: any,
+// }
 
 // GET
 export const getSubjectsByGrade = async (grade: number): Promise<Subject[]> => {
@@ -319,3 +341,4 @@ export const removeLectureFromChapter = async (chapterId: string, lectureId: str
     throw error;
   }
 };
+
