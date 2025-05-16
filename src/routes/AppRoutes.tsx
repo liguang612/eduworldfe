@@ -15,8 +15,9 @@ import LecturesPage from '../pages/LecturesPage';
 import LectureCreatePage from '@/pages/LectureCreatePage';
 import LectureDetailPage from '@/pages/LectureDetailPage';
 import LectureEditPage from '@/pages/LectureEditPage';
-import QuestionBank from '@/pages/QuestionBank';
-
+import QuestionBank from '@/pages/QuestionBankPage';
+import QuestionCreatePage from '@/pages/QuestionCreatePage';
+import ExamPages from '@/pages/ExamPages';
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -139,12 +140,33 @@ const AppRoutes: React.FC = () => (
       }
     />
 
+    {/* Question Bank */}
     <Route
       path="/question-bank"
       element={
         <ProtectedRoute>
           <Layout>
             <QuestionBank />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/question-bank/new"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <QuestionCreatePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/exam"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <ExamPages />
           </Layout>
         </ProtectedRoute>
       }

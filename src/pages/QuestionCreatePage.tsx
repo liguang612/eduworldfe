@@ -1,0 +1,468 @@
+import React, { useState, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import type { IndividualQuestion, SharedMediaData, FullQuestionSetData } from '../components/Question/types';
+import FullPreview from '../components/Question/FullPreview';
+import QuestionChoices from '../components/Question/QuestionChoices';
+import * as questionApi from '../api/questionApi';
+import { uploadSharedMedia } from '../api/questionApi';
+
+interface LocationState {
+  subjectId: string;
+}
+
+// Add API type mapping
+const questionTypeToApiType: { [key: string]: string } = {
+  'Multiple Choice': 'radio',
+  'Matching': 'itemConnector',
+  'Sorting': 'ordering',
+  'Fill in the Blank': 'shortAnswer'
+};
+
+interface SurveyValue {
+  type: string;
+  name: string;
+  question: {
+    name: string;
+    title: string;
+    leftItems?: string;
+    rightItems?: string;
+  };
+  value: any;
+}
+
+// --- Main Page Component ---
+const QuestionCreatePage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { subjectId } = location.state as LocationState || {};
+
+  const [sharedMedia, setSharedMedia] = useState<SharedMediaData | undefined>(undefined);
+  const [questions, setQuestions] = useState<IndividualQuestion[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [surveyValues, setSurveyValues] = useState<{ [key: string]: SurveyValue }>({});
+
+  // --- Shared Media Handlers ---
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSharedMedia({
+          type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('audio/') ? 'audio' : 'video',
+          url: e.target?.result as string,
+          fileName: file.name,
+          file: file // Store the actual File object
+        });
+      };
+      if (file.type.startsWith('image/') || file.type.startsWith('video/') || file.type.startsWith('audio/')) {
+        reader.readAsDataURL(file); // Read as Data URL for preview
+      } else {
+        // For other types (though we accept only image/audio/video for now), maybe handle differently or show error
+        toast.error('Định dạng file không được hỗ trợ.');
+        setSharedMedia(undefined);
+      }
+
+    }
+  };
+
+  const handleSharedTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setSharedMedia({
+      type: 'text',
+      content: event.target.value
+    });
+  };
+
+  // --- Individual Question Handlers ---
+  const addNewQuestion = () => {
+    setQuestions(prevQuestions => [
+      ...prevQuestions,
+      {
+        id: Date.now().toString(),
+        questionText: '',
+        level: 'Medium',
+        category: [],
+        questionType: 'Multiple Choice',
+        choices: []
+      }
+    ]);
+  };
+
+  const updateQuestionField = <K extends keyof IndividualQuestion>(index: number, field: K, value: IndividualQuestion[K]) => {
+    setQuestions(prevQuestions =>
+      prevQuestions.map((q, i) => {
+        if (i !== index) return q;
+
+        // If changing the question type, initialize with appropriate default choices
+        if (field === 'questionType') {
+          const questionType = value as string;
+          let choices: IndividualQuestion['choices'] = [];
+
+          switch (questionType) {
+            case 'Multiple Choice':
+              choices = [];
+              break;
+            case 'Matching':
+              choices = [];
+              break;
+            case 'Sorting':
+              choices = [];
+              break;
+            case 'Fill in the Blank':
+              choices = [];
+              break;
+          }
+
+          return { ...q, [field]: value, choices };
+        }
+
+        return { ...q, [field]: value };
+      })
+    );
+  };
+
+  const updateQuestionChoices = (index: number, choices: IndividualQuestion['choices']) => {
+    setQuestions(prevQuestions =>
+      prevQuestions.map((q, i) => (i === index ? { ...q, choices } : q))
+    );
+  };
+
+  const removeQuestion = (id: string) => {
+    setQuestions(prevQuestions => prevQuestions.filter(q => q.id !== id));
+  };
+
+  const levelOptions = [
+    { label: 'Nhận biết', value: 'Easy' },
+    { label: 'Thông hiểu', value: 'Medium' },
+    { label: 'Vận dụng', value: 'Hard' },
+    { label: 'Vận dụng cao', value: 'VeryHard' }
+  ];
+  const questionTypeOptions = [
+    { value: "Multiple Choice", title: "Trắc nghiệm", description: "Chọn một đáp án đúng từ danh sách các đáp án" },
+    { value: "Matching", title: "Ghép đôi", description: "Ghép các mục từ hai cột" },
+    { value: "Sorting", title: "Sắp xếp", description: "Sắp xếp các mục theo thứ tự" },
+    { value: "Fill in the Blank", title: "Điền vào chỗ trống", description: "Nhập đáp án đúng" },
+  ];
+
+  const handleSurveyValueChange = useCallback((questionId: string, value: SurveyValue) => {
+    setSurveyValues(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  }, []);
+
+  const handleSaveQuestions = async () => {
+    if (!subjectId) {
+      toast.error('Vui lòng chọn môn học trước khi tạo câu hỏi.');
+      return;
+    }
+
+    // Kiểm tra xem tất cả câu hỏi đã có đáp án chưa
+    const questionsWithoutAnswers = questions.filter(question => {
+      const surveyValue = surveyValues[question.id];
+      if (!surveyValue || (surveyValue.value === undefined || surveyValue.value === null || surveyValue.value === '' || (Array.isArray(surveyValue.value) && surveyValue.value.length === 0))) return true;
+
+      // Kiểm tra riêng cho từng loại câu hỏi
+      switch (question.questionType) {
+        case 'Multiple Choice':
+          // Check if value exists and is not empty for checkbox/radiogroup
+          return Array.isArray(surveyValue.value) ? surveyValue.value.length === 0 : !surveyValue.value;
+        case 'Matching':
+          return !surveyValue.value || surveyValue.value.length === 0;
+        case 'Sorting':
+          return !surveyValue.value || surveyValue.value.length === 0;
+        case 'Fill in the Blank':
+          return !surveyValue.value || surveyValue.value.trim() === '';
+        default:
+          return true;
+      }
+    });
+
+    if (questionsWithoutAnswers.length > 0) {
+      toast.error(`Có ${questionsWithoutAnswers.length} câu hỏi chưa được chọn đáp án. Vui lòng kiểm tra lại.`);
+      return;
+    }
+
+    // console.log(questions);
+    // console.log(surveyValues);
+    // return;
+
+    setIsSaving(true);
+    try {
+      let sharedMediaId = null;
+      if (sharedMedia) {
+        if (sharedMedia.type === 'text' && sharedMedia.content) {
+          // Handle text media
+          const response = await questionApi.createSharedMedia({
+            title: 'Shared Text',
+            mediaType: 0,
+            text: sharedMedia.content
+          });
+          sharedMediaId = response.id;
+        } else if (sharedMedia.file) {
+          // Handle file media upload
+          const response = await uploadSharedMedia({
+            file: sharedMedia.file,
+            title: sharedMedia.fileName || 'Untitled Media',
+            mediaType: sharedMedia.type === 'image' ? 0 : sharedMedia.type === 'audio' ? 1 : 2,
+          });
+          sharedMediaId = response.id;
+        }
+      }
+
+      for (const question of questions) {
+        const createdQuestion = await questionApi.createQuestion({
+          title: question.questionText,
+          type: questionTypeToApiType[question.questionType],
+          level: questionApi.convertLevelToNumber(question.level),
+          subjectId,
+          sharedMediaId: sharedMediaId
+        });
+
+        const surveyValue = surveyValues[question.id];
+
+        if (question.questionType === 'Matching') {
+          const leftItems = (question.choices as any[]).filter(c => c.side === 'left');
+          const rightItems = (question.choices as any[]).filter(c => c.side === 'right');
+
+          const pairs = surveyValue?.value?.map((pair: { from: string, to: string }) => {
+            const leftIndex = leftItems.findIndex(item => item.id === pair.from);
+            const rightIndex = rightItems.findIndex(item => item.id === pair.to);
+            return { leftIndex, rightIndex };
+          }) || [];
+
+          await questionApi.createMatchingQuestion({
+            questionId: createdQuestion.id,
+            left: leftItems.map((item, index) => ({
+              label: item.text,
+              orderIndex: index + 1
+            })),
+            right: rightItems.map(item => ({
+              label: item.text
+            })),
+            pairs
+          });
+        } else if (question.questionType === 'Fill in the Blank') {
+          const choicesToCreate = [{
+            text: null,
+            value: surveyValue?.value || '',
+            orderIndex: null,
+            isCorrect: true
+          }];
+
+          await questionApi.createChoicesBatch({
+            questionId: createdQuestion.id,
+            choices: choicesToCreate
+          });
+
+        } else {
+          const choices = question.choices as any[];
+          const choicesToCreate = choices.map((choice, i) => {
+            let isCorrect = false;
+            let orderIndex = null;
+
+            if (question.questionType === 'Multiple Choice') {
+              isCorrect = Array.isArray(surveyValue?.value)
+                ? surveyValue.value.includes(choice.id)
+                : surveyValue?.value === choice.id;
+            } else if (question.questionType === 'Sorting') {
+              const idx = surveyValue?.value?.indexOf(choice.id);
+              orderIndex = idx !== -1 ? idx + 1 : null;
+            }
+
+            return {
+              text: choice.content || null,
+              value: choice.id,
+              orderIndex,
+              isCorrect: question.questionType === 'Multiple Choice' ? isCorrect : null
+            };
+          });
+
+          questionApi.createChoicesBatch({
+            questionId: createdQuestion.id,
+            choices: choicesToCreate
+          });
+        }
+      }
+      toast.success('Lưu câu hỏi thành công!');
+      // navigate('/question-bank');
+    } catch (error) {
+      console.error('Error saving questions:', error);
+      toast.error('Có lỗi xảy ra khi lưu câu hỏi. Vui lòng thử lại.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate('/question-bank');
+  };
+
+  const fullPreviewData: FullQuestionSetData = {
+    sharedMedia: sharedMedia,
+    questions: questions,
+  };
+
+  return (
+    <div
+      className="relative flex size-full min-h-screen flex-col bg-slate-100 group/design-root"
+      style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}
+    >
+      <div className="flex flex-1" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+        {/* Left Pane: Form */}
+        <div className="flex-1 w-[60%] px-5 py-5 overflow-y-auto">
+          <div className="p-6 shadow-md rounded-lg bg-white">
+            {/* --- Shared Media Section --- */}
+            <div className="mb-8 p-4 border border-dashed border-gray-300 rounded-lg">
+              <h2 className="text-[16px] font-bold leading-tight text-[#0e141b] mb-3">Media cho nhóm câu hỏi (Tuỳ chọn)</h2>
+              <p className="text-[#4e7397] text-sm font-normal leading-normal mb-4">
+                Thêm một đoạn văn, hình ảnh, hoặc file âm thanh sẽ được dùng chung bởi tất cả các câu hỏi dưới đây. (VD: bài nghe và trả lời các câu hỏi / đọc đoạn văn sau và trả lời các câu hỏi/ ...)
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="shared-media-text" className="block text-sm font-medium text-gray-700 mb-1">Đoạn văn / Nội dung văn bản:</label>
+                  <textarea
+                    id="shared-media-text"
+                    placeholder="Paste or type your passage here..."
+                    className="form-input flex w-full min-w-0 flex-1 resize-y rounded-xl text-[#0e141b] focus:outline-0 focus:ring-2 focus:ring-blue-500 border border-[#d0dbe7] bg-slate-50 focus:border-[#d0dbe7] min-h-32 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                    value={sharedMedia?.type === 'text' ? sharedMedia.content : ''}
+                    onChange={handleSharedTextChange}
+                  />
+                </div>
+                <div className="text-center my-2">
+                  <span className="text-sm text-gray-500">HOẶC</span>
+                </div>
+                <div className='flex flex-row gap-2 items-center'>
+                  <label htmlFor="media-upload-button" className="block text-sm font-medium text-gray-700 mb-1">Tải lên hình ảnh/audio/video</label>
+                  <input
+                    id="media-upload-button"
+                    type="file"
+                    accept="image/*,audio/*,video/*"
+                    onChange={handleMediaUpload}
+                    className="block w-full text-sm text-slate-500
+                                   file:mr-4 file:py-2 file:px-4
+                                   file:rounded-full file:border-0
+                                   file:text-sm file:font-semibold
+                                   file:bg-blue-50 file:text-blue-700
+                                   hover:file:bg-blue-100"
+                  />
+                  {sharedMedia?.fileName && (
+                    <p className="text-xs text-gray-600 mt-2">File selected: {sharedMedia.fileName}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* --- Questions Section --- */}
+            <h2 className="text-[20px] font-bold leading-tight text-[#0e141b] mb-4 pt-4 border-t">Câu hỏi</h2>
+            {questions.map((question, index) => (
+              <div key={question.id} className="mb-6 p-4 border rounded-lg shadow-sm bg-slate-50 relative">
+                <button
+                  onClick={() => removeQuestion(question.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100"
+                  title="Remove this question"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+                </button>
+                <p className="text-lg font-semibold text-[#0e141b] mb-1">Câu hỏi {index + 1}</p>
+                <div className="flex max-w-[100%] flex-wrap items-end gap-4 py-3">
+                  <label className="flex flex-col min-w-40 flex-1">
+                    <span className="text-sm font-medium text-gray-700 mb-1">Nội dung</span>
+                    <textarea
+                      placeholder="Type your question here"
+                      className="form-input flex w-full min-w-0 flex-1 resize-y overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-2 focus:ring-blue-500 border border-[#d0dbe7] bg-white focus:border-[#d0dbe7] min-h-24 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                      value={question.questionText}
+                      onChange={(e) => updateQuestionField(index, 'questionText', e.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="flex flex-row gap-2 items-center">
+                  <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] pb-1 pt-3">Độ khó</h3>
+                  <div className='flex flex-5' />
+                  <div className="flex py-2">
+                    <div className="flex h-9 flex-1 items-center justify-center rounded-xl bg-[#e7edf3] p-0.5 max-w-[100%]">
+                      {levelOptions.map(level => (
+                        <label key={level.value} className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-2 text-xs font-medium leading-normal
+                                            ${question.level === level.value ? 'bg-slate-50 shadow-[0_0_4px_rgba(0,0,0,0.1)] text-[#0e141b]' : 'text-[#4e7397] hover:bg-slate-200'}`}>
+                          <span className="truncate">{level.label}</span>
+                          <input
+                            type="radio"
+                            name={`level-radio-group-${question.id}`}
+                            className="invisible w-0"
+                            value={level.value}
+                            checked={question.level === level.value}
+                            onChange={(e) => updateQuestionField(index, 'level', e.target.value)}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] pb-1 pt-3">Loại câu hỏi</h3>
+                <div className="flex flex-wrap gap-2 py-2 max-w-[100%]">
+                  {questionTypeOptions.map(qType => (
+                    <label key={qType.value} className={`flex items-center gap-2 rounded-xl border border-solid py-[8px] px-[15px] cursor-pointer hover:border-blue-400 ${question.questionType === qType.value ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-[#d0dbe7]'}`}>
+                      <input
+                        type="radio"
+                        className="h-5 w-5 border-2 border-[#d0dbe7] bg-transparent text-transparent checked:border-[#1980e6] checked:bg-[image:var(--radio-dot-svg)] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-[#1980e6]"
+                        name={`question-type-radio-group-${question.id}`}
+                        value={qType.value}
+                        checked={question.questionType === qType.value}
+                        onChange={(e) => updateQuestionField(index, 'questionType', e.target.value)}
+                      />
+                      <div className="flex grow flex-col">
+                        <p className="text-[#0e141b] text-sm font-medium leading-normal">{qType.title}</p>
+                        <p className="text-[#4e7397] text-sm font-normal leading-normal">{qType.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Question Choices Section */}
+                <QuestionChoices
+                  question={question}
+                  onUpdateChoices={(choices) => updateQuestionChoices(index, choices)}
+                />
+              </div>
+            ))}
+            <button
+              onClick={addNewQuestion}
+              className="mt-4 flex items-center justify-center w-full h-10 px-4 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 tracking-wide"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="mr-2" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
+              Add Another Question
+            </button>
+          </div>
+        </div>
+
+        {/* Right Pane: Preview */}
+        <div className="flex-1 w-[40%] pl-2.5 pr-5 py-5 overflow-y-auto">
+          <div className="sticky">
+            <FullPreview
+              data={fullPreviewData}
+              onSurveyValueChange={handleSurveyValueChange}
+            />
+          </div>
+          <div className="flex w-full max-w-screen-xl px-5 justify-between items-center mt-3">
+            <button
+              onClick={handleCancel}
+              className="flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300"
+            >
+              <span className="truncate">Cancel</span>
+            </button>
+            <button
+              onClick={handleSaveQuestions}
+              disabled={isSaving}
+              className={`flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span className="truncate">{isSaving ? 'Saving...' : 'Save All Questions'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default QuestionCreatePage;

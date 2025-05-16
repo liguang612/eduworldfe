@@ -1,0 +1,106 @@
+/* Custom styles for SurveyJS to reduce padding and improve appearance */
+
+/* Reduce the padding/margin of survey container */
+.sv-root-modern {
+  --sv-element-add-padding: 8px;
+  --sv-page-root-padding: 8px;
+  --sv-base-padding: 8px;
+  --sv-row-gap: 8px;
+  --sv-element-gap: 8px;
+}
+
+/* Remove the blue background and reduce padding */
+.sv-root-modern .sv-container-modern {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+/* Remove any unnecessary borders */
+.sv-root-modern .sv-container-modern__title {
+  border: none !important;
+  padding: 5px 0 !important;
+}
+
+/* Adjust question title text */
+.sv-root-modern .sv-question__title {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* Adjust the spacing for all question elements */
+.sv-root-modern .sv-question {
+  padding: 8px !important;
+  margin-bottom: 5px !important;
+}
+
+/* Modify various dropdown styles */
+.sv-root-modern .sv-dropdown {
+  border-radius: 4px !important;
+}
+
+/* Item connector styling improvements */
+.sv-item-connector {
+  padding: 0 !important;
+}
+
+/* Default all panels to no background */
+.sv-panel {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Make sure the text is legible */
+.sv-root-modern {
+  color: #333 !important;
+}
+
+/* Reduce padding in dropdown menus */
+.sv-list__item {
+  padding: 4px 8px !important;
+}
+
+/* Adjust the ranking/sorting question styling */
+.sv-ranking-item {
+  padding: 4px 8px !important;
+  margin: 2px 0 !important;
+}
+
+/* Remove any blue tinting in backgrounds */
+.sv-body {
+  background-color: transparent !important;
+}
+
+/* Minor padding adjustments for all survey elements */
+.sv-question__content {
+  padding: 4px 0 !important;
+}
+
+/* Ensure interactive elements have proper styling on hover/focus */
+.sv-item {
+  cursor: pointer !important;
+}
+
+.sv-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+/* Ensure radio buttons and checkboxes are clickable */
+.sv-checkbox,
+.sv-radio {
+  pointer-events: auto !important;
+}
+
+/* Fix for dropdown items to ensure they're clickable */
+.sv-dropdown__value:hover {
+  background-color: #f0f0f0 !important;
+}
+
+/* Make sure ranking items are properly interactive */
+.sv-ranking-item {
+  cursor: move !important;
+}
+
+/* Fix potential z-index issues with dropdowns */
+.sv-dropdown__popup {
+  z-index: 1000 !important;
+}

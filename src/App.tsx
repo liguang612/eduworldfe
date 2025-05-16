@@ -6,6 +6,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes/AppRoutes';
 import './App.css'
 
+import { registerItemConnectorQuestion } from './components/surveyJsCustomisations';
+registerItemConnectorQuestion();
+
 function App() {
   return (
     <Router>
