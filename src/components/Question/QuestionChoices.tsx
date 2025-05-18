@@ -1,18 +1,20 @@
 import React from 'react';
-import type { IndividualQuestion, MultipleChoiceOption, MatchingPair, FillInBlankOption, SortingOption, SelectOption } from './types';
+import type { IndividualQuestion, MultipleChoiceOption, MatchingColumn, FillInBlankOption, SortingOption } from './types';
 import AddIcon from '@/assets/add.svg';
 import RemoveIcon2 from '@/assets/remove2.svg';
 
 interface QuestionChoicesProps {
   question: IndividualQuestion;
-  onUpdateChoices: (choices: MultipleChoiceOption[] | MatchingPair[] | FillInBlankOption[] | SortingOption[]) => void;
+  onUpdateChoices: (choices: MultipleChoiceOption[] | MatchingColumn[] | FillInBlankOption[] | SortingOption[]) => void;
+  onRemoveChoice?: (id: string) => void;
 }
 
-const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateChoices }) => {
+const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateChoices, onRemoveChoice }) => {
   const addMultipleChoice = () => {
     const newChoice: MultipleChoiceOption = {
       id: Date.now().toString(),
       content: '',
+      value: '',
       isCorrect: false
     };
     onUpdateChoices([...(question.choices as MultipleChoiceOption[] || []), newChoice]);
@@ -28,16 +30,20 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
   const toggleMultipleAnswers = (allowMultiple: boolean) => {
     let updatedChoices: MultipleChoiceOption[] = [];
 
+    question.type = allowMultiple ? 'checkbox' : 'radio';
+
     if (question.choices && (question.choices as MultipleChoiceOption[]).length > 0) {
       updatedChoices = (question.choices as MultipleChoiceOption[]).map(choice => ({
         ...choice,
         allowMultiple
       }));
     } else {
+      const id = Date.now().toString();
       updatedChoices = [
         {
-          id: Date.now().toString(),
+          id,
           content: '',
+          value: id,
           isCorrect: false,
           allowMultiple
         }
@@ -48,8 +54,8 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
   };
 
   const addMatchingItem = (side: 'left' | 'right') => {
-    const existingPairs = question.choices as MatchingPair[] || [];
-    let newPairs: MatchingPair[] = [...existingPairs];
+    const existingPairs = question.choices as MatchingColumn[] || [];
+    let newPairs: MatchingColumn[] = [...existingPairs];
 
     // When adding a left item, add a pair with only the left side populated
     if (side === 'left') {
@@ -72,18 +78,21 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
   };
 
   const updateMatchingPair = (id: string, value: string) => {
-    const updatedPairs = (question.choices as MatchingPair[]).map(pair =>
+    const updatedPairs = (question.choices as MatchingColumn[]).map(pair =>
       pair.id === id ? { ...pair, 'text': value } : pair
     );
     onUpdateChoices(updatedPairs);
   };
 
   const addSortingOption = () => {
+    const id = Date.now().toString();
+
     const existingOptions = question.choices as SortingOption[] || [];
     const newOption: SortingOption = {
-      id: Date.now().toString(),
+      id,
       content: '',
-      order: existingOptions.length + 1
+      orderIndex: existingOptions.length + 1,
+      value: id
     };
     onUpdateChoices([...existingOptions, newOption]);
   };
@@ -96,24 +105,32 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
   };
 
   const removeChoice = (id: string) => {
-    switch (question.questionType) {
-      case 'Multiple Choice':
+    switch (question.type) {
+      case 'radio':
+      case 'checkbox':
         onUpdateChoices((question.choices as MultipleChoiceOption[] || []).filter(choice => choice.id !== id));
         break;
-      case 'Matching':
-        onUpdateChoices((question.choices as MatchingPair[] || []).filter(choice => choice.id !== id));
+      case 'itemConnector':
+        // Remove the choice
+        const updatedChoices = (question.choices as MatchingColumn[] || []).filter(choice => choice.id !== id);
+        onUpdateChoices(updatedChoices);
+
+        // Update surveyValue to remove any pairs containing the removed choice
+        if (onRemoveChoice) {
+          onRemoveChoice(id);
+        }
         break;
-      case 'Sorting':
+      case 'ranking':
         onUpdateChoices((question.choices as SortingOption[] || []).filter(option => option.id !== id));
         break;
-      case 'Select':
-        onUpdateChoices((question.choices as SelectOption[] || []).filter(choice => choice.id !== id));
+      default:
         break;
     }
   };
 
-  switch (question.questionType) {
-    case 'Multiple Choice':
+  switch (question.type) {
+    case 'radio':
+    case 'checkbox':
       return (
         <div className="mt-4 space-y-3">
           <div className="flex items-center gap-2 mb-3">
@@ -135,7 +152,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
                 value={choice.content}
                 onChange={(e) => updateMultipleChoice(choice.id, 'content', e.target.value)}
                 placeholder={`Lựa chọn ${index + 1}`}
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
               <button
                 onClick={() => removeChoice(choice.id)}
@@ -157,8 +174,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
         </div>
       );
 
-    case 'Matching':
-      console.log(question.choices);
+    case 'itemConnector':
       return (
         <div className="mt-4 space-y-4">
           <h4 className="text-sm font-medium text-gray-700">Các cặp ghép:</h4>
@@ -173,7 +189,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
                   <img src={AddIcon} alt="Add" />
                 </button>
               </div>
-              {(question.choices as MatchingPair[] || []).map((pair, index) => (pair.side === 'left' &&
+              {(question.choices as MatchingColumn[] || []).map((pair, index) => (pair.side === 'left' &&
                 <div key={pair.id} className="flex items-center gap-3">
                   <input
                     type="text"
@@ -201,7 +217,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
                   <img src={AddIcon} alt="Add" />
                 </button>
               </div>
-              {(question.choices as MatchingPair[] || []).map((pair, index) => (pair.side === 'right' &&
+              {(question.choices as MatchingColumn[] || []).map((pair, index) => (pair.side === 'right' &&
                 <div key={pair.id} className="flex items-center gap-3">
                   <input
                     type="text"
@@ -223,7 +239,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
         </div>
       );
 
-    case 'Sorting':
+    case 'ranking':
       return (
         <div className="mt-4 space-y-3">
           <h4 className="text-sm font-medium text-gray-700">Các mục sắp xếp:</h4>
@@ -234,7 +250,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
                 value={option.content}
                 onChange={(e) => updateSortingOption(option.id, e.target.value)}
                 placeholder={`Mục ${index + 1}`}
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
               <button
                 onClick={() => removeChoice(option.id)}
@@ -258,7 +274,7 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
         </div>
       );
 
-    case 'Fill in the Blank':
+    case 'shortAnswer':
       return null;
 
     default:

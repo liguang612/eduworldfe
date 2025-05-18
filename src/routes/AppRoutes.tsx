@@ -18,6 +18,7 @@ import LectureEditPage from '@/pages/LectureEditPage';
 import QuestionBank from '@/pages/QuestionBankPage';
 import QuestionCreatePage from '@/pages/QuestionCreatePage';
 import ExamPages from '@/pages/ExamPages';
+import QuestionEditPage from '@/pages/QuestionEditPage';
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -157,6 +158,16 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute>
           <Layout>
             <QuestionCreatePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/question-bank/:id/edit"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <QuestionEditPage />
           </Layout>
         </ProtectedRoute>
       }

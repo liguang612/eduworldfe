@@ -7,9 +7,10 @@ export interface BaseChoice {
 export interface MultipleChoiceOption extends BaseChoice {
   isCorrect: boolean;
   allowMultiple?: boolean;
+  value: string;
 }
 
-export interface MatchingPair {
+export interface MatchingColumn {
   id: string;
   text: string;
   side: 'left' | 'right';
@@ -18,27 +19,33 @@ export interface MatchingPair {
 export interface FillInBlankOption {
   id: string;
   content: string;
+  value: string;
 }
 
 export interface SortingOption {
   id: string;
   content: string;
-  order: number;
-}
-
-export interface SelectOption {
-  id: string;
-  content: string;
-  blankCount: number;
+  orderIndex: number;
+  value: string;
 }
 
 export interface IndividualQuestion {
   id: string;
   questionText: string;
-  level: string;
+  level: number;
   category: string[];
-  questionType: string;
-  choices?: MultipleChoiceOption[] | MatchingPair[] | FillInBlankOption[] | SortingOption[];
+  type: string;
+  choices?: MultipleChoiceOption[] | MatchingColumn[] | FillInBlankOption[] | SortingOption[];
+  matchingColumns?: Array<{
+    id: string;
+    label: string;
+    side: string;
+  }>;
+  matchingPairs?: Array<{
+    id: string;
+    from: string;
+    to: string;
+  }>;
 }
 
 export interface SharedMediaData {

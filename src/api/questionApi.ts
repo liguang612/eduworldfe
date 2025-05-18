@@ -2,21 +2,13 @@ import axios from '../config/axios';
 
 const API_URL = '/api';
 
-interface Choice {
+export interface SharedMedia {
   id: string;
-  text: string;
-  value: string;
-  questionId: string;
-  orderIndex: number | null;
-  isCorrect: boolean;
-}
-
-interface SharedMedia {
-  id: string;
-  mediaUrl: string;
+  mediaUrl: string | null;
   mediaType: number;
   text: string | null;
   title: string;
+  usageCount: number;
 }
 
 export interface Question {
@@ -89,12 +81,133 @@ interface SharedMediaRequest {
   text?: string;
 }
 
+export interface LocationState {
+  subjectId: string;
+}
+
+export interface SurveyValue {
+  type: string;
+  name: string;
+  question: {
+    name: string;
+    title: string;
+    leftItems?: string;
+    rightItems?: string;
+  };
+  value: any;
+}
+
 interface UploadSharedMediaRequest {
-  file: File;
+  file?: File;
   title: string;
   mediaType: number;
   text?: string; // Optional text for some media types if needed
 }
+
+export interface SurveyValue {
+  type: string;
+  name: string;
+  question: {
+    name: string;
+    title: string;
+    leftItems?: string;
+    rightItems?: string;
+  };
+  value: any;
+}
+
+export const questionTypeToApiType: { [key: string]: string } = {
+  'Multiple Choice': 'radio',
+  'Matching': 'itemConnector',
+  'Sorting': 'ranking',
+  'Fill in the Blank': 'shortAnswer'
+};
+
+export const getLevelText = (level: number) => {
+  switch (level) {
+    case 1:
+      return 'Nhận biết';
+    case 2:
+      return 'Thông hiểu';
+    case 3:
+      return 'Vận dụng';
+    case 4:
+      return 'Vận dụng cao';
+    default:
+      return 'Không xác định';
+  }
+};
+
+export const getTypeText = (type: string) => {
+  switch (type) {
+    case 'radio':
+      return 'Chọn đáp án';
+    case 'checkbox':
+      return 'Chọn nhiều đáp án';
+    case 'itemConnector':
+      return 'Ghép đôi';
+    case 'ranking':
+      return 'Sắp xếp';
+    case 'shortAnswer':
+      return 'Điền vào chỗ trống';
+  }
+}
+
+export const updateQuestion = async (questionId: string, data: {
+  title: string;
+  type: string;
+  level: number;
+  sharedMediaId?: string | null;
+}): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.put(`${API_URL}/questions/${questionId}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to update question:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateMatchingQuestion = async (questionId: string, data: {
+  left: { label: string; orderIndex: number }[];
+  right: { label: string }[];
+  pairs: { leftIndex: number; rightIndex: number }[];
+}): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.put(`${API_URL}/questions/${questionId}/matching`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to update matching question:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const updateChoicesBatch = async (questionId: string, choices: {
+  text: string | null;
+  value: string;
+  orderIndex: number | null;
+  isCorrect: boolean | null;
+}[]): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.put(`${API_URL}/questions/${questionId}/choices`, choices, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to update choices:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 export const createQuestion = async (request: CreateQuestionRequest) => {
   const token = localStorage.getItem('token');
@@ -157,7 +270,9 @@ export const createChoicesBatch = async (data: {
 export const uploadSharedMedia = async (data: UploadSharedMediaRequest) => {
   const token = localStorage.getItem('token');
   const formData = new FormData();
-  formData.append('file', data.file);
+  if (data.file) {
+    formData.append('file', data.file);
+  }
   formData.append('title', data.title);
   formData.append('mediaType', data.mediaType.toString());
   if (data.text) {
@@ -173,15 +288,25 @@ export const uploadSharedMedia = async (data: UploadSharedMediaRequest) => {
   return response.data;
 };
 
-// Helper function to convert question level to number
-export const convertLevelToNumber = (level: string): number => {
-  switch (level) {
-    case 'Easy': return 1;
-    case 'Medium': return 2;
-    case 'Hard': return 3;
-    case 'VeryHard': return 4;
-    default: return 2;
+export const updateSharedMedia = async (mediaId: string, data: UploadSharedMediaRequest) => {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  if (data.file) {
+    formData.append('file', data.file);
   }
+  formData.append('title', data.title);
+  formData.append('mediaType', data.mediaType.toString());
+  if (data.text) {
+    formData.append('text', data.text);
+  }
+
+  const response = await axios.post(`${API_URL}/shared-media/upload/${mediaId}`, formData, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
 };
 
 // Helper function to convert question type to API type
@@ -189,7 +314,7 @@ export const convertQuestionTypeToApiType = (type: string): string => {
   const mapping: { [key: string]: string } = {
     'Multiple Choice': 'radio',
     'Matching': 'itemConnector',
-    'Sorting': 'ordering',
+    'Sorting': 'ranking',
     'Fill in the Blank': 'shortAnswer'
   };
   return mapping[type] || type;
@@ -224,4 +349,28 @@ export const getQuestionDetail = async (questionId: string): Promise<Question> =
     console.error('Failed to fetch question detail:', error.response ? error.response.data : error.message);
     throw error;
   }
+};
+
+export const deleteQuestion = async (questionId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/questions/${questionId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to delete question:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const getQuestionsBySharedMedia = async (sharedMediaId: string): Promise<Question[]> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.get(`${API_URL}/questions/shared-media/${sharedMediaId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data;
 };

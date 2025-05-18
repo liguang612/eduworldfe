@@ -1,17 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import "./survey-custom.css";
 import type { Question } from '@/api/questionApi';
+import { getLevelText } from '@/api/questionApi';
 import { baseURL } from '@/config/axios';
+import { useNavigate } from 'react-router-dom';
+import { ConfirmationDialog } from '../Common/ConfirmationDialog';
+import { deleteQuestion } from '@/api/questionApi';
+import { toast } from 'react-toastify';
 
 interface QuestionDetailPreviewProps {
   question: Question;
+  onQuestionDeleted?: () => void;
 }
 
-const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question }) => {
+const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question, onQuestionDeleted }) => {
+  const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const role = JSON.parse(localStorage.getItem('user') || '{}').role;
+
+  const openDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteQuestion(question.id);
+      toast.success('Xóa câu hỏi thành công!');
+      if (onQuestionDeleted) {
+        onQuestionDeleted();
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      toast.error('Không thể xóa câu hỏi. Vui lòng thử lại.');
+    } finally {
+      closeDeleteDialog();
+    }
+  };
+
   const levelColorClasses: { [key: string]: string } = {
     Easy: 'bg-green-100 text-green-700',
     Medium: 'bg-blue-100 text-blue-700',
@@ -19,20 +52,7 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
     VeryHard: 'bg-red-100 text-red-700',
   };
 
-  const getLevelText = (level: number) => {
-    switch (level) {
-      case 1:
-        return 'Easy';
-      case 2:
-        return 'Medium';
-      case 3:
-        return 'Hard';
-      case 4:
-        return 'VeryHard';
-      default:
-        return 'Unknown';
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -41,14 +61,11 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return 'Today';
+      return 'Hôm nay';
     } else if (diffDays === 1) {
-      return 'Yesterday';
+      return 'Hôm qua';
     } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      return `${diffDays} ngày trước`;
     } else {
       return date.toLocaleDateString();
     }
@@ -61,8 +78,11 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
       return question.choices?.find(choice => choice.isCorrect)?.value;
     } else if (question.type === 'checkbox') {
       return question.choices?.filter(choice => choice.isCorrect).map(choice => choice.value);
-    } else if (question.type === 'ordering') {
-      return question.choices?.map(choice => choice.value);
+    } else if (question.type === 'ranking') {
+      const orderedChoices = [...(question.choices || [])].sort((a, b) =>
+        (a.orderIndex || 0) - (b.orderIndex || 0)
+      );
+      return orderedChoices.map(choice => choice.value);
     } else if (question.type === 'itemConnector') {
       return question.matchingPairs;
     } else {
@@ -77,7 +97,7 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
       type: question.type === 'radio' ? 'radiogroup' :
         question.type === 'checkbox' ? 'checkbox' :
           question.type === 'itemConnector' ? 'itemConnector' :
-            question.type === 'ordering' ? 'ranking' : 'text',
+            question.type === 'ranking' ? 'ranking' : 'text',
       choices: question.choices?.map(choice => {
         return {
           id: choice.id,
@@ -110,21 +130,35 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
   // Set correct answers based on question type
   if (question.type === 'radio' || question.type === 'checkbox') {
     model.setValue(`question_${question.id}`, getCorrectAnswer());
-  } else if (question.type === 'ordering') {
-    const orderedChoices = [...(question.choices || [])].sort((a, b) =>
-      (a.orderIndex || 0) - (b.orderIndex || 0)
-    );
-    model.setValue(`question_${question.id}`, orderedChoices.map(c => c.value));
+  } else if (question.type === 'ranking') {
+    model.setValue(`question_${question.id}`, getCorrectAnswer());
   } else if (question.type === 'shortAnswer') {
     model.setValue(`question_${question.id}`, getCorrectAnswer());
   } else if (question.type === 'itemConnector') {
-    console.log(getCorrectAnswer());
     model.setValue(`question_${question.id}`, getCorrectAnswer());
   }
 
   return (
     <div className="p-6 bg-white shadow-lg rounded-lg">
       <div className="flex flex-col gap-4">
+        {/* Action Buttons */}
+        {role === 1 && (
+          <div className="flex justify-end gap-3 mb-4">
+            <button
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal"
+              onClick={() => navigate(`/question-bank/${question.id}/edit`, { state: { subjectId: question.subjectId } })}
+            >
+              <span className="truncate">Sửa câu hỏi</span>
+            </button>
+            <button
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#E52020] text-slate-50 text-sm font-bold leading-normal"
+              onClick={openDeleteDialog}
+            >
+              <span className="truncate">Xoá câu hỏi</span>
+            </button>
+          </div>
+        )}
+
         {/* Shared Media */}
         {question.sharedMedia && (
           <div className="mb-4">
@@ -136,13 +170,13 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
             {question.sharedMedia.mediaType === 1 && (
               <audio controls className="w-full">
                 <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="audio/mpeg" />
-                Your browser does not support the audio element.
+                Định dạng file không được hỗ trợ
               </audio>
             )}
-            {question.sharedMedia.mediaType === 2 && (
+            {question.sharedMedia.mediaType === 2 && question.sharedMedia.mediaUrl && (
               <video controls className="w-full">
-                <source src={question.sharedMedia.mediaUrl} type="video/mp4" />
-                Your browser does not support the video element.
+                <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="video/mp4" />
+                Định dạng file không được hỗ trợ
               </video>
             )}
           </div>
@@ -155,33 +189,44 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question 
 
         {/* Question Details */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <h3 className="text-gray-800 font-semibold mb-2">Details:</h3>
+          <h3 className="text-gray-800 font-semibold mb-2">Chi tiết:</h3>
           <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Created:</strong> {formatDate(question.createdAt)}</p>
-            <p><strong>Last updated:</strong> {formatDate(question.updatedAt)}</p>
+            <p><strong>Ngày tạo:</strong> {formatDate(question.createdAt)}</p>
+            <p><strong>Ngày cập nhật:</strong> {formatDate(question.updatedAt)}</p>
             {question.categories.length > 0 && (
-              <p><strong>Categories:</strong> {question.categories.join(', ')}</p>
+              <p><strong>Danh mục:</strong> {question.categories.join(', ')}</p>
             )}
           </div>
           <div className="flex flex-row gap-6 mb-3 items-center">
             <p className="mt-1 text-sm text-gray-600">
-              <strong>Level:</strong>{' '}
+              <strong>Cấp độ:</strong>{' '}
               <span className={`font-normal px-2 py-0.5 rounded-full text-xs ${levelColorClasses[getLevelText(question.level)] || 'bg-gray-100 text-gray-700'}`}>
                 {getLevelText(question.level)}
               </span>
             </p>
             <p className="mt-1 text-sm text-gray-600">
-              <strong>Type:</strong>{' '}
+              <strong>Loại câu hỏi:</strong>{' '}
               <span className="font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs">
-                {question.type === 'radio' ? 'Multiple Choice' :
-                  question.type === 'checkbox' ? 'Multiple Choice (Multiple)' :
-                    question.type === 'itemConnector' ? 'Matching' :
-                      question.type === 'ordering' ? 'Sorting' : 'Fill in the Blank'}
+                {question.type === 'radio' ? 'Trắc nghiệm lựa chọn đáp án' :
+                  question.type === 'checkbox' ? 'Trắc nghiệm lựa chọn nhiều đáp án' :
+                    question.type === 'itemConnector' ? 'Ghép đôi' :
+                      question.type === 'ranking' ? 'Sắp xếp' : 'Điền vào chỗ trống'}
               </span>
             </p>
           </div>
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={closeDeleteDialog}
+        title="Xác nhận xoá câu hỏi"
+        message="Bạn có chắc chắn muốn xoá câu hỏi này? Hành động này không thể hoàn tác."
+        onConfirm={handleConfirmDelete}
+        confirmButtonText="Xoá"
+        cancelButtonText="Huỷ"
+        confirmButtonColorClass="bg-red-600 hover:bg-red-700"
+      />
     </div>
   );
 };

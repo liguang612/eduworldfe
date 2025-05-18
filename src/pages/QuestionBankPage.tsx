@@ -57,13 +57,6 @@ const QuestionBankPage: React.FC = () => {
       try {
         const data = await getQuestions(userId, selectedSubjectId);
         setQuestions(data);
-        if (data.length > 0) {
-          // Chọn câu hỏi đầu tiên sau khi fetch, áp dụng sắp xếp mặc định
-          const sortedData = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          setSelectedQuestion(sortedData[0]);
-        } else {
-          setSelectedQuestion(null);
-        }
       } catch (error) {
         console.error('Error fetching questions:', error);
       } finally {
@@ -161,6 +154,18 @@ const QuestionBankPage: React.FC = () => {
     return 0; // Không sắp xếp nếu cột không hợp lệ
   });
 
+  const handleQuestionDeleted = () => {
+    setSelectedQuestion(null);
+    // Refresh the questions list
+    if (selectedSubjectId && userId) {
+      getQuestions(userId, selectedSubjectId).then(data => {
+        setQuestions(data);
+      }).catch(error => {
+        console.error('Error refreshing questions:', error);
+      });
+    }
+  };
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -175,7 +180,7 @@ const QuestionBankPage: React.FC = () => {
       <div className="flex h-full grow flex-row">
         <div className="layout-content-container flex flex-col w-2/5 border-r border-solid border-r-[#e7edf3]">
           <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-solid border-b-[#e7edf3]">
-            <p className="text-[#0e141b] tracking-light text-[28px] font-bold leading-tight">Question Banks</p>
+            <p className="text-[#0e141b] tracking-light text-[28px] font-bold leading-tight">Ngân hàng câu hỏi</p>
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal"
               onClick={handleCreateQuestion}
@@ -303,11 +308,14 @@ const QuestionBankPage: React.FC = () => {
             </div>
           ) : selectedQuestion ? (
             <div className="p-6">
-              <QuestionDetailPreview question={selectedQuestion} />
+              <QuestionDetailPreview
+                question={selectedQuestion}
+                onQuestionDeleted={handleQuestionDeleted}
+              />
             </div>
           ) : (
-            <div className="p-6 flex justify-center items-center h-full">
-              <p className="text-[#4e7397] text-lg">Select a question to view details.</p>
+            <div className="p-6 pt-20 flex justify-center h-full">
+              <p className="text-[#4e7397] text-lg">Chọn câu hỏi để xem chi tiết</p>
             </div>
           )}
         </div>

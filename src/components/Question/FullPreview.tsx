@@ -33,10 +33,10 @@ const FullPreview: React.FC<{
     if (!q.level) {
       issues.push('chưa chọn độ khó');
     }
-    if (!q.questionType) {
+    if (!q.type) {
       issues.push('chưa chọn loại câu hỏi');
     }
-    if (q.questionType !== 'Fill in the Blank' && (!q.choices || q.choices.length === 0)) {
+    if (q.type !== 'Fill in the Blank' && (!q.choices || q.choices.length === 0)) {
       issues.push('chưa thêm lựa chọn');
     }
     return issues.length > 0 ? { index: index + 1, issues } : null;

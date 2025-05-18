@@ -1,48 +1,47 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '../components/Question/types';
 import FullPreview from '../components/Question/FullPreview';
 import QuestionChoices from '../components/Question/QuestionChoices';
 import * as questionApi from '../api/questionApi';
-import { uploadSharedMedia } from '../api/questionApi';
+import { uploadSharedMedia, type LocationState, type SurveyValue } from '../api/questionApi';
+import RemoveIcon from '@/assets/remove.svg';
 
-interface LocationState {
-  subjectId: string;
-}
-
-// Add API type mapping
-const questionTypeToApiType: { [key: string]: string } = {
-  'Multiple Choice': 'radio',
-  'Matching': 'itemConnector',
-  'Sorting': 'ordering',
-  'Fill in the Blank': 'shortAnswer'
-};
-
-interface SurveyValue {
-  type: string;
-  name: string;
-  question: {
-    name: string;
-    title: string;
-    leftItems?: string;
-    rightItems?: string;
-  };
-  value: any;
-}
 
 // --- Main Page Component ---
 const QuestionCreatePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { subjectId } = location.state as LocationState || {};
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [sharedMedia, setSharedMedia] = useState<SharedMediaData | undefined>(undefined);
   const [questions, setQuestions] = useState<IndividualQuestion[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [surveyValues, setSurveyValues] = useState<{ [key: string]: SurveyValue }>({});
 
-  // --- Shared Media Handlers ---
+  const levelOptions = [
+    { label: 'Nhận biết', value: 1 },
+    { label: 'Thông hiểu', value: 2 },
+    { label: 'Vận dụng', value: 3 },
+    { label: 'Vận dụng cao', value: 4 }
+  ];
+
+  const questionTypeOptions = [
+    { value: "radio", title: "Trắc nghiệm", description: "Chọn một đáp án đúng từ danh sách các đáp án" },
+    { value: "itemConnector", title: "Ghép đôi", description: "Ghép các mục từ hai cột" },
+    { value: "ranking", title: "Sắp xếp", description: "Sắp xếp các mục theo thứ tự" },
+    { value: "shortAnswer", title: "Điền vào chỗ trống", description: "Nhập đáp án đúng" },
+  ];
+  const checkType = (type: string) => {
+    if (type === 'radio' || type === 'checkbox') {
+      return 'radio';
+    }
+    return type;
+  }
+
+  // Shared media handlers
   const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -73,28 +72,39 @@ const QuestionCreatePage: React.FC = () => {
     });
   };
 
-  // --- Individual Question Handlers ---
+  const handleRemoveFile = () => {
+    setSharedMedia(undefined);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Question handlers
   const addNewQuestion = () => {
     setQuestions(prevQuestions => [
       ...prevQuestions,
       {
         id: Date.now().toString(),
         questionText: '',
-        level: 'Medium',
+        level: 2,
         category: [],
-        questionType: 'Multiple Choice',
+        type: 'radio',
         choices: []
       }
     ]);
   };
+  const removeQuestion = (id: string) => {
+    setQuestions(prevQuestions => prevQuestions.filter(q => q.id !== id));
+  };
 
+  // Update handlers
   const updateQuestionField = <K extends keyof IndividualQuestion>(index: number, field: K, value: IndividualQuestion[K]) => {
     setQuestions(prevQuestions =>
       prevQuestions.map((q, i) => {
         if (i !== index) return q;
 
         // If changing the question type, initialize with appropriate default choices
-        if (field === 'questionType') {
+        if (field === 'type') {
           const questionType = value as string;
           let choices: IndividualQuestion['choices'] = [];
 
@@ -127,23 +137,6 @@ const QuestionCreatePage: React.FC = () => {
     );
   };
 
-  const removeQuestion = (id: string) => {
-    setQuestions(prevQuestions => prevQuestions.filter(q => q.id !== id));
-  };
-
-  const levelOptions = [
-    { label: 'Nhận biết', value: 'Easy' },
-    { label: 'Thông hiểu', value: 'Medium' },
-    { label: 'Vận dụng', value: 'Hard' },
-    { label: 'Vận dụng cao', value: 'VeryHard' }
-  ];
-  const questionTypeOptions = [
-    { value: "Multiple Choice", title: "Trắc nghiệm", description: "Chọn một đáp án đúng từ danh sách các đáp án" },
-    { value: "Matching", title: "Ghép đôi", description: "Ghép các mục từ hai cột" },
-    { value: "Sorting", title: "Sắp xếp", description: "Sắp xếp các mục theo thứ tự" },
-    { value: "Fill in the Blank", title: "Điền vào chỗ trống", description: "Nhập đáp án đúng" },
-  ];
-
   const handleSurveyValueChange = useCallback((questionId: string, value: SurveyValue) => {
     setSurveyValues(prev => ({
       ...prev,
@@ -151,6 +144,7 @@ const QuestionCreatePage: React.FC = () => {
     }));
   }, []);
 
+  // Save handlers
   const handleSaveQuestions = async () => {
     if (!subjectId) {
       toast.error('Vui lòng chọn môn học trước khi tạo câu hỏi.');
@@ -163,15 +157,15 @@ const QuestionCreatePage: React.FC = () => {
       if (!surveyValue || (surveyValue.value === undefined || surveyValue.value === null || surveyValue.value === '' || (Array.isArray(surveyValue.value) && surveyValue.value.length === 0))) return true;
 
       // Kiểm tra riêng cho từng loại câu hỏi
-      switch (question.questionType) {
-        case 'Multiple Choice':
-          // Check if value exists and is not empty for checkbox/radiogroup
+      switch (question.type) {
+        case 'radio':
+        case 'checkbox':
           return Array.isArray(surveyValue.value) ? surveyValue.value.length === 0 : !surveyValue.value;
-        case 'Matching':
+        case 'itemConnector':
           return !surveyValue.value || surveyValue.value.length === 0;
-        case 'Sorting':
+        case 'ranking':
           return !surveyValue.value || surveyValue.value.length === 0;
-        case 'Fill in the Blank':
+        case 'shortAnswer':
           return !surveyValue.value || surveyValue.value.trim() === '';
         default:
           return true;
@@ -188,7 +182,6 @@ const QuestionCreatePage: React.FC = () => {
       let sharedMediaId = null;
       if (sharedMedia) {
         if (sharedMedia.type === 'text' && sharedMedia.content) {
-          // Handle text media
           const response = await questionApi.createSharedMedia({
             title: 'Shared Text',
             mediaType: 0,
@@ -196,7 +189,6 @@ const QuestionCreatePage: React.FC = () => {
           });
           sharedMediaId = response.id;
         } else if (sharedMedia.file) {
-          // Handle file media upload
           const response = await uploadSharedMedia({
             file: sharedMedia.file,
             title: sharedMedia.fileName || 'Untitled Media',
@@ -209,17 +201,18 @@ const QuestionCreatePage: React.FC = () => {
       for (const question of questions) {
         const createdQuestion = await questionApi.createQuestion({
           title: question.questionText,
-          type: question.questionType === 'Multiple Choice' && (question.choices as MultipleChoiceOption[])?.[0]?.allowMultiple
+          type: question.type === 'radio' && (question.choices as MultipleChoiceOption[])?.[0]?.allowMultiple
             ? 'checkbox'
-            : questionTypeToApiType[question.questionType],
-          level: questionApi.convertLevelToNumber(question.level),
+            : question.type,
+
+          level: question.level,
           subjectId,
           sharedMediaId: sharedMediaId
         });
 
         const surveyValue = surveyValues[question.id];
 
-        if (question.questionType === 'Matching') {
+        if (question.type === 'itemConnector') {
           const leftItems = (question.choices as any[]).filter(c => c.side === 'left');
           const rightItems = (question.choices as any[]).filter(c => c.side === 'right');
 
@@ -240,7 +233,7 @@ const QuestionCreatePage: React.FC = () => {
             })),
             pairs
           });
-        } else if (question.questionType === 'Fill in the Blank') {
+        } else if (question.type === 'shortAnswer') {
           const choicesToCreate = [{
             text: null,
             value: surveyValue?.value || '',
@@ -255,15 +248,16 @@ const QuestionCreatePage: React.FC = () => {
 
         } else {
           const choices = question.choices as any[];
-          const choicesToCreate = choices.map((choice, i) => {
+
+          const choicesToCreate = choices.map((choice, _) => {
             let isCorrect = false;
             let orderIndex = null;
 
-            if (question.questionType === 'Multiple Choice') {
-              isCorrect = Array.isArray(surveyValue?.value)
-                ? surveyValue.value.includes(choice.id)
-                : surveyValue?.value === choice.id;
-            } else if (question.questionType === 'Sorting') {
+            if (question.type === 'radio') {
+              isCorrect = surveyValue?.value === choice.id;
+            } else if (question.type === 'checkbox') {
+              isCorrect = surveyValue.value.includes(String(choice.id));
+            } else if (question.type === 'ranking') {
               const idx = surveyValue?.value?.indexOf(choice.id);
               orderIndex = idx !== -1 ? idx + 1 : null;
             }
@@ -272,9 +266,13 @@ const QuestionCreatePage: React.FC = () => {
               text: choice.content || null,
               value: choice.id,
               orderIndex,
-              isCorrect: question.questionType === 'Multiple Choice' ? isCorrect : null
+              isCorrect: isCorrect
             };
           });
+
+          console.log(surveyValue.value);
+          console.log(choices);
+          console.log(choicesToCreate);
 
           questionApi.createChoicesBatch({
             questionId: createdQuestion.id,
@@ -337,6 +335,7 @@ const QuestionCreatePage: React.FC = () => {
                     type="file"
                     accept="image/*,audio/*,video/*"
                     onChange={handleMediaUpload}
+                    ref={fileInputRef}
                     className="block w-full text-sm text-slate-500
                                    file:mr-4 file:py-2 file:px-4
                                    file:rounded-full file:border-0
@@ -344,8 +343,13 @@ const QuestionCreatePage: React.FC = () => {
                                    file:bg-blue-50 file:text-blue-700
                                    hover:file:bg-blue-100"
                   />
-                  {sharedMedia?.fileName && (
-                    <p className="text-xs text-gray-600 mt-2">File selected: {sharedMedia.fileName}</p>
+                  {sharedMedia?.file && (
+                    <button
+                      onClick={handleRemoveFile}
+                      className="ml-auto flex items-center justify-center h-10 px-4 text-white text-sm font-bold rounded-xl hover:bg-slate-50 tracking-wide"
+                    >
+                      <img src={RemoveIcon} alt="Remove" className="" />
+                    </button>
                   )}
                 </div>
               </div>
@@ -389,7 +393,7 @@ const QuestionCreatePage: React.FC = () => {
                             className="invisible w-0"
                             value={level.value}
                             checked={question.level === level.value}
-                            onChange={(e) => updateQuestionField(index, 'level', e.target.value)}
+                            onChange={(e) => updateQuestionField(index, 'level', parseInt(e.target.value))}
                           />
                         </label>
                       ))}
@@ -400,14 +404,14 @@ const QuestionCreatePage: React.FC = () => {
                 <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] pb-1 pt-3">Loại câu hỏi</h3>
                 <div className="flex flex-wrap gap-2 py-2 max-w-[100%]">
                   {questionTypeOptions.map(qType => (
-                    <label key={qType.value} className={`flex items-center gap-2 rounded-xl border border-solid py-[8px] px-[15px] cursor-pointer hover:border-blue-400 ${question.questionType === qType.value ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-[#d0dbe7]'}`}>
+                    <label key={qType.value} className={`flex items-center gap-2 rounded-xl border border-solid py-[8px] px-[15px] cursor-pointer hover:border-blue-400 ${checkType(question.type) === qType.value ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-[#d0dbe7]'}`}>
                       <input
                         type="radio"
                         className="h-5 w-5 border-2 border-[#d0dbe7] bg-transparent text-transparent checked:border-[#1980e6] checked:bg-[image:var(--radio-dot-svg)] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-[#1980e6]"
                         name={`question-type-radio-group-${question.id}`}
                         value={qType.value}
-                        checked={question.questionType === qType.value}
-                        onChange={(e) => updateQuestionField(index, 'questionType', e.target.value)}
+                        checked={checkType(question.type) === qType.value}
+                        onChange={(e) => updateQuestionField(index, 'type', e.target.value)}
                       />
                       <div className="flex grow flex-col">
                         <p className="text-[#0e141b] text-sm font-medium leading-normal">{qType.title}</p>
@@ -429,7 +433,7 @@ const QuestionCreatePage: React.FC = () => {
               className="mt-4 flex items-center justify-center w-full h-10 px-4 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 tracking-wide"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="mr-2" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
-              Add Another Question
+              Thêm câu hỏi
             </button>
           </div>
         </div>

@@ -1,10 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Model } from 'survey-core';
+import type { ValueChangedEvent } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
-import type { IndividualQuestion, MultipleChoiceOption, MatchingPair, SortingOption } from './types';
+import type { IndividualQuestion, MultipleChoiceOption, SortingOption, FillInBlankOption, MatchingColumn } from './types';
 import 'survey-core/survey-core.css';
 import "./survey-custom.css";
+import { getLevelText, getTypeText } from '@/api/questionApi';
 
 interface SurveyElement {
   name: string;
@@ -38,14 +40,14 @@ const IndividualQuestionPreview: React.FC<{
   index: number,
   onValueChange?: (value: SurveyValue) => void
 }> = ({ question, index, onValueChange }) => {
-  const [surveyModel, setSurveyModel] = useState<Model | null>(null);
-  const [surveyValue, setSurveyValue] = useState<SurveyValue | null>(null);
+  const [model, setModel] = useState<Model | null>(null);
+  const [_, setSurveyValue] = useState<SurveyValue | null>(null);
 
-  const levelColorClasses: { [key: string]: string } = {
-    Easy: 'bg-green-100 text-green-700',
-    Medium: 'bg-blue-100 text-blue-700',
-    Hard: 'bg-orange-100 text-orange-700',
-    VeryHard: 'bg-red-100 text-red-700',
+  const levelColorClasses: { [key: number]: string } = {
+    1: 'bg-green-100 text-green-700',
+    2: 'bg-blue-100 text-blue-700',
+    3: 'bg-orange-100 text-orange-700',
+    4: 'bg-red-100 text-red-700',
   };
 
   const surveyJson = useMemo(() => {
@@ -58,38 +60,52 @@ const IndividualQuestionPreview: React.FC<{
       }]
     };
 
-    switch (question.questionType) {
-      case 'Multiple Choice':
+    switch (question.type) {
+      case 'radio':
         baseJson.elements[0].type = (question.choices as MultipleChoiceOption[])?.[0]?.allowMultiple ? 'checkbox' : 'radiogroup';
         baseJson.elements[0].choices = (question.choices as MultipleChoiceOption[] || []).map(choice => ({
-          value: choice.id,
+          value: choice.value || choice.id,
           text: choice.content || "Chưa có nội dung"
         }));
         break;
 
-      case 'Matching':
+      case 'checkbox':
+        baseJson.elements[0].type = 'checkbox';
+        baseJson.elements[0].choices = (question.choices as MultipleChoiceOption[] || []).map(choice => ({
+          value: choice.value || choice.id,
+          text: choice.content || "Chưa có nội dung"
+        }));
+        break;
+
+      case 'itemConnector':
         baseJson.elements[0].type = 'itemConnector';
-        const leftItems = (question.choices as MatchingPair[] || []).filter(pair => pair.side === 'left').map(pair => ({
-          id: pair.id,
-          label: pair.text || "Chưa có nội dung"
-        }));
-        const rightItems = (question.choices as MatchingPair[] || []).filter(pair => pair.side === 'right').map(pair => ({
-          id: pair.id,
-          label: pair.text || "Chưa có nội dung"
-        }));
-        baseJson.elements[0].leftItems = JSON.stringify(leftItems);
-        baseJson.elements[0].rightItems = JSON.stringify(rightItems);
+        const matchingChoices = question.choices as MatchingColumn[] || [];
+        baseJson.elements[0].leftItems = JSON.stringify(matchingChoices
+          .filter(column => column.side === 'left')
+          .map(column => ({
+            id: column.id,
+            label: column.text
+          })));
+        baseJson.elements[0].rightItems = JSON.stringify(matchingChoices
+          .filter(column => column.side === 'right')
+          .map(column => ({
+            id: column.id,
+            label: column.text
+          })));
         break;
 
-      case 'Sorting':
+      case 'ranking':
         baseJson.elements[0].type = 'ranking';
-        baseJson.elements[0].choices = (question.choices as SortingOption[] || []).map(option => ({
-          value: option.id,
-          text: option.content || "Chưa có nội dung"
-        }));
+        const rankingChoices = (question.choices as SortingOption[] || [])
+          .map(option => ({
+            value: option.value || option.id,
+            text: option.content || "Chưa có nội dung"
+          }));
+
+        baseJson.elements[0].choices = rankingChoices;
         break;
 
-      case 'Fill in the Blank':
+      case 'shortAnswer':
         baseJson.elements[0].type = 'text';
         baseJson.elements[0].placeHolder = 'Nhập câu trả lời (+ Enter để xác nhận)';
         break;
@@ -98,21 +114,47 @@ const IndividualQuestionPreview: React.FC<{
     return baseJson;
   }, [question]);
 
+  const getCorrectAnswer = () => {
+    switch (question.type) {
+      case 'radio':
+        const mcChoices = question.choices as MultipleChoiceOption[];
+        return mcChoices.find(choice => choice.isCorrect)?.value;
+      case 'checkbox':
+        const mcOptions = question.choices as MultipleChoiceOption[];
+        return mcOptions.filter(option => option.isCorrect).map(option => option.value);
+      case 'itemConnector':
+        return question.matchingPairs;
+      case 'ranking':
+        const sortingChoices = question.choices as SortingOption[];
+        return sortingChoices
+          .filter(option => option.orderIndex !== null)
+          .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+          .map(choice => choice.value);
+      case 'shortAnswer':
+        return (question.choices as FillInBlankOption[])?.[0]?.value;
+      default:
+        return null;
+    }
+  };
+
   useEffect(() => {
-    const model = new Model(surveyJson);
-    model.applyTheme(BorderlessLight);
-    model.showCompleteButton = false;
-    model.isReadOnly = false;
+    const newModel = new Model(surveyJson);
+    newModel.applyTheme(BorderlessLight);
+    newModel.showCompleteButton = false;
+    newModel.isReadOnly = false;
+    newModel.questionType = question.type;
 
-    console.log(model);
+    const correctAnswer = getCorrectAnswer();
+    if (correctAnswer) {
+      newModel.setValue(`question_${question.id}`, correctAnswer);
+    }
 
-    model.onComplete.add(() => false);
-    // Prevent the survey from moving to the next page
-    model.onCurrentPageChanging.add(() => false);
+    newModel.onComplete.add(() => false);
+    newModel.onCurrentPageChanging.add(() => false);
 
-    model.onValueChanged.add((_, options) => {
+    const valueChangedHandler = (_: Model, options: ValueChangedEvent) => {
       const value: SurveyValue = {
-        type: options.question.type,
+        type: options.question.getType(),
         name: options.question.name,
         question: {
           name: options.question.name,
@@ -127,29 +169,36 @@ const IndividualQuestionPreview: React.FC<{
       if (onValueChange) {
         onValueChange(value);
       }
-    });
-
-    setSurveyModel(model);
-
-    // Cleanup function to prevent memory leaks
-    return () => {
-      model.dispose();
     };
-  }, [surveyJson]);
+
+    newModel.onValueChanged.add(valueChangedHandler);
+    setModel(newModel);
+
+    return () => {
+      if (newModel) {
+        // newModel.onValueChanged.remove(valueChangedHandler);
+        newModel.onComplete.clear();
+        newModel.onCurrentPageChanging.clear();
+        newModel.dispose();
+      }
+    };
+  }, [surveyJson, question.type]);
 
   return (
     <div className="mb-4 p-4 border rounded-md bg-white shadow">
       <h4 className="font-semibold text-gray-800 mb-2">Câu hỏi {index + 1}</h4>
       <div className="flex flex-row gap-6 mb-3 items-center">
         <p className="mt-1 text-sm text-gray-600">
-          <strong>Độ khó:</strong> <span className={`font-normal px-2 py-0.5 rounded-full text-xs ${levelColorClasses[question.level] || 'bg-gray-100 text-gray-700'}`}>{question.level}</span>
+          <strong>Độ khó:</strong> <span className={`font-normal px-2 py-0.5 rounded-full text-xs ${levelColorClasses[question.level] || 'bg-gray-100 text-gray-700'}`}>{getLevelText(question.level)}</span>
         </p>
         <p className="mt-1 text-sm text-gray-600">
-          <strong>Loại:</strong> <span className="font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs">{question.questionType}</span>
+          <strong>Loại:</strong> <span className="font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs">{getTypeText(question.type)}</span>
         </p>
       </div>
       <div className="survey-container">
-        {surveyModel && <Survey model={surveyModel} key={`survey_${question.id}_${JSON.stringify(surveyJson)}`} />}
+        {model && (
+          <Survey model={model} />
+        )}
       </div>
     </div>
   );
