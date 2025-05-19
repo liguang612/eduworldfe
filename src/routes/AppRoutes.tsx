@@ -17,8 +17,12 @@ import LectureDetailPage from '@/pages/LectureDetailPage';
 import LectureEditPage from '@/pages/LectureEditPage';
 import QuestionBank from '@/pages/QuestionBankPage';
 import QuestionCreatePage from '@/pages/QuestionCreatePage';
-import ExamPages from '@/pages/ExamPages';
 import QuestionEditPage from '@/pages/QuestionEditPage';
+import CourseLectures from '@/pages/CourseDetail/CourseLecture';
+import CourseExams from '@/pages/CourseDetail/CourseExam';
+import CourseTopics from '@/pages/CourseDetail/CourseTopic';
+import CourseReviews from '@/pages/CourseDetail/CourseReview';
+import ExamCreatePage from '@/pages/ExamCreatePage';
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -78,6 +82,21 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+    <Route path="/courses/:id"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <CourseDetailPage />
+          </Layout>
+        </ProtectedRoute>
+      }>
+      <Route index element={<CourseLectures />} />
+
+      <Route path="lectures" element={<CourseLectures />} />
+      <Route path="exams" element={<CourseExams />} />
+      <Route path="discussions" element={<CourseTopics />} />
+      <Route path="reviews" element={<CourseReviews />} />
+    </Route>
     <Route
       path="/courses/:id/edit"
       element={
@@ -172,18 +191,19 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+
+    {/* Exam */}
     <Route
-      path="/exam"
+      path="/courses/:courseId/exams/create"
       element={
         <ProtectedRoute>
           <Layout>
-            <ExamPages />
+            <ExamCreatePage />
           </Layout>
         </ProtectedRoute>
       }
     />
-
-  </Routes >
+  </Routes>
 );
 
 export default AppRoutes;
