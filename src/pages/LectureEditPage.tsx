@@ -2,16 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MyEditor from '../components/Lecture/MyEditor';
 import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import { uploadFile, getLectureById, updateLecture } from '../api/lectureApi';
+import { uploadFile, getLectureById, updateLecture, searchQuestions, getQuestionsDetails } from '../api/lectureApi';
 import type { LectureResponse } from '../api/lectureApi';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
+import AddIcon from '@/assets/add.svg';
+import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti';
+import { useAuth } from '@/contexts/AuthContext';
+import RemoveIcon from '@/assets/remove.svg';
+
+interface ReviewQuestion {
+  id: string;
+  text: string;
+}
 
 const LectureEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [durationHours, setDurationHours] = useState(0);
   const [durationMinutes, setDurationMinutes] = useState(0);
+  const [lectureName, setLectureName] = useState('');
+  const [lectureDescription, setLectureDescription] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<MyEditorRef>(null);
@@ -19,6 +30,13 @@ const LectureEditPage: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [lecture, setLecture] = useState<LectureResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [activeTab, setActiveTab] = useState<'general' | 'reviewQuestions'>('general');
+  const [isReviewQuestionSearchOpen, setIsReviewQuestionSearchOpen] = useState(false);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [selectedReviewQuestions, setSelectedReviewQuestions] = useState<ReviewQuestion[]>([]);
+
+  const { user } = useAuth();
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = Array.from({ length: 12 }, (_, i) => i * 5);
@@ -32,14 +50,32 @@ const LectureEditPage: React.FC = () => {
         setLecture(data);
 
         // Set form values
-        if (nameInputRef.current) nameInputRef.current.value = data.name;
-        if (descriptionTextareaRef.current) descriptionTextareaRef.current.value = data.description;
+        setLectureName(data.name);
+        setLectureDescription(data.description);
         if (editorRef.current) editorRef.current = (data.contents ? JSON.parse(data.contents) : undefined);
 
         // Set duration
         const totalMinutes = data.duration;
         setDurationHours(Math.floor(totalMinutes / 60));
         setDurationMinutes(totalMinutes % 60);
+
+        // Fetch questions details if there are endQuestions
+        if (data.endQuestions && data.endQuestions.length > 0) {
+          setIsLoadingQuestions(true);
+          try {
+            const questionsData = await getQuestionsDetails(data.endQuestions);
+            setSelectedReviewQuestions(questionsData.map(q => ({
+              id: q.id,
+              text: q.title,
+              ...q
+            })));
+          } catch (error) {
+            console.error('Error fetching questions details:', error);
+            toast.error('Không thể tải thông tin câu hỏi ôn tập');
+          } finally {
+            setIsLoadingQuestions(false);
+          }
+        }
       } catch (error) {
         console.error('Error fetching lecture:', error);
         toast.error('Không thể tải thông tin bài giảng');
@@ -92,12 +128,8 @@ const LectureEditPage: React.FC = () => {
 
   const handleSave = async () => {
     const editorValue = editorRef.current?.getValue();
-    console.log(editorValue);
 
     if (!editorValue) return;
-
-    const lectureName = nameInputRef.current?.value || '';
-    const lectureDescription = descriptionTextareaRef.current?.value || '';
 
     setLoading(true);
     setStatusMessage(null);
@@ -111,7 +143,8 @@ const LectureEditPage: React.FC = () => {
         name: lectureName,
         description: lectureDescription,
         contents: JSON.stringify(processedContents),
-        duration: durationHours * 60 + durationMinutes
+        duration: durationHours * 60 + durationMinutes,
+        endQuestions: selectedReviewQuestions.map(question => question.id)
       };
 
       await updateLecture(id!, lectureData);
@@ -126,6 +159,13 @@ const LectureEditPage: React.FC = () => {
       toast.error('Có lỗi xảy ra, vui lòng thử lại sau.');
       toast.warning('Bạn có thể export bài giảng dưới dạng HTML (khuyến nghị) hoặc Markdown để import lại sau.');
     }
+  };
+
+  // Cập nhật hàm searchQuestions để sử dụng API từ lectureApi.ts
+  const searchQuestionsHandler = async (keyword: string) => {
+    if (!user || !lecture) return [];
+    const data = await searchQuestions(keyword, lecture.subjectId, user.id);
+    return data.map((q: any) => ({ id: q.id, text: q.title, ...q }));
   };
 
   if (isLoading) {
@@ -153,79 +193,153 @@ const LectureEditPage: React.FC = () => {
       >
         <div className="layout-container flex h-full grow flex-col">
           <div className="gap-1 px-6 flex flex-1 justify-center py-5">
-            {/* Left Column: Form */}
             <div className="layout-content-container flex flex-col max-w-[920px] flex-1">
               <div className="flex flex-wrap justify-between gap-3 p-4">
                 <div className="flex min-w-72 flex-col gap-3">
                   <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Chỉnh sửa bài giảng</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-end gap-4 px-4 py-3">
-                <label className="flex flex-col min-w-40 flex-1">
-                  <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Tên bài giảng</p>
-                  <input
-                    className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
-                    ref={nameInputRef}
-                    defaultValue={lecture?.name}
-                  />
-                </label>
-              </div>
-              <div className="flex flex-wrap items-end gap-4 px-4 py-3">
-                <label className="flex flex-col min-w-40 flex-1">
-                  <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mô tả</p>
-                  <textarea
-                    className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] min-h-36 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
-                    ref={descriptionTextareaRef}
-                    defaultValue={lecture?.description}
-                  ></textarea>
-                </label>
-              </div>
-
-              {/* Grade, Subject, and Duration Selectors Row */}
-              <div className="flex flex-wrap items-end gap-4 px-4 py-3 justify-end">
-                <div className="flex items-center gap-2">
-                  <p className="text-[#0e141b] text-sm font-bold leading-normal whitespace-nowrap"><b>Thời lượng:</b></p>
-                  <div className="flex items-center">
-                    <label htmlFor="duration-hours" className="sr-only">Giờ</label>
-                    <select
-                      id="duration-hours"
-                      name="durationHours"
-                      value={durationHours}
-                      onChange={handleHoursChange}
-                      className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-                    >
-                      {hourOptions.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {String(hour).padStart(2, '0')}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="text-[#0e141b] text-sm font-medium mx-1">giờ</span>
-                  </div>
-                  <div className="flex items-center">
-                    <label htmlFor="duration-minutes" className="sr-only">Phút</label>
-                    <select
-                      id="duration-minutes"
-                      name="durationMinutes"
-                      value={durationMinutes}
-                      onChange={handleMinutesChange}
-                      className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-                    >
-                      {minuteOptions.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {String(minute).padStart(2, '0')}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="text-[#0e141b] text-sm font-medium ml-1">phút</span>
-                  </div>
+              {/* Tab Navigation */}
+              <div className="pb-3">
+                <div className="flex border-b border-[#d0dbe7] px-4 gap-8">
+                  <button
+                    onClick={() => setActiveTab('general')}
+                    className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'general' ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'}`}
+                  >
+                    <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${activeTab === 'general' ? 'text-[#0e141b]' : 'text-[#4e7397]'}`}>
+                      Thông tin chung
+                    </p>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('reviewQuestions')}
+                    className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'reviewQuestions' ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'}`}
+                  >
+                    <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${activeTab === 'reviewQuestions' ? 'text-[#0e141b]' : 'text-[#4e7397]'}`}>
+                      Câu hỏi ôn tập
+                    </p>
+                  </button>
                 </div>
               </div>
 
-              <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] p-4">
-                Câu hỏi ôn tập
-              </h3>
+              {/* Tab Content */}
+              {activeTab === 'general' && (
+                <>
+                  {/* Existing content of the left pane in LectureEditPage.tsx */}
+                  <div className="layout-content-container flex flex-col max-w-[920px]">
+                    <div className="flex flex-wrap justify-between gap-3 p-4">
+                      <div className="flex min-w-72 flex-col gap-3">
+                        <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Chỉnh sửa bài giảng</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3">
+                      <label className="flex flex-col min-w-40 flex-1">
+                        <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Tên bài giảng</p>
+                        <input
+                          className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                          ref={nameInputRef}
+                          value={lectureName}
+                          onChange={(e) => setLectureName(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3">
+                      <label className="flex flex-col min-w-40 flex-1">
+                        <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mô tả</p>
+                        <textarea
+                          className="form-input bg-white flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] focus:border-[#d0dbe7] min-h-36 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                          ref={descriptionTextareaRef}
+                          value={lectureDescription}
+                          onChange={(e) => setLectureDescription(e.target.value)}
+                        ></textarea>
+                      </label>
+                    </div>
 
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 justify-end">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[#0e141b] text-sm font-bold leading-normal whitespace-nowrap"><b>Thời lượng:</b></p>
+                        <div className="flex items-center">
+                          <label htmlFor="duration-hours" className="sr-only">Giờ</label>
+                          <select
+                            id="duration-hours"
+                            name="durationHours"
+                            value={durationHours}
+                            onChange={handleHoursChange}
+                            className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
+                          >
+                            {hourOptions.map((hour) => (
+                              <option key={hour} value={hour}>
+                                {String(hour).padStart(2, '0')}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="text-[#0e141b] text-sm font-medium mx-1">giờ</span>
+                        </div>
+                        <div className="flex items-center">
+                          <label htmlFor="duration-minutes" className="sr-only">Phút</label>
+                          <select
+                            id="duration-minutes"
+                            name="durationMinutes"
+                            value={durationMinutes}
+                            onChange={handleMinutesChange}
+                            className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
+                          >
+                            {minuteOptions.map((minute) => (
+                              <option key={minute} value={minute}>
+                                {String(minute).padStart(2, '0')}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="text-[#0e141b] text-sm font-medium ml-1">phút</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'reviewQuestions' && (
+                <div className='flex flex-col gap-4 p-4'>
+                  <div className='flex flex-row gap-4 items-center'>
+                    <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em]">
+                      Câu hỏi ôn tập
+                    </h3>
+                    <button
+                      type="button"
+                      className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition"
+                      onClick={() => setIsReviewQuestionSearchOpen(true)}
+                    >
+                      <img src={AddIcon} alt="Add" className='w-4 h-4' />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {isLoadingQuestions ? (
+                      <div className="flex justify-center items-center py-8">
+                        <div className="flex items-center gap-2">
+                          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                          </svg>
+                          <span className="text-blue-600">Đang tải câu hỏi...</span>
+                        </div>
+                      </div>
+                    ) : selectedReviewQuestions.length === 0 ? (
+                      <p className="text-[#4e7397] text-lg">Chưa có câu hỏi nào được chọn</p>
+                    ) : (
+                      selectedReviewQuestions.map((question) => (
+                        <div key={question.id} className="border rounded-lg p-4 bg-white flex justify-between items-center">
+                          <h3 className="font-medium text-[#0e141b] flex-1">{question.text}</h3>
+                          <button
+                            onClick={() => setSelectedReviewQuestions(prev => prev.filter(q => q.id !== question.id))}
+                            className="text-red-500 hover:text-red-700 transition w-8 h-8"
+                          >
+                            <img src={RemoveIcon} alt="Remove" className='w-5 h-5' />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="flex px-4 py-3 flex-col items-end gap-2">
                 {statusMessage && (
                   <div className="text-sm text-blue-600 font-medium mb-2 w-full text-right">{statusMessage}</div>
@@ -261,6 +375,32 @@ const LectureEditPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <SearchableDialogMulti<ReviewQuestion>
+        isOpen={isReviewQuestionSearchOpen}
+        onClose={() => setIsReviewQuestionSearchOpen(false)}
+        title="Tìm kiếm câu hỏi ôn tập"
+        searchPlaceholder="Nhập từ khóa tìm kiếm câu hỏi (+ enter)"
+        onSearch={searchQuestionsHandler}
+        renderItem={(question, selected, onToggle) => (
+          <div
+            key={question.id}
+            onClick={() => onToggle(question)}
+            className={`cursor-pointer border rounded-lg p-3 mb-2 transition ${selected ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+          >
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={selected} readOnly className="accent-blue-500" />
+              <p className="font-medium text-[#0e141b]">{question.text}</p>
+            </div>
+          </div>
+        )}
+        onItemsSelected={(questions) => {
+          setSelectedReviewQuestions(prev => {
+            const newQuestions = questions.filter(q => !prev.find(p => p.id === q.id));
+            return [...prev, ...newQuestions];
+          });
+        }}
+        confirmButtonText="Thêm các câu hỏi đã chọn"
+      />
       <ToastContainer />
     </>
   );

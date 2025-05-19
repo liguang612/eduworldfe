@@ -49,6 +49,7 @@ interface CreateQuestionRequest {
   level: number;
   subjectId: string;
   sharedMediaId?: string;
+  categories: string[];
 }
 
 interface CreateChoiceRequest {
@@ -158,6 +159,7 @@ export const updateQuestion = async (questionId: string, data: {
   type: string;
   level: number;
   sharedMediaId?: string | null;
+  categories: string[];
 }): Promise<void> => {
   try {
     const token = localStorage.getItem('token');

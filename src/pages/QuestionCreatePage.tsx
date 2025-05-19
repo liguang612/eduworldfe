@@ -89,7 +89,8 @@ const QuestionCreatePage: React.FC = () => {
         level: 2,
         category: [],
         type: 'radio',
-        choices: []
+        choices: [],
+        tags: ''
       }
     ]);
   };
@@ -207,7 +208,8 @@ const QuestionCreatePage: React.FC = () => {
 
           level: question.level,
           subjectId,
-          sharedMediaId: sharedMediaId
+          sharedMediaId: sharedMediaId,
+          categories: question.tags.split(' ').filter(tag => tag !== '').map(tag => tag[0] === '#' ? tag : `#${tag}`)
         });
 
         const surveyValue = surveyValues[question.id];
@@ -319,7 +321,7 @@ const QuestionCreatePage: React.FC = () => {
                   <label htmlFor="shared-media-text" className="block text-sm font-medium text-gray-700 mb-1">Đoạn văn / Nội dung văn bản:</label>
                   <textarea
                     id="shared-media-text"
-                    placeholder="Paste or type your passage here..."
+                    placeholder="VD: Đọc đoạn văn sau và trả lời các câu hỏi..."
                     className="form-input flex w-full min-w-0 flex-1 resize-y rounded-xl text-[#0e141b] focus:outline-0 focus:ring-2 focus:ring-blue-500 border border-[#d0dbe7] bg-slate-50 focus:border-[#d0dbe7] min-h-32 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
                     value={sharedMedia?.type === 'text' ? sharedMedia.content : ''}
                     onChange={handleSharedTextChange}
@@ -377,6 +379,18 @@ const QuestionCreatePage: React.FC = () => {
                       onChange={(e) => updateQuestionField(index, 'questionText', e.target.value)}
                     />
                   </label>
+                </div>
+                <div className="flex flex-row gap-2 items-center py-3">
+                  <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] w-1/4">Tag</h3>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="VD: #daodongdieuhoa #conlacdon ..."
+                      className="form-input flex w-full min-w-0 flex-1 rounded-xl text-[#0e141b] focus:outline-0 focus:ring-2 focus:ring-blue-500 border border-[#d0dbe7] bg-white focus:border-[#d0dbe7] h-10 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                      value={question.tags}
+                      onChange={(e) => updateQuestionField(index, 'tags', e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-row gap-2 items-center">
                   <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] pb-1 pt-3">Độ khó</h3>

@@ -140,3 +140,33 @@ export const getLecturesByIds = async (lectureIds: string[]): Promise<LectureRes
     throw error;
   }
 };
+
+export const searchQuestions = async (keyword: string, subjectId: string, userId: string): Promise<any[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/questions/search`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      params: {
+        createdBy: userId,
+        subjectId: subjectId,
+        keyword: keyword,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to search questions:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const getQuestionsDetails = async (questionIds: string[]): Promise<any[]> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.post(`${API_URL}/questions/details`, questionIds, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};

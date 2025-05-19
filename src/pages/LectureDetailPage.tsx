@@ -9,6 +9,7 @@ import Duration from '@/assets/duration.svg';
 import User from '@/assets/user.svg';
 import RatingStars from '@/components/Common/RatingStars';
 import type { LectureResponse } from '@/api/lectureApi';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LectureDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const LectureDetailPage: React.FC = () => {
   const [lecture, setLecture] = useState<LectureResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchLecture = async () => {
@@ -65,6 +67,8 @@ const LectureDetailPage: React.FC = () => {
     }
   };
 
+  console.log(lecture.id);
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -86,7 +90,7 @@ const LectureDetailPage: React.FC = () => {
                 <p className="text-[#4e7397] text-sm font-normal leading-normal px-4">{lecture.teacher.name}</p>
               </div>
               <div className="flex flex-5" />
-              <div className="flex px-4 py-3 gap-4 justify-start">
+              {lecture.teacher.id === localStorage.getItem('userId') && <div className="flex px-4 py-3 gap-4 justify-start">
                 <button
                   className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] gap-2 pl-4 text-sm font-bold leading-normal tracking-[0.015em]"
                   onClick={() => navigate(`/lectures/${id}/edit`)}
@@ -99,7 +103,15 @@ const LectureDetailPage: React.FC = () => {
                 >
                   <span className="truncate">Xoá</span>
                 </button>
-              </div>
+              </div>}
+              {user?.role == 0 && <div className="flex py-3 gap-4 justify-start">
+                <button
+                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-[#ffffff] gap-2 pl-4 text-sm font-bold leading-normal tracking-[0.015em]"
+                  onClick={openDeleteDialog}
+                >
+                  <span className="truncate">Câu hỏi ôn tập</span>
+                </button>
+              </div>}
             </div>
             <p className="text-[#0e141b] text-base font-normal leading-normal pb-3 pt-6 px-4">
               {lecture.description}
@@ -119,7 +131,6 @@ const LectureDetailPage: React.FC = () => {
                 <p className="text-[#0e141b] text-sm font-normal leading-normal">5</p>
                 <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[#d0dbe7]"><div className="rounded-full bg-[#1980e6]" style={{ width: '60%' }}></div></div>
                 <p className="text-[#4e7397] text-sm font-normal leading-normal text-right">60%</p>
-                {/* ... các thanh đánh giá khác ... */}
                 <p className="text-[#0e141b] text-sm font-normal leading-normal">4</p>
                 <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[#d0dbe7]"><div className="rounded-full bg-[#1980e6]" style={{ width: '10%' }}></div></div>
                 <p className="text-[#4e7397] text-sm font-normal leading-normal text-right">10%</p>

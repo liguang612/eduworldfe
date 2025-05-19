@@ -241,7 +241,7 @@ const QuestionBankPage: React.FC = () => {
                         className="px-4 py-3 text-left text-[#0e141b] w-[40%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
                         onClick={() => handleSort('title')}
                       >
-                        Question
+                        Câu hỏi
                         {sortColumn === 'title' && (
                           <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
                         )}
@@ -250,7 +250,7 @@ const QuestionBankPage: React.FC = () => {
                         className="px-4 py-3 text-left text-[#0e141b] w-[15%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
                         onClick={() => handleSort('level')}
                       >
-                        Level
+                        Độ khó
                         {sortColumn === 'level' && (
                           <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
                         )}
@@ -259,13 +259,13 @@ const QuestionBankPage: React.FC = () => {
                         className="px-4 py-3 text-left text-[#0e141b] w-[20%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100"
                         onClick={() => handleSort('createdAt')}
                       >
-                        Created
+                        Ngày tạo
                         {sortColumn === 'createdAt' && (
                           <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
                         )}
                       </th>
                       <th className="px-4 py-3 text-left text-[#0e141b] w-[25%] text-sm font-bold leading-normal">
-                        Categories
+                        Tag
                       </th>
                     </tr>
                   </thead>
@@ -289,8 +289,8 @@ const QuestionBankPage: React.FC = () => {
                         <td className="h-[72px] px-4 py-2 text-[#4e7397] text-sm font-normal leading-normal align-top pt-3">
                           {formatDate(q.createdAt)}
                         </td>
-                        <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
-                          <span className="block max-w-[150px]">{q.categories.join(', ') || 'No categories'}</span>
+                        <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3  ">
+                          <span className="block max-w-[150px]">{q.categories.join(' ') || 'No categories'}</span>
                         </td>
                       </tr>
                     ))}

@@ -48,9 +48,9 @@ const QuestionEditPage: React.FC = () => {
         id: newId,
         questionText: '',
         level: 2,
-        category: [],
         type: 'radio',
-        choices: []
+        choices: [],
+        tags: ''
       }
     ]);
     setNewQuestionIds(prev => new Set([...prev, newId]));
@@ -100,7 +100,6 @@ const QuestionEditPage: React.FC = () => {
           id: question.id,
           questionText: question.title,
           level: question.level,
-          category: question.categories || [],
           type: question.type,
           choices: question.type === 'itemConnector'
             ? question.matchingColumns?.map(column => ({
@@ -118,7 +117,8 @@ const QuestionEditPage: React.FC = () => {
               allowMultiple: question.type === 'checkbox'
             } as MultipleChoiceOption)),
           matchingColumns: question.matchingColumns || [],
-          matchingPairs: question.matchingPairs || []
+          matchingPairs: question.matchingPairs || [],
+          tags: question.categories.join(' ')
         };
 
         setQuestions([individualQuestion]);
@@ -182,7 +182,6 @@ const QuestionEditPage: React.FC = () => {
           id: q.id,
           questionText: q.title,
           level: q.level,
-          category: q.categories || [],
           type: q.type,
           choices: q.choices?.map(choice => ({
             id: choice.id,
@@ -192,7 +191,8 @@ const QuestionEditPage: React.FC = () => {
             orderIndex: choice.orderIndex,
           })) || [],
           matchingColumns: q.matchingColumns || [],
-          matchingPairs: q.matchingPairs || []
+          matchingPairs: q.matchingPairs || [],
+          tags: q.categories.join(' ')
         }));
 
       setQuestions(prev => [...prev, ...additionalQuestions]);
@@ -444,7 +444,8 @@ const QuestionEditPage: React.FC = () => {
               : question.type,
             level: question.level,
             subjectId: subjectId,
-            sharedMediaId: currentSharedMediaId
+            sharedMediaId: currentSharedMediaId,
+            categories: question.tags.split(' ').filter(tag => tag !== '').map(tag => tag[0] === '#' ? tag : `#${tag}`)
           });
 
           // Create choices based on question type
@@ -516,7 +517,8 @@ const QuestionEditPage: React.FC = () => {
               ? 'checkbox'
               : question.type,
             level: question.level,
-            sharedMediaId: currentSharedMediaId
+            sharedMediaId: currentSharedMediaId,
+            categories: question.tags.split(' ').filter(tag => tag !== '').map(tag => tag[0] === '#' ? tag : `#${tag}`)
           });
 
           // Update choices based on question type
@@ -683,6 +685,18 @@ const QuestionEditPage: React.FC = () => {
                       onChange={(e) => updateQuestionField(index, 'questionText', e.target.value)}
                     />
                   </label>
+                </div>
+                <div className="flex flex-row gap-2 items-center py-3">
+                  <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] w-1/4">Tag</h3>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      placeholder="VD: #daodongdieuhoa #conlacdon ..."
+                      className="form-input flex w-full min-w-0 flex-1 rounded-xl text-[#0e141b] focus:outline-0 focus:ring-2 focus:ring-blue-500 border border-[#d0dbe7] bg-white focus:border-[#d0dbe7] h-10 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal"
+                      value={question.tags}
+                      onChange={(e) => updateQuestionField(index, 'tags', e.target.value)}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-row gap-2 items-center">
                   <h3 className="text-[#0e141b] text-base font-semibold leading-tight tracking-[-0.015em] pb-1 pt-3">Độ khó</h3>

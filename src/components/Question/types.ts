@@ -33,7 +33,6 @@ export interface IndividualQuestion {
   id: string;
   questionText: string;
   level: number;
-  category: string[];
   type: string;
   choices?: MultipleChoiceOption[] | MatchingColumn[] | FillInBlankOption[] | SortingOption[];
   matchingColumns?: Array<{
@@ -46,6 +45,7 @@ export interface IndividualQuestion {
     from: string;
     to: string;
   }>;
+  tags: string;
 }
 
 export interface SharedMediaData {

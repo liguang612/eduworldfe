@@ -23,6 +23,8 @@ import CourseExams from '@/pages/CourseDetail/CourseExam';
 import CourseTopics from '@/pages/CourseDetail/CourseTopic';
 import CourseReviews from '@/pages/CourseDetail/CourseReview';
 import ExamCreatePage from '@/pages/ExamCreatePage';
+import NotPermission from '../pages/NotPermission';
+
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -36,6 +38,13 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+
+    {/* Not Permission Page */}
+    <Route path="/not-permission" element={
+      <Layout>
+        <NotPermission />
+      </Layout>
+    } />
 
     {/* Auth */}
     <Route path="/login" element={<LoginPage />} />
@@ -72,16 +81,6 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
-    <Route
-      path="/courses/:id"
-      element={
-        <ProtectedRoute>
-          <Layout>
-            <CourseDetailPage />
-          </Layout>
-        </ProtectedRoute>
-      }
-    />
     <Route path="/courses/:id"
       element={
         <ProtectedRoute>
@@ -100,7 +99,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/:id/edit"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <CourseEditPage />
           </Layout>
@@ -110,7 +109,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/new"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <CreateCoursePage />
           </Layout>
@@ -142,7 +141,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/lectures/create"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <LectureCreatePage />
           </Layout>
@@ -152,7 +151,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/lectures/:id/edit"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <LectureEditPage />
           </Layout>
@@ -174,7 +173,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/new"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <QuestionCreatePage />
           </Layout>
@@ -184,7 +183,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/:id/edit"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <QuestionEditPage />
           </Layout>
@@ -196,7 +195,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/:courseId/exams/create"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <ExamCreatePage />
           </Layout>
