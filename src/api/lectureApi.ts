@@ -160,13 +160,3 @@ export const searchQuestions = async (keyword: string, subjectId: string, userId
     throw error;
   }
 };
-
-export const getQuestionsDetails = async (questionIds: string[]): Promise<any[]> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.post(`${API_URL}/questions/details`, questionIds, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  return response.data;
-};

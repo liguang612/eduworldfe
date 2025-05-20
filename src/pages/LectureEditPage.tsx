@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MyEditor from '../components/Lecture/MyEditor';
 import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import { uploadFile, getLectureById, updateLecture, searchQuestions, getQuestionsDetails } from '../api/lectureApi';
+import { uploadFile, getLectureById, updateLecture, searchQuestions } from '../api/lectureApi';
+import { getQuestionsDetails, type Question } from '../api/questionApi';
 import type { LectureResponse } from '../api/lectureApi';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
@@ -10,11 +11,6 @@ import AddIcon from '@/assets/add.svg';
 import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti';
 import { useAuth } from '@/contexts/AuthContext';
 import RemoveIcon from '@/assets/remove.svg';
-
-interface ReviewQuestion {
-  id: string;
-  text: string;
-}
 
 const LectureEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +30,7 @@ const LectureEditPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'reviewQuestions'>('general');
   const [isReviewQuestionSearchOpen, setIsReviewQuestionSearchOpen] = useState(false);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
-  const [selectedReviewQuestions, setSelectedReviewQuestions] = useState<ReviewQuestion[]>([]);
+  const [selectedReviewQuestions, setSelectedReviewQuestions] = useState<Question[]>([]);
 
   const { user } = useAuth();
 
@@ -64,11 +60,7 @@ const LectureEditPage: React.FC = () => {
           setIsLoadingQuestions(true);
           try {
             const questionsData = await getQuestionsDetails(data.endQuestions);
-            setSelectedReviewQuestions(questionsData.map(q => ({
-              id: q.id,
-              text: q.title,
-              ...q
-            })));
+            setSelectedReviewQuestions(questionsData);
           } catch (error) {
             console.error('Error fetching questions details:', error);
             toast.error('Không thể tải thông tin câu hỏi ôn tập');
@@ -165,7 +157,7 @@ const LectureEditPage: React.FC = () => {
   const searchQuestionsHandler = async (keyword: string) => {
     if (!user || !lecture) return [];
     const data = await searchQuestions(keyword, lecture.subjectId, user.id);
-    return data.map((q: any) => ({ id: q.id, text: q.title, ...q }));
+    return data.map((q: any) => ({ ...q }));
   };
 
   if (isLoading) {
@@ -327,7 +319,7 @@ const LectureEditPage: React.FC = () => {
                     ) : (
                       selectedReviewQuestions.map((question) => (
                         <div key={question.id} className="border rounded-lg p-4 bg-white flex justify-between items-center">
-                          <h3 className="font-medium text-[#0e141b] flex-1">{question.text}</h3>
+                          <h3 className="font-medium text-[#0e141b] flex-1">{question.title}</h3>
                           <button
                             onClick={() => setSelectedReviewQuestions(prev => prev.filter(q => q.id !== question.id))}
                             className="text-red-500 hover:text-red-700 transition w-8 h-8"
@@ -375,7 +367,7 @@ const LectureEditPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <SearchableDialogMulti<ReviewQuestion>
+      <SearchableDialogMulti<Question>
         isOpen={isReviewQuestionSearchOpen}
         onClose={() => setIsReviewQuestionSearchOpen(false)}
         title="Tìm kiếm câu hỏi ôn tập"
@@ -389,7 +381,7 @@ const LectureEditPage: React.FC = () => {
           >
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={selected} readOnly className="accent-blue-500" />
-              <p className="font-medium text-[#0e141b]">{question.text}</p>
+              <p className="font-medium text-[#0e141b]">{question.title}</p>
             </div>
           </div>
         )}

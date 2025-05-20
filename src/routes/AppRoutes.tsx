@@ -24,6 +24,8 @@ import CourseTopics from '@/pages/CourseDetail/CourseTopic';
 import CourseReviews from '@/pages/CourseDetail/CourseReview';
 import ExamCreatePage from '@/pages/ExamCreatePage';
 import NotPermission from '../pages/NotPermission';
+import DoExamPage from '@/pages/DoExamPage';
+import DoEndQuestion from '@/pages/DoEndQuestion';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -158,6 +160,16 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+    <Route
+      path="/lectures/:id/end-questions"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <DoEndQuestion />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
 
     {/* Question Bank */}
     <Route
@@ -198,6 +210,16 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute allowedRoles={[1]}>
           <Layout>
             <ExamCreatePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/courses/:courseId/exams/:examId"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <DoExamPage />
           </Layout>
         </ProtectedRoute>
       }

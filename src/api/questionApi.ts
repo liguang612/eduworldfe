@@ -376,3 +376,18 @@ export const getQuestionsBySharedMedia = async (sharedMediaId: string): Promise<
   });
   return response.data;
 };
+
+export const getQuestionsDetails = async (questionIds: string[]): Promise<Question[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/questions/details`, questionIds, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch questions by IDs:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

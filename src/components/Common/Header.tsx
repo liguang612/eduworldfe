@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = () => {
   }, [menuOpen]);
 
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3 bg-white">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3 bg-white font-['Lexend']">
       <div className="flex items-center gap-4 text-[#0e141b] cursor-pointer" onClick={() => navigate('/')}>
         <div className="size-4">
           <img src={Logo} alt="EduWorld Logo" className="size-full" />
@@ -46,9 +46,9 @@ const Header: React.FC<HeaderProps> = () => {
           <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/courses')}>
             Lớp học
           </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/lectures')}>
+          {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/lectures')}>
             Bài giảng
-          </a>
+          </a>}
           {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/question-bank')}>
             Ngân hàng câu hỏi
           </a>}

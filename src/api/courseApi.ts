@@ -44,27 +44,6 @@ export type SearchUser = {
   grade: number;
 }
 
-// export interface Question {
-//   id: string;
-//   title: string;
-//   subjectId: string;
-//   type: string;
-//   sharedMedia?: Object;
-//   level: number;
-//   createdBy: string;
-//   categories: string[];
-//   solutionIds: string[];
-//   reviewIds: string[];
-//   createdAt: string;
-//   updatedAt: string;
-//   choices?: Array<{
-//     id: string;
-//     text: string;
-//   }>;
-//   matchingColumns?: any,
-//   matchingPairs?: any,
-// }
-
 // GET
 export const getSubjectsByGrade = async (grade: number): Promise<Subject[]> => {
   try {
