@@ -67,8 +67,6 @@ const LectureDetailPage: React.FC = () => {
     }
   };
 
-  console.log(lecture);
-
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"

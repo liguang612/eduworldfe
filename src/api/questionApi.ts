@@ -16,20 +16,22 @@ export interface Question {
   title: string;
   subjectId: string;
   type: string;
-  sharedMedia?: SharedMedia;
   level: number;
+  points: number;
   createdBy: string;
   categories: string[];
   solutionIds: string[];
   reviewIds: string[];
   createdAt: string;
   updatedAt: string;
+  sharedMedia?: SharedMedia;
   choices?: Array<{
     id: string;
     text: string;
-    orderIndex?: number;
-    isCorrect: boolean;
     value: string;
+    questionId: string;
+    orderIndex: number | null;
+    isCorrect: boolean;
   }>;
   matchingColumns?: Array<{
     id: string;
@@ -41,6 +43,8 @@ export interface Question {
     from: string;
     to: string;
   }>;
+  selectedOptionIndex?: number | null;
+  isFlagged?: boolean;
 }
 
 interface CreateQuestionRequest {

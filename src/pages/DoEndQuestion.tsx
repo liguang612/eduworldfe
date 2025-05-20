@@ -4,7 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { baseURL } from '@/config/axios';
 import { useLocation } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../api/courseApi';
-import { getQuestionsDetails } from '../api/questionApi';
+import { getQuestionsDetails, type Question } from '../api/questionApi';
+import { Model } from 'survey-core';
+import { Survey } from 'survey-react-ui';
+import { BorderlessLight } from 'survey-core/themes';
+import 'survey-core/survey-core.css';
+import "../components/Question/survey-custom.css";
 
 // Define types based on API response
 interface ChoiceOption {
@@ -13,22 +18,10 @@ interface ChoiceOption {
   value: string;
   questionId: string;
   orderIndex: number | null;
-  isCorrect: boolean; // API might return this, but we might not need it for the test taking screen
+  isCorrect: boolean;
 }
 
-interface Question {
-  id: string;
-  title: string;
-  text: string;
-  choices: ChoiceOption[];
-  points: number;
-  subjectId: string;
-  type: string;
-  selectedOptionIndex: number | null; // Local state to track user's selection
-  isFlagged: boolean; // Local state for flagging
-}
-
-const initialQuestionsData: Question[] = []; // Initialize with empty array as questions will be fetched
+const initialQuestionsData: Question[] = [];
 
 const DotRegularIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
@@ -52,6 +45,7 @@ const FlagIcon: React.FC<{ className?: string }> = ({ className }) => (
 const DoEndQuestion: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>(initialQuestionsData);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [surveyModels, setSurveyModels] = useState<{ [key: string]: Model }>({});
   const { user } = useAuth();
   const location = useLocation();
   const { lectureName, subjectId, endQuestionIds } = location.state as { lectureName: string; subjectId: string; endQuestionIds: string[] };
@@ -75,7 +69,6 @@ const DoEndQuestion: React.FC = () => {
   }, [subjectId]);
 
   useEffect(() => {
-    console.log(endQuestionIds);
     const fetchQuestions = async () => {
       try {
         if (endQuestionIds && endQuestionIds.length > 0) {
@@ -87,6 +80,52 @@ const DoEndQuestion: React.FC = () => {
             isFlagged: false,
           }));
           setQuestions(formattedQuestions);
+
+          // Tạo Survey Model cho mỗi câu hỏi
+          const models: { [key: string]: Model } = {};
+          formattedQuestions.forEach(question => {
+            const surveyJson = {
+              elements: [{
+                name: `question_${question.id}`,
+                title: question.title,
+                type: question.type === 'radio' ? 'radiogroup' :
+                  question.type === 'checkbox' ? 'checkbox' :
+                    question.type === 'itemConnector' ? 'itemConnector' :
+                      question.type === 'ranking' ? 'ranking' : 'text',
+                choices: question.choices?.map((choice: ChoiceOption) => {
+                  return {
+                    id: choice.id,
+                    value: choice.value,
+                    text: choice.text,
+                  };
+                }),
+                leftItems: question.matchingColumns?.filter((column: { id: string, label: string, side: string }) => column.side === 'left').map((column: { id: string, label: string, side: string }) => {
+                  return {
+                    id: column.id,
+                    label: column.label
+                  }
+                }),
+                rightItems: question.matchingColumns?.filter((column: { id: string, label: string, side: string }) => column.side === 'right').map((column: { id: string, label: string, side: string }) => {
+                  return {
+                    id: column.id,
+                    label: column.label
+                  }
+                }),
+              }]
+            };
+
+            const model = new Model(surveyJson);
+            model.applyTheme(BorderlessLight);
+            model.showCompletedPage = false;
+            model.showCompleteButton = false;
+            model.showProgressBar = "off";
+            model.showQuestionNumbers = "off";
+            model.showNavigationButtons = false;
+
+            models[question.id] = model;
+          });
+
+          setSurveyModels(models);
         } else {
           setQuestions([]);
         }
@@ -105,14 +144,6 @@ const DoEndQuestion: React.FC = () => {
     setCurrentQuestionIndex(index);
   };
 
-  const handleAnswerChange = (optionIndex: number) => {
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((q, idx) =>
-        idx === currentQuestionIndex ? { ...q, selectedOptionIndex: optionIndex } : q
-      )
-    );
-  };
-
   const handleToggleFlag = () => {
     setQuestions((prevQuestions) =>
       prevQuestions.map((q, idx) =>
@@ -122,22 +153,51 @@ const DoEndQuestion: React.FC = () => {
   };
 
   const handleClearResponse = () => {
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((q, idx) =>
-        idx === currentQuestionIndex ? { ...q, selectedOptionIndex: null } : q
-      )
-    );
+    if (currentQuestion) {
+      const model = surveyModels[currentQuestion.id];
+      if (model) {
+        model.clearValue(`question_${currentQuestion.id}`);
+
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((q, idx) =>
+            idx === currentQuestionIndex ? { ...q, selectedOptionIndex: null } : q
+          )
+        );
+      }
+    }
   };
 
   const answeredQuestionsCount = useMemo(
-    () => questions.filter((q) => q.selectedOptionIndex !== null).length,
-    [questions]
+    () => {
+      return questions.filter(q => {
+        const model = surveyModels[q.id];
+        if (!model) return false;
+        const value = model.getValue(`question_${q.id}`);
+        return value !== undefined && value !== null && value !== "";
+      }).length;
+    },
+    [questions, surveyModels]
   );
 
   const progressPercentage = useMemo(
     () => (questions.length > 0 ? (answeredQuestionsCount / questions.length) * 100 : 0),
     [answeredQuestionsCount, questions.length]
   );
+
+  const handleSurveyValueChange = (questionId: string, model: Model) => {
+    // Cập nhật state để theo dõi câu hỏi đã trả lời
+    const value = model.getValue(`question_${questionId}`);
+    if (value !== undefined && value !== null && value !== "") {
+      const questionIndex = questions.findIndex(q => q.id === questionId);
+      if (questionIndex !== -1) {
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((q, idx) =>
+            idx === questionIndex ? { ...q, selectedOptionIndex: 0 } : q
+          )
+        );
+      }
+    }
+  };
 
   if (loadingQuestions) {
     return <div>Đang tải câu hỏi...</div>;
@@ -148,6 +208,7 @@ const DoEndQuestion: React.FC = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  const currentSurveyModel = surveyModels[currentQuestion.id];
 
   // CSS variables for custom radio/checkbox styling (from original HTML)
   const rootStyle = {
@@ -166,7 +227,7 @@ const DoEndQuestion: React.FC = () => {
           <div className="layout-content-container flex flex-col w-80">
             <div className="flex h-full min-h-[700px] flex-col justify-between bg-slate-50 p-4">
               <div className="flex flex-col gap-4">
-                {/* User Info & Exam Icon (from original HTML) */}
+                {/* User Info & Exam Icon */}
                 <div className="flex gap-3 items-center">
                   <img
                     src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
@@ -199,7 +260,7 @@ const DoEndQuestion: React.FC = () => {
                     if (q.isFlagged) {
                       dotColor = "rgb(249, 115, 22)"; // Orange color for flag
                       IconComponent = () => <DotFillIcon color={dotColor} />;
-                    } else if (q.selectedOptionIndex !== null) {
+                    } else if (surveyModels[q.id]?.getValue(`question_${q.id}`) !== undefined) {
                       dotColor = "rgb(13, 124, 242)"; // Blue color for answered
                       IconComponent = () => <DotFillIcon color={dotColor} />;
                     }
@@ -235,33 +296,47 @@ const DoEndQuestion: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Question */}
-            <h2 className="text-[#0d141c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 text-left pb-1 pt-8">
-              {currentQuestion.title}
-            </h2>
-            <p className="text-[#0d141c] text-base font-normal leading-normal pb-3 pt-1 px-4">
-              {currentQuestion.text}
-            </p>
+            {/* Current Question with SurveyJS */}
+            <div className="p-4">
+              {/* Shared Media */}
+              {currentQuestion.sharedMedia && (
+                <div className="mb-4">
+                  {currentQuestion.sharedMedia.mediaType === 0 && currentQuestion.sharedMedia.text && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-700 whitespace-pre-wrap">{currentQuestion.sharedMedia.text}</p>
+                    </div>
+                  )}
+                  {currentQuestion.sharedMedia.mediaType === 1 && currentQuestion.sharedMedia.mediaUrl && (
+                    <audio controls className="w-full">
+                      <source src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`} type="audio/mpeg" />
+                      Định dạng file không được hỗ trợ
+                    </audio>
+                  )}
+                  {currentQuestion.sharedMedia.mediaType === 2 && currentQuestion.sharedMedia.mediaUrl && (
+                    <video controls className="w-full">
+                      <source src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`} type="video/mp4" />
+                      Định dạng file không được hỗ trợ
+                    </video>
+                  )}
+                  {currentQuestion.sharedMedia.mediaType === 3 && currentQuestion.sharedMedia.mediaUrl && (
+                    <img
+                      src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`}
+                      alt="Question media"
+                      className="max-w-full h-auto rounded-md"
+                    />
+                  )}
+                </div>
+              )}
 
-            {/* Answer Options */}
-            <div className="flex flex-col gap-3 p-4">
-              {currentQuestion.choices.map((option, index) => (
-                <label
-                  key={option.id}
-                  className="flex items-center gap-4 rounded-xl border border-solid border-[#cedbe8] p-[15px] hover:border-[#0d7cf2] cursor-pointer has-[:checked]:border-[#0d7cf2] has-[:checked]:bg-blue-50"
-                >
-                  <input
-                    type="radio"
-                    name={`question-${currentQuestion.id}`}
-                    className="h-5 w-5 border-2 border-[#cedbe8] bg-transparent text-transparent checked:border-[#0d7cf2] checked:bg-[image:var(--radio-dot-svg)] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-[#0d7cf2]"
-                    checked={currentQuestion.selectedOptionIndex === index}
-                    onChange={() => handleAnswerChange(index)}
+              {/* Survey Component */}
+              {currentSurveyModel && (
+                <div className="survey-container mb-4">
+                  <Survey
+                    model={currentSurveyModel}
+                    onValueChanged={() => handleSurveyValueChange(currentQuestion.id, currentSurveyModel)}
                   />
-                  <div className="flex grow flex-col">
-                    <p className="text-[#0d141c] text-sm font-medium leading-normal">{option.text}</p>
-                  </div>
-                </label>
-              ))}
+                </div>
+              )}
             </div>
 
             {/* Action Buttons for Question */}
@@ -282,7 +357,7 @@ const DoEndQuestion: React.FC = () => {
               </button>
             </div>
 
-            {/* Navigation buttons (Example) */}
+            {/* Navigation buttons */}
             <div className="flex justify-between p-4 border-t border-slate-200">
               <button
                 onClick={() => handleSelectQuestion(Math.max(0, currentQuestionIndex - 1))}
