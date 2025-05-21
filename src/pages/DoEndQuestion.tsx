@@ -1,21 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ClearIcon from '@/assets/clear.svg';
+import DotRegularIcon from '@/assets/dot_regular.svg';
+import DotFillIcon from '@/assets/dot_fill.svg';
+import DotFillFlagIcon from '@/assets/dot_fill_flag.svg';
+import DotFillTrueIcon from '@/assets/dot_fill_true.svg';
+import DotFillFalseIcon from '@/assets/dot_fill_false.svg';
+import FlagIcon from '@/assets/flag.svg';
+import FlagFillIcon from '@/assets/flag_fill.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { baseURL } from '@/config/axios';
 import { useLocation } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../api/courseApi';
-import { getQuestionsDetails, type Question } from '../api/questionApi';
+import { getQuestionsDetails, type Question } from '../api/questionApi'; // Đảm bảo type Question có choices và matchingColumns
+import { gradeAnswers } from '../api/gradingApi';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import "../components/Question/survey-custom.css";
+import { toast, ToastContainer } from 'react-toastify';
+import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 
-// Define types based on API response
 interface ChoiceOption {
   id: string;
   text: string;
-  value: string;
+  value: string; // Quan trọng: `value` dùng để so sánh
   questionId: string;
   orderIndex: number | null;
   isCorrect: boolean;
@@ -23,35 +32,119 @@ interface ChoiceOption {
 
 const initialQuestionsData: Question[] = [];
 
-const DotRegularIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-    <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Z"></path>
-  </svg>
-);
-
-const DotFillIcon: React.FC<{ color?: string }> = ({ color = "currentColor" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill={color} viewBox="0 0 256 256">
-    <path d="M128,80a48,48,0,1,0,48,48A48,48,0,0,0,128,80Zm0,60a12,12,0,1,1,12-12A12,12,0,0,1,128,140Z"></path>
-  </svg>
-);
-
-const FlagIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className={className || "size-5"}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
-  </svg>
-);
-
 // --- Main Exam Screen Component ---
 const DoEndQuestion: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>(initialQuestionsData);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [surveyModels, setSurveyModels] = useState<{ [key: string]: Model }>({});
+  const [gradingResults, setGradingResults] = useState<{ [key: string]: boolean }>({});
+  const [correctAnswers, setCorrectAnswers] = useState<{ [key: string]: any }>({});
+  const [isGrading, setIsGrading] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const { lectureName, subjectId, endQuestionIds } = location.state as { lectureName: string; subjectId: string; endQuestionIds: string[] };
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
+
+  // Thêm state để theo dõi sharedMedia hiện tại
+  const [currentSharedMedia, setCurrentSharedMedia] = useState<any>(null);
+  const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
+
+  // Thêm state để lưu trữ danh sách câu hỏi đã sắp xếp
+  const [sortedQuestions, setSortedQuestions] = useState<Question[]>([]);
+
+  // Hàm để nhóm các câu hỏi theo sharedMedia
+  const groupQuestionsBySharedMedia = useCallback((questions: Question[]) => {
+    const groups: { [key: string]: Question[] } = {};
+    questions.forEach(question => {
+      if (question.sharedMedia) {
+        const mediaId = question.sharedMedia.id;
+        if (!groups[mediaId]) {
+          groups[mediaId] = [];
+        }
+        groups[mediaId].push(question);
+      }
+    });
+    return groups;
+  }, []);
+
+  // Hàm sắp xếp câu hỏi
+  const sortQuestions = useCallback((questions: Question[]) => {
+    const groups = groupQuestionsBySharedMedia(questions);
+    const sorted: (Question | null)[] = [];
+    const processedIds = new Set<string>();
+
+    // Xử lý từng nhóm câu hỏi có sharedMedia
+    Object.values(groups).forEach(group => {
+      if (group.length > 0 && group[0].sharedMedia) {
+        // Tìm vị trí của câu hỏi đầu tiên trong nhóm
+        const firstQuestionIndex = questions.findIndex(q => q.id === group[0].id);
+
+        // Đảm bảo mảng sorted đủ dài
+        while (sorted.length <= firstQuestionIndex) {
+          sorted.push(null);
+        }
+
+        // Thêm tất cả câu hỏi trong nhóm vào các vị trí liên tiếp
+        group.forEach((q, groupIndex) => {
+          const insertIndex = firstQuestionIndex + groupIndex;
+          // Đảm bảo mảng sorted đủ dài
+          while (sorted.length <= insertIndex) {
+            sorted.push(null);
+          }
+          sorted[insertIndex] = q;
+          processedIds.add(q.id);
+        });
+      }
+    });
+
+    // Thêm các câu hỏi còn lại vào các vị trí trống
+    questions.forEach(q => {
+      if (!processedIds.has(q.id)) {
+        const emptyIndex = sorted.findIndex(item => !item);
+        if (emptyIndex !== -1) {
+          sorted[emptyIndex] = q;
+        } else {
+          sorted.push(q);
+        }
+        processedIds.add(q.id);
+      }
+    });
+
+    // Lọc bỏ các vị trí null và ép kiểu về Question[]
+    return sorted.filter((item): item is Question => item !== null);
+  }, [groupQuestionsBySharedMedia]);
+
+  // Cập nhật danh sách câu hỏi đã sắp xếp khi questions thay đổi
+  useEffect(() => {
+    if (questions.length > 0) {
+      setSortedQuestions(sortQuestions(questions));
+    }
+  }, [questions, sortQuestions]);
+
+  // Cập nhật currentQuestionIndex khi chọn câu hỏi từ danh sách đã sắp xếp
+  const handleSelectQuestion = (index: number) => {
+    const question = sortedQuestions[index];
+    const originalIndex = questions.findIndex(q => q.id === question.id);
+    setCurrentQuestionIndex(originalIndex);
+  };
+
+  // Cập nhật sharedMedia và câu hỏi liên quan khi chọn câu hỏi mới
+  useEffect(() => {
+    if (questions.length > 0) {
+      const currentQuestion = questions[currentQuestionIndex];
+      if (currentQuestion.sharedMedia) {
+        const groups = groupQuestionsBySharedMedia(questions);
+        const mediaId = currentQuestion.sharedMedia.id;
+        setCurrentSharedMedia(currentQuestion.sharedMedia);
+        setCurrentMediaQuestions(groups[mediaId] || []);
+      } else {
+        setCurrentSharedMedia(null);
+        setCurrentMediaQuestions([currentQuestion]);
+      }
+    }
+  }, [currentQuestionIndex, questions, groupQuestionsBySharedMedia]);
 
   useEffect(() => {
     const fetchSubject = async () => {
@@ -64,7 +157,6 @@ const DoEndQuestion: React.FC = () => {
         console.error('Error fetching subject:', error);
       }
     };
-
     fetchSubject();
   }, [subjectId]);
 
@@ -74,17 +166,17 @@ const DoEndQuestion: React.FC = () => {
         if (endQuestionIds && endQuestionIds.length > 0) {
           setLoadingQuestions(true);
           const data = await getQuestionsDetails(endQuestionIds);
-          const formattedQuestions = data.map((q: any) => ({
+          // Đảm bảo data trả về đúng cấu trúc Question, bao gồm choices và matchingColumns nếu có
+          const formattedQuestions: Question[] = data.map((q: any) => ({
             ...q,
             selectedOptionIndex: null,
             isFlagged: false,
           }));
           setQuestions(formattedQuestions);
 
-          // Tạo Survey Model cho mỗi câu hỏi
           const models: { [key: string]: Model } = {};
           formattedQuestions.forEach(question => {
-            const surveyJson = {
+            const surveyJson: any = { // Thêm any để tránh lỗi type với SurveyJS JSON
               elements: [{
                 name: `question_${question.id}`,
                 title: question.title,
@@ -92,35 +184,34 @@ const DoEndQuestion: React.FC = () => {
                   question.type === 'checkbox' ? 'checkbox' :
                     question.type === 'itemConnector' ? 'itemConnector' :
                       question.type === 'ranking' ? 'ranking' : 'text',
-                choices: question.choices?.map((choice: ChoiceOption) => {
-                  return {
-                    id: choice.id,
-                    value: choice.value,
-                    text: choice.text,
-                  };
-                }),
-                leftItems: question.matchingColumns?.filter((column: { id: string, label: string, side: string }) => column.side === 'left').map((column: { id: string, label: string, side: string }) => {
-                  return {
-                    id: column.id,
-                    label: column.label
-                  }
-                }),
-                rightItems: question.matchingColumns?.filter((column: { id: string, label: string, side: string }) => column.side === 'right').map((column: { id: string, label: string, side: string }) => {
-                  return {
-                    id: column.id,
-                    label: column.label
-                  }
-                }),
+                choices: question.choices?.map((choice: ChoiceOption) => ({
+                  value: String(choice.value), // SurveyJS thường làm việc tốt nhất với value là string
+                  text: choice.text,
+                })),
               }]
             };
+            // Thêm leftItems và rightItems cho itemConnector
+            if (question.type === 'itemConnector' && question.matchingColumns) {
+              surveyJson.elements[0].leftItems = question.matchingColumns
+                .filter(col => col.side === 'left')
+                .map(col => ({ value: String(col.id), text: col.label }));
+              surveyJson.elements[0].rightItems = question.matchingColumns
+                .filter(col => col.side === 'right')
+                .map(col => ({ value: String(col.id), text: col.label }));
+            }
+
 
             const model = new Model(surveyJson);
             model.applyTheme(BorderlessLight);
-            model.showCompletedPage = false;
             model.showCompleteButton = false;
             model.showProgressBar = "off";
             model.showQuestionNumbers = "off";
             model.showNavigationButtons = false;
+            model.showCompletedPage = false;
+            model.showPreviewBeforeComplete = "off";
+            // Vẫn giữ showCorrectAnswers = true, SurveyJS sẽ tự xử lý việc không hiển thị nếu không có CSS
+            // Hoặc bạn có thể đặt là false nếu chỉ muốn hiển thị qua khu vực tùy chỉnh
+            model.showCorrectAnswers = false; // Đặt là false nếu chỉ muốn hiển thị qua khu vực mới
 
             models[question.id] = model;
           });
@@ -140,10 +231,6 @@ const DoEndQuestion: React.FC = () => {
     fetchQuestions();
   }, [endQuestionIds]);
 
-  const handleSelectQuestion = (index: number) => {
-    setCurrentQuestionIndex(index);
-  };
-
   const handleToggleFlag = () => {
     setQuestions((prevQuestions) =>
       prevQuestions.map((q, idx) =>
@@ -157,7 +244,13 @@ const DoEndQuestion: React.FC = () => {
       const model = surveyModels[currentQuestion.id];
       if (model) {
         model.clearValue(`question_${currentQuestion.id}`);
-
+        if (currentQuestion.type === 'itemConnector') {
+          const itemConnectorComponent = document.querySelector(`[data-question-id="${currentQuestion.id}"] .item-connector`);
+          if (itemConnectorComponent) {
+            const event = new CustomEvent('connectionsChange', { detail: [] });
+            itemConnectorComponent.dispatchEvent(event);
+          }
+        }
         setQuestions((prevQuestions) =>
           prevQuestions.map((q, idx) =>
             idx === currentQuestionIndex ? { ...q, selectedOptionIndex: null } : q
@@ -173,7 +266,7 @@ const DoEndQuestion: React.FC = () => {
         const model = surveyModels[q.id];
         if (!model) return false;
         const value = model.getValue(`question_${q.id}`);
-        return value !== undefined && value !== null && value !== "";
+        return value !== undefined && value !== null && value !== "" && (Array.isArray(value) ? value.length > 0 : true);
       }).length;
     },
     [questions, surveyModels]
@@ -185,17 +278,62 @@ const DoEndQuestion: React.FC = () => {
   );
 
   const handleSurveyValueChange = (questionId: string, model: Model) => {
-    // Cập nhật state để theo dõi câu hỏi đã trả lời
     const value = model.getValue(`question_${questionId}`);
-    if (value !== undefined && value !== null && value !== "") {
+    const isAnswered = value !== undefined && value !== null &&
+      (Array.isArray(value) ? value.length > 0 : value !== "");
+
+    if (isAnswered) {
       const questionIndex = questions.findIndex(q => q.id === questionId);
-      if (questionIndex !== -1) {
+      if (questionIndex !== -1 && (questions[questionIndex].selectedOptionIndex === null || questions[questionIndex].selectedOptionIndex === undefined)) {
         setQuestions((prevQuestions) =>
           prevQuestions.map((q, idx) =>
             idx === questionIndex ? { ...q, selectedOptionIndex: 0 } : q
           )
         );
       }
+    } else {
+      const questionIndex = questions.findIndex(q => q.id === questionId);
+      if (questionIndex !== -1) {
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((q, idx) =>
+            idx === questionIndex ? { ...q, selectedOptionIndex: null } : q
+          )
+        );
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsGrading(true);
+      const answersToGrade: { [key: string]: any } = {};
+      const updatedSurveyModels = { ...surveyModels };
+
+      questions.forEach(question => {
+        const model = updatedSurveyModels[question.id];
+        if (model) {
+          const questionName = `question_${question.id}`;
+          const value = model.getValue(questionName);
+
+          if (value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : value !== "")) {
+            answersToGrade[`${question.id}`] = value;
+          }
+          model.data = { [questionName]: value };
+        }
+      });
+
+      if (Object.keys(answersToGrade).length !== questions.length) {
+        toast.warning('Vui lòng trả lời tất cả câu hỏi trước khi nộp bài');
+        return;
+      }
+
+      const response = await gradeAnswers({ answers: answersToGrade });
+      setGradingResults(response.results);
+      setCorrectAnswers(response.correctAnswers);
+    } catch (error) {
+      console.error('Error grading answers:', error);
+    } finally {
+      setIsGrading(false);
     }
   };
 
@@ -210,7 +348,6 @@ const DoEndQuestion: React.FC = () => {
   const currentQuestion = questions[currentQuestionIndex];
   const currentSurveyModel = surveyModels[currentQuestion.id];
 
-  // CSS variables for custom radio/checkbox styling (from original HTML)
   const rootStyle = {
     "--checkbox-tick-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
     "--radio-dot-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(13,124,242)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e')",
@@ -222,8 +359,10 @@ const DoEndQuestion: React.FC = () => {
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
       style={rootStyle as React.CSSProperties}
     >
+      {/* ... (Phần isGrading loading) ... */}
       <div className="layout-container flex h-full grow flex-col">
         <div className="gap-1 px-6 flex flex-1 py-5">
+          {/* ... (Cột trái: danh sách câu hỏi, thông tin user, progress bar) ... */}
           <div className="layout-content-container flex flex-col w-80">
             <div className="flex h-full min-h-[700px] flex-col justify-between bg-slate-50 p-4">
               <div className="flex flex-col gap-4">
@@ -253,40 +392,60 @@ const DoEndQuestion: React.FC = () => {
 
                 {/* Question List */}
                 <div className="flex flex-col gap-2">
-                  {questions.map((q, index) => {
-                    let dotColor = "currentColor"; // Default for DotRegularIcon
-                    let IconComponent = DotRegularIcon;
+                  {sortedQuestions.map((q, index) => {
+                    const originalIndex = questions.findIndex(question => question.id === q.id);
+                    let resultIcon = null;
+                    let IconSource = DotRegularIcon;
 
                     if (q.isFlagged) {
-                      dotColor = "rgb(249, 115, 22)"; // Orange color for flag
-                      IconComponent = () => <DotFillIcon color={dotColor} />;
+                      IconSource = DotFillFlagIcon;
                     } else if (surveyModels[q.id]?.getValue(`question_${q.id}`) !== undefined) {
-                      dotColor = "rgb(13, 124, 242)"; // Blue color for answered
-                      IconComponent = () => <DotFillIcon color={dotColor} />;
+                      if (gradingResults[q.id] !== undefined) {
+                        IconSource = gradingResults[q.id] ? DotFillTrueIcon : DotFillFalseIcon;
+                        resultIcon = gradingResults[q.id] ? (
+                          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        );
+                      } else {
+                        IconSource = DotFillIcon;
+                      }
                     }
 
                     return (
                       <div
                         key={q.id}
                         onClick={() => handleSelectQuestion(index)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${index === currentQuestionIndex ? 'bg-[#e7edf4]' : 'hover:bg-slate-100'
+                        className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${originalIndex === currentQuestionIndex ? 'bg-[#e7edf4]' : 'hover:bg-slate-100'
                           }`}
                       >
-                        <div className={`text-[${dotColor}]`}> <IconComponent /> </div>
-                        <p className="text-[#0d141c] text-sm font-medium leading-normal">{q.title}</p>
+                        <img src={IconSource} className='w-5 h-5' alt='status icon' />
+                        <p className="text-[#0d141c] text-sm font-medium leading-normal flex-1">{q.title}</p>
+                        {resultIcon}
                       </div>
                     );
                   })}
                 </div>
+                {Object.keys(gradingResults).length === 0 && <button
+                  onClick={handleSubmit}
+                  disabled={isGrading}
+                  className="w-full mt-4 px-4 py-3 bg-[#0d7cf2] text-white text-base font-semibold rounded-xl shadow-sm hover:bg-[#0b68c3] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:ring-opacity-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Nộp bài
+                </button>}
               </div>
             </div>
           </div>
 
-          {/* Right Panel: Question Display */}
+          {/* Cột phải: Hiển thị câu hỏi */}
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-            {/* Exam Info and Timer */}
+            {/* ... (Thông tin bài giảng) ... */}
             <div className="flex flex-col gap-2 p-4 border-b border-slate-200">
-              <h1 className="text-[#0d141c] font-bold leading-tight tracking-[-0.015em]">
+              <h1 className="text-[#0d141c] font-bold leading-tight tracking-[-0.015em] text-xl">
                 {lectureName}
               </h1>
               <div className="flex justify-between items-center">
@@ -296,80 +455,96 @@ const DoEndQuestion: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Question with SurveyJS */}
-            <div className="p-4">
-              {/* Shared Media */}
-              {currentQuestion.sharedMedia && (
-                <div className="mb-4">
-                  {currentQuestion.sharedMedia.mediaType === 0 && currentQuestion.sharedMedia.text && (
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-gray-700 whitespace-pre-wrap">{currentQuestion.sharedMedia.text}</p>
+            {/* Shared Media */}
+            {currentSharedMedia && (
+              <div className="p-4 border-b border-slate-200">
+                {currentSharedMedia.mediaType === 0 && currentSharedMedia.text && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-gray-700 whitespace-pre-wrap">{currentSharedMedia.text}</p>
+                  </div>
+                )}
+                {currentSharedMedia.mediaType === 1 && currentSharedMedia.mediaUrl && (
+                  <audio controls className="w-full">
+                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
+                    Định dạng file không được hỗ trợ
+                  </audio>
+                )}
+                {currentSharedMedia.mediaType === 2 && currentSharedMedia.mediaUrl && (
+                  <video controls className="w-full">
+                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="video/mp4" />
+                    Định dạng file không được hỗ trợ
+                  </video>
+                )}
+                {currentSharedMedia.mediaType === 3 && currentSharedMedia.mediaUrl && (
+                  <img
+                    src={`${baseURL}${currentSharedMedia.mediaUrl}`}
+                    alt="Question media"
+                    className="max-w-full h-auto rounded-md"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Questions with same shared media */}
+            <div className="overflow-y-auto">
+              {currentMediaQuestions.map((question, index) => (
+                <div key={question.id} className="p-4 border-b border-slate-200">
+                  {surveyModels[question.id] && (
+                    <div className="survey-container mb-4">
+                      <Survey
+                        model={surveyModels[question.id]}
+                        onValueChanged={() => handleSurveyValueChange(question.id, surveyModels[question.id])}
+                        readOnly={Object.keys(gradingResults).length > 0}
+                      />
                     </div>
                   )}
-                  {currentQuestion.sharedMedia.mediaType === 1 && currentQuestion.sharedMedia.mediaUrl && (
-                    <audio controls className="w-full">
-                      <source src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`} type="audio/mpeg" />
-                      Định dạng file không được hỗ trợ
-                    </audio>
-                  )}
-                  {currentQuestion.sharedMedia.mediaType === 2 && currentQuestion.sharedMedia.mediaUrl && (
-                    <video controls className="w-full">
-                      <source src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`} type="video/mp4" />
-                      Định dạng file không được hỗ trợ
-                    </video>
-                  )}
-                  {currentQuestion.sharedMedia.mediaType === 3 && currentQuestion.sharedMedia.mediaUrl && (
-                    <img
-                      src={`${baseURL}${currentQuestion.sharedMedia.mediaUrl}`}
-                      alt="Question media"
-                      className="max-w-full h-auto rounded-md"
-                    />
+                  {/* ĐÁP ÁN ĐÚNG */}
+                  {Object.keys(gradingResults).length > 0 && correctAnswers[question.id] !== undefined && (
+                    <div className="p-3 border rounded-md bg-green-50 border-green-300 shadow">
+                      <h4 className="text-md font-semibold text-green-800 mb-2">Đáp án đúng:</h4>
+                      <FormatCorrectAnswer
+                        correctAnswerData={correctAnswers[question.id]}
+                        question={question}
+                      />
+                    </div>
                   )}
                 </div>
-              )}
-
-              {/* Survey Component */}
-              {currentSurveyModel && (
-                <div className="survey-container mb-4">
-                  <Survey
-                    model={currentSurveyModel}
-                    onValueChanged={() => handleSurveyValueChange(currentQuestion.id, currentSurveyModel)}
-                  />
-                </div>
-              )}
+              ))}
             </div>
 
             {/* Action Buttons for Question */}
-            <div className="px-4 pb-4 flex justify-end gap-3">
-              <button
-                onClick={handleToggleFlag}
-                title={currentQuestion.isFlagged ? "Bỏ đánh dấu câu hỏi" : "Đánh dấu câu hỏi để xem lại"}
-                className={`p-2 rounded-lg hover:bg-slate-200 ${currentQuestion.isFlagged ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'text-slate-600'}`}
-              >
-                <FlagIcon className="size-5" />
-              </button>
-              <button
-                onClick={handleClearResponse}
-                title="Xóa lựa chọn"
-                className="p-2 rounded-lg text-slate-600 hover:bg-slate-200"
-              >
-                <img src={ClearIcon} className='w-5 h-5' />
-              </button>
-            </div>
+            {Object.keys(gradingResults).length === 0 && (
+              <div className="px-4 pb-4 flex justify-end gap-3">
+                <button
+                  onClick={handleToggleFlag}
+                  title={currentQuestion.isFlagged ? "Bỏ đánh dấu câu hỏi" : "Đánh dấu câu hỏi để xem lại"}
+                  className={`p-2 rounded-lg hover:bg-slate-200 ${currentQuestion.isFlagged ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'text-slate-600'}`}
+                >
+                  <img src={currentQuestion.isFlagged ? FlagFillIcon : FlagIcon} className="size-5" alt="flag icon" />
+                </button>
+                <button
+                  onClick={handleClearResponse}
+                  title="Xóa lựa chọn"
+                  className="p-2 rounded-lg text-slate-600 hover:bg-slate-200"
+                >
+                  <img src={ClearIcon} className='w-5 h-5' alt="clear response" />
+                </button>
+              </div>
+            )}
 
             {/* Navigation buttons */}
             <div className="flex justify-between p-4 border-t border-slate-200">
               <button
                 onClick={() => handleSelectQuestion(Math.max(0, currentQuestionIndex - 1))}
                 disabled={currentQuestionIndex === 0}
-                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50"
+                className="px-6 py-3 bg-slate-200 text-slate-700 text-base font-semibold rounded-xl hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Trở lại
               </button>
               <button
                 onClick={() => handleSelectQuestion(Math.min(questions.length - 1, currentQuestionIndex + 1))}
                 disabled={currentQuestionIndex === questions.length - 1}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-3 bg-[#0d7cf2] text-white text-base font-semibold rounded-xl shadow-sm hover:bg-[#0b68c3] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:ring-opacity-50 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Tiếp theo
               </button>
@@ -377,6 +552,7 @@ const DoEndQuestion: React.FC = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

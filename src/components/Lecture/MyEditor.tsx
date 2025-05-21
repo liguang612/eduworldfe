@@ -13,7 +13,7 @@ import { DndPlugin } from '@udecode/plate-dnd';
 import { NodeIdPlugin } from '@udecode/plate-node-id';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { VideoPlugin } from '@udecode/plate-media/react';
+import { PlaceholderPlugin, VideoPlugin, AudioPlugin } from '@udecode/plate-media/react';
 import { MediaVideoElement } from '@/components/ui/media-video-element';
 
 export interface MyEditorRef {
@@ -35,7 +35,21 @@ const MyEditor = forwardRef<MyEditorRef, MyEditorProps>(({ initValue, editable =
   }));
 
   const editor = useCreateEditor({
-    plugins: [...(editable ? editorPlugins : viewPlugins), DndPlugin, NodeIdPlugin, ListPlugin],
+    plugins: [...(editable ? editorPlugins : viewPlugins), DndPlugin, NodeIdPlugin, ListPlugin, PlaceholderPlugin.configure({
+      options: {
+        uploadConfig: {
+          video: {
+            maxFileSize: "1GB",
+            mediaType: VideoPlugin.key,
+          },
+          audio: {
+            maxFileSize: "32MB",
+            mediaType: AudioPlugin.key,
+          },
+        },
+        disableEmptyPlaceholder: true,
+      },
+    }),],
     components: {
       [BulletedListPlugin.key]: withProps(PlateElement, { as: 'ul', className: 'list-disc pl-6 mb-4' }),
       [NumberedListPlugin.key]: withProps(PlateElement, { as: 'ol', className: 'list-decimal pl-6 mb-4' }),
