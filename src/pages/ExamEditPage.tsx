@@ -515,7 +515,6 @@ const ExamEditPage: React.FC = () => {
 
                   <div className="pt-3">
                     <h3 className="text-[#0d141c] dark:text-slate-100 text-lg font-semibold leading-tight tracking-[-0.015em] pb-2">Phân bổ câu hỏi và điểm</h3>
-                    {/* Container cho renderQuestionTypeInputs có thể cần điều chỉnh layout nếu bạn muốn chúng trên một hàng */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                       {renderQuestionTypeInputs("Nhận biết", "numRecognitionQuestions", "pointsPerRecognitionQuestion")}
                       {renderQuestionTypeInputs("Thông hiểu", "numComprehensionQuestions", "pointsPerComprehensionQuestion")}

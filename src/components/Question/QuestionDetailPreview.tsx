@@ -15,9 +15,10 @@ import { toast } from 'react-toastify';
 interface QuestionDetailPreviewProps {
   question: Question;
   onQuestionDeleted?: () => void;
+  showFunction?: boolean;
 }
 
-const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question, onQuestionDeleted }) => {
+const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question, onQuestionDeleted, showFunction = true }) => {
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
@@ -142,8 +143,14 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
     <div className="p-6 bg-white shadow-lg rounded-lg">
       <div className="flex flex-col gap-4">
         {/* Action Buttons */}
-        {role === 1 && (
+        {role === 1 && showFunction && (
           <div className="flex justify-end gap-3 mb-4">
+            <button
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#0D7CF2] text-slate-50 text-sm font-bold leading-normal mr-12"
+              onClick={() => navigate(`/question-bank/${question.id}/approve`, { state: { subjectId: question.subjectId } })}
+            >
+              <span className="truncate">Thêm lời giải</span>
+            </button>
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal"
               onClick={() => navigate(`/question-bank/${question.id}/edit`, { state: { subjectId: question.subjectId } })}
