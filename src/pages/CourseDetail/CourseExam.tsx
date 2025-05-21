@@ -1,57 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import type { CourseDetailContextType } from '../../pages/CourseDetailPage';
 import MagnifyingGlassIcon from '../../assets/magnify_glass.svg';
-import ClockIcon from '../../assets/clock.svg';
-import DotsThreeIcon from '../../assets/dot_three.svg';
-
-interface ExamItem {
-  id: string;
-  name: string;
-  dueDateText: string;
-  status: 'upcoming' | 'past';
-}
-
-const sampleExams: ExamItem[] = [
-  { id: 'exam1', name: 'Midterm Exam', dueDateText: 'Due in 4 days', status: 'upcoming' },
-  { id: 'exam2', name: 'Final Exam', dueDateText: 'Due in 15 days', status: 'upcoming' },
-  { id: 'exam3', name: 'Unit 1 Exam', dueDateText: 'Completed 2 weeks ago', status: 'past' },
-  { id: 'exam4', name: 'Unit 2 Exam', dueDateText: 'Completed 1 month ago', status: 'past' },
-  { id: 'exam5', name: 'Unit 3 Exam', dueDateText: 'Completed 2 months ago', status: 'past' },
-];
-
-interface ExamCardProps {
-  exam: ExamItem;
-  onMenuClick?: (examId: string) => void;
-}
-
-const ExamCard: React.FC<ExamCardProps> = ({ exam, onMenuClick }) => {
-  return (
-    <div className="flex items-center gap-4 bg-white hover:bg-slate-50 px-4 min-h-[72px] py-3 my-1.5 rounded-lg border border-slate-200 transition-colors duration-150">
-      <div className="flex items-center gap-4 flex-grow">
-        <div className="text-[#0d141c] flex items-center justify-center rounded-lg bg-[#e7edf4] shrink-0 size-12">
-          <img src={ClockIcon} alt="Clock" />
-        </div>
-        <div className="flex flex-col justify-center">
-          <p className="text-[#0d141c] text-base font-medium leading-normal line-clamp-1">{exam.name}</p>
-          <p className="text-[#49719c] text-sm font-normal leading-normal line-clamp-2">{exam.dueDateText}</p>
-        </div>
-      </div>
-      <div className="shrink-0">
-        {onMenuClick && (
-          <button
-            onClick={() => onMenuClick(exam.id)}
-            className="text-[#0d141c] flex size-8 items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
-            aria-label={`Options for ${exam.name}`}
-          >
-            <img src={DotsThreeIcon} alt="Dots Three" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
+import { getExamsByClassId, type Exam, deleteExam } from '../../api/examApi';
+import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
+import ExamCard from '@/components/Exam/ExamCard';
+import { toast } from 'react-toastify';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 
 const CourseExams: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
@@ -59,27 +14,111 @@ const CourseExams: React.FC = () => {
   const { courseId, role, isCourseLoading } = context || {};
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [exams, setExams] = useState<ExamItem[]>(sampleExams); // Sau này sẽ fetch từ API
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [examToDeleteId, setExamToDeleteId] = useState<string | null>(null);
 
-  // Lọc danh sách bài thi dựa trên searchTerm
-  const filteredExams = exams.filter(exam =>
-    exam.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchExams = async () => {
+      if (!courseId) {
+        setIsLoading(false);
+        return;
+      }
 
-  const upcomingExams = filteredExams.filter(exam => exam.status === 'upcoming');
-  const pastExams = filteredExams.filter(exam => exam.status === 'past');
+      try {
+        const examsData = await getExamsByClassId(courseId);
+        setExams(examsData);
+      } catch (error) {
+        console.error('Error fetching exams:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExams();
+  }, [courseId]);
 
   const handleCreateNewExam = () => {
     navigate(`/courses/${courseId}/exams/create`);
   };
 
-  const handleExamMenuClick = (examId: string) => {
-    alert(`Menu clicked for exam ID: ${examId}`);
+  const handleExamCardClick = (examId: string) => {
+    navigate(`/courses/${courseId}/exams/${examId}/do`, {
+      state: {
+        lectureName: context?.course?.name || '',
+        subjectId: context?.course?.subjectId || '',
+      }
+    });
   };
 
-  if (isCourseLoading) {
+  // Lọc danh sách bài thi dựa trên searchTerm
+  const filteredExams = exams.filter(exam =>
+    exam.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const now = new Date();
+
+  const upcomingExams = filteredExams.filter(exam => {
+    const openTime = exam.openTime ? parseISO(exam.openTime) : null;
+    const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
+
+    if (closeTime && isAfter(now, closeTime)) return false;
+
+    if (openTime && closeTime && isWithinInterval(now, { start: openTime, end: closeTime })) return false;
+    if (openTime && !closeTime && isAfter(now, openTime)) return false;
+    if (openTime && isBefore(now, openTime)) return true;
+    if (!openTime && !closeTime) return false;
+
+    return true;
+  });
+
+  const pastExams = filteredExams.filter(exam => {
+    const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
+    return closeTime && isAfter(now, closeTime);
+  });
+
+  const ongoingExams = filteredExams.filter(exam => {
+    const isUpcoming = upcomingExams.some(u => u.id === exam.id);
+    const isPast = pastExams.some(p => p.id === exam.id);
+    return !isUpcoming && !isPast;
+  });
+
+  if (isCourseLoading || isLoading) {
     return <div className="p-6 text-center text-gray-500">Đang tải dữ liệu đề thi...</div>;
   }
+
+  function handleEditExam(id: string): void {
+    navigate(`/courses/${courseId}/exams/${id}/edit`);
+  }
+
+  async function handleDeleteExam(id: string): Promise<void> {
+    setExamToDeleteId(id);
+    setShowConfirmDialog(true);
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!examToDeleteId || !courseId) return; // Add check for courseId
+
+    try {
+      await deleteExam(examToDeleteId);
+      toast.success('Xóa đề thi thành công!');
+      // Refresh danh sách đề thi
+      const examsData = await getExamsByClassId(courseId);
+      setExams(examsData);
+    } catch (error) {
+      console.error('Error deleting exam:', error);
+      toast.error('Có lỗi xảy ra khi xóa đề thi. Vui lòng thử lại sau.');
+    } finally {
+      setShowConfirmDialog(false);
+      setExamToDeleteId(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirmDialog(false);
+    setExamToDeleteId(null);
+  };
 
   return (
     <div className="layout-content-container flex flex-col flex-1 pb-8">
@@ -113,6 +152,20 @@ const CourseExams: React.FC = () => {
         </label>
       </div>
 
+      {/* Ongoing Exams Section */}
+      {ongoingExams.length > 0 && (
+        <>
+          <h3 className="text-[#0d141c] text-lg font-semibold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+            Đang diễn ra
+          </h3>
+          <div className="px-4 space-y-2">
+            {ongoingExams.map(exam => (
+              <ExamCard key={exam.id} exam={exam} onClick={() => handleExamCardClick(exam.id)} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Upcoming Exams Section */}
       {upcomingExams.length > 0 && (
         <>
@@ -121,12 +174,11 @@ const CourseExams: React.FC = () => {
           </h3>
           <div className="px-4 space-y-2">
             {upcomingExams.map(exam => (
-              <ExamCard key={exam.id} exam={exam} onMenuClick={handleExamMenuClick} />
+              <ExamCard key={exam.id} exam={exam} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
             ))}
           </div>
         </>
       )}
-
 
       {/* Past Exams Section */}
       {pastExams.length > 0 && (
@@ -136,14 +188,14 @@ const CourseExams: React.FC = () => {
           </h3>
           <div className="px-4 space-y-2">
             {pastExams.map(exam => (
-              <ExamCard key={exam.id} exam={exam} onMenuClick={handleExamMenuClick} />
+              <ExamCard key={exam.id} exam={exam} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
             ))}
           </div>
         </>
       )}
 
       {/* No Exams Found */}
-      {filteredExams.length === 0 && !isCourseLoading && (
+      {filteredExams.length === 0 && !isLoading && (
         <div className="px-4 py-10 text-center">
           <p className="text-lg text-gray-500">
             {searchTerm ? 'Không tìm thấy đề thi nào phù hợp.' : 'Chưa có đề thi nào trong khóa học này.'}
@@ -158,6 +210,17 @@ const CourseExams: React.FC = () => {
           )}
         </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={showConfirmDialog}
+        onClose={handleCancelDelete}
+        title="Xác nhận xóa đề thi"
+        message="Bạn có chắc chắn muốn xóa đề thi này không? Thao tác này không thể hoàn tác."
+        onConfirm={handleConfirmDelete}
+        confirmButtonText="Xóa"
+        cancelButtonText="Hủy"
+        confirmButtonColorClass="bg-red-600 hover:bg-red-700"
+      />
     </div>
   );
 };

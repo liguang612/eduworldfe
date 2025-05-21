@@ -22,10 +22,11 @@ import CourseLectures from '@/pages/CourseDetail/CourseLecture';
 import CourseExams from '@/pages/CourseDetail/CourseExam';
 import CourseTopics from '@/pages/CourseDetail/CourseTopic';
 import CourseReviews from '@/pages/CourseDetail/CourseReview';
-import ExamCreatePage from '@/pages/ExamCreatePage';
 import NotPermission from '../pages/NotPermission';
 import DoExamPage from '@/pages/DoExamPage';
 import DoEndQuestion from '@/pages/DoEndQuestion';
+import ExamCreatePage from '@/pages/ExamCreatePage';
+import ExamEditPage from '@/pages/ExamEditPage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -205,6 +206,16 @@ const AppRoutes: React.FC = () => (
 
     {/* Exam */}
     <Route
+      path="/exams"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <CourseExams />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/courses/:courseId/exams/create"
       element={
         <ProtectedRoute allowedRoles={[1]}>
@@ -215,7 +226,17 @@ const AppRoutes: React.FC = () => (
       }
     />
     <Route
-      path="/courses/:courseId/exams/:examId"
+      path="/courses/:courseId/exams/:examId/edit"
+      element={
+        <ProtectedRoute allowedRoles={[1]}>
+          <Layout>
+            <ExamEditPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/courses/:courseId/exams/:examId/do"
       element={
         <ProtectedRoute>
           <Layout>

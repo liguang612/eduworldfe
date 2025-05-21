@@ -47,6 +47,15 @@ export interface Question {
   isFlagged?: boolean;
 }
 
+export interface ChoiceOption {
+  id: string;
+  text: string;
+  value: string;
+  questionId: string;
+  orderIndex: number | null;
+  isCorrect: boolean;
+}
+
 interface CreateQuestionRequest {
   title: string;
   type: string;

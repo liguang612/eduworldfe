@@ -68,7 +68,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               Đăng nhập
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-0">
-              <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <div className="flex max-w-[480px] flex-wrap items-end gap-4 pl-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Email</p>
                   <input
@@ -80,7 +80,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                 </label>
               </div>
-              <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <div className="flex max-w-[480px] flex-wrap items-end gap-4 pl-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mật khẩu</p>
                   <input
@@ -113,7 +113,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </button>
               </div>
             </form>
-            <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center">
+            <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 text-center max-w-[480px] mt-8 ">
               Chưa có tài khoản?
             </p>
             <div className="flex px-4 py-3">

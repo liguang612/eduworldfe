@@ -49,12 +49,12 @@ const Header: React.FC<HeaderProps> = () => {
           {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/lectures')}>
             Bài giảng
           </a>}
-          {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/question-bank')}>
+          {user?.role !== 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/question-bank')}>
             Ngân hàng câu hỏi
           </a>}
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exam')}>
+          {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exams')}>
             Đề thi
-          </a>
+          </a>}
         </div>
         {!user ? (
           location.pathname === '/register' ? (

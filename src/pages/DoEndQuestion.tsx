@@ -19,16 +19,8 @@ import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import "../components/Question/survey-custom.css";
 import { toast, ToastContainer } from 'react-toastify';
+import { type ChoiceOption } from '../api/questionApi';
 import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
-
-interface ChoiceOption {
-  id: string;
-  text: string;
-  value: string; // Quan trọng: `value` dùng để so sánh
-  questionId: string;
-  orderIndex: number | null;
-  isCorrect: boolean;
-}
 
 const initialQuestionsData: Question[] = [];
 
@@ -346,7 +338,6 @@ const DoEndQuestion: React.FC = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const currentSurveyModel = surveyModels[currentQuestion.id];
 
   const rootStyle = {
     "--checkbox-tick-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
@@ -487,7 +478,7 @@ const DoEndQuestion: React.FC = () => {
 
             {/* Questions with same shared media */}
             <div className="overflow-y-auto">
-              {currentMediaQuestions.map((question, index) => (
+              {currentMediaQuestions.map((question) => (
                 <div key={question.id} className="p-4 border-b border-slate-200">
                   {surveyModels[question.id] && (
                     <div className="survey-container mb-4">

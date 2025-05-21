@@ -7,7 +7,7 @@ import { type Question } from '../api/questionApi';
 import AddIcon from '@/assets/add.svg';
 import RemoveIcon from '@/assets/remove.svg';
 import { getCourseById, type Course } from '../api/courseApi';
-import { createExam, type CreateExamRequest } from '../api/examApi';
+import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '../api/examApi';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -38,12 +38,25 @@ interface ExamFormData {
 
 type ActiveTabType = 'general' | 'other' | 'questionBank';
 
-const ExamCreatePage: React.FC = () => {
+// Hàm trợ giúp để chuyển đổi chuỗi ISO (UTC) sang chuỗi datetime-local
+const formatISOToLocalDateTimeString = (isoString: string | null | undefined): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString); // Date object này sẽ giữ thông tin múi giờ
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() trả về 0-11
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const ExamEditPage: React.FC = () => {
   const navigate = useNavigate();
-  const { courseId: courseIdFromParams } = useParams<{ courseId?: string }>();
+  const { courseId: courseId, examId } = useParams<{ courseId?: string; examId?: string }>();
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [isCourseLoading, setIsCourseLoading] = useState(true);
+  const [isExamLoading, setIsExamLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<ActiveTabType>('general');
   const [formData, setFormData] = useState<ExamFormData>({
@@ -79,13 +92,13 @@ const ExamCreatePage: React.FC = () => {
 
   useEffect(() => {
     const fetchCourseData = async () => {
-      if (!courseIdFromParams) {
+      if (!courseId) {
         setIsCourseLoading(false);
         return;
       }
 
       try {
-        const courseData = await getCourseById(courseIdFromParams);
+        const courseData = await getCourseById(courseId);
         setCourse(courseData);
       } catch (error) {
         console.error('Error fetching course:', error);
@@ -95,7 +108,58 @@ const ExamCreatePage: React.FC = () => {
     };
 
     fetchCourseData();
-  }, [courseIdFromParams]);
+  }, [courseId]);
+
+  useEffect(() => {
+    const fetchExamData = async () => {
+      if (!examId) {
+        setIsExamLoading(false);
+        return;
+      }
+
+      try {
+        const response = await getExamQuestionsDetails(examId);
+        const exam = response.exam;
+        const questions = response.questions;
+
+        // Cập nhật form data từ dữ liệu đề thi
+        setFormData({
+          examName: exam.title,
+          numRecognitionQuestions: exam.easyCount.toString(),
+          pointsPerRecognitionQuestion: exam.easyScore.toString(),
+          numComprehensionQuestions: exam.mediumCount.toString(),
+          pointsPerComprehensionQuestion: exam.mediumScore.toString(),
+          numApplicationQuestions: exam.hardCount.toString(),
+          pointsPerApplicationQuestion: exam.hardScore.toString(),
+          numHighApplicationQuestions: exam.veryHardCount.toString(),
+          pointsPerHighApplicationQuestion: exam.veryHardScore.toString(),
+          enableOpenDateTime: !!exam.openTime,
+          // Sử dụng hàm trợ giúp để định dạng thời gian cho input datetime-local
+          openDateTime: formatISOToLocalDateTimeString(exam.openTime),
+          enableCloseDateTime: !!exam.closeTime,
+          closeDateTime: formatISOToLocalDateTimeString(exam.closeTime),
+          duration: exam.durationMinutes.toString(),
+          revealAnswers: exam.allowViewAnswer,
+          setTimeLimit: !!exam.durationMinutes && exam.durationMinutes > 0,
+          shuffleQuestions: exam.shuffleQuestion,
+          allowSeeAnswers: exam.allowViewAnswer,
+          allowReviewAfterSubmit: exam.allowReview,
+          allowRetake: exam.maxAttempts > 0,
+          maxRetakeAttempts: exam.maxAttempts.toString(),
+        });
+
+        // Cập nhật danh sách câu hỏi đã chọn
+        setSelectedQuestions(questions);
+      } catch (error) {
+        console.error('Error fetching exam:', error);
+        toast.error('Có lỗi xảy ra khi tải dữ liệu đề thi');
+      } finally {
+        setIsExamLoading(false);
+      }
+    };
+
+    fetchExamData();
+  }, [examId]);
 
   useEffect(() => {
     const numRec = parseInt(formData.numRecognitionQuestions) || 0;
@@ -150,7 +214,6 @@ const ExamCreatePage: React.FC = () => {
     }
   }, [formData.allowRetake, formData.maxRetakeAttempts]);
 
-
   useEffect(() => {
     setFormData(prev => {
       const newSetTimeLimit = !!prev.duration && prev.duration !== "0" && prev.duration !== "";
@@ -199,11 +262,11 @@ const ExamCreatePage: React.FC = () => {
       return;
     }
 
-    // Chuyển đổi thời gian từ local sang UTC
+    // Chuyển đổi thời gian từ local (từ input datetime-local) sang UTC
     const convertToUTC = (localDateTime: string) => {
       if (!localDateTime) return undefined;
-      const date = new Date(localDateTime);
-      return date.toISOString();
+      const date = new Date(localDateTime); // Date này được hiểu là local time
+      return date.toISOString(); // Chuyển sang UTC
     };
 
     const openTimeUTC = formData.enableOpenDateTime ? convertToUTC(formData.openDateTime) : undefined;
@@ -222,8 +285,8 @@ const ExamCreatePage: React.FC = () => {
       setFormData(prev => ({ ...prev, maxRetakeAttempts: '1' }));
       return;
     }
-    if (!course?.id) {
-      toast.error('Không thể tạo đề thi vì dữ liệu khóa học không khả dụng.');
+    if (!course?.id || !examId) {
+      toast.error('Không thể cập nhật đề thi vì dữ liệu không khả dụng.');
       return;
     }
 
@@ -245,27 +308,20 @@ const ExamCreatePage: React.FC = () => {
         maxScore: totalPoints + selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
         durationMinutes: parseInt(formData.duration) || 0,
         shuffleQuestion: formData.shuffleQuestions,
-        shuffleChoice: formData.shuffleQuestions,
-        categories: [],
+        shuffleChoice: formData.shuffleQuestions, // Giả sử bạn muốn đồng bộ cài đặt này
+        categories: [], // Bạn có thể cần cập nhật logic này nếu có categories
         allowReview: formData.allowReviewAfterSubmit,
-        allowViewAnswer: formData.allowReviewAfterSubmit,
+        allowViewAnswer: formData.revealAnswers, // Đã sửa: allowViewAnswer nên map với revealAnswers
         maxAttempts: formData.allowRetake ? parseInt(formData.maxRetakeAttempts) : 1
       };
 
-      await createExam(examData);
-      toast.success('Tạo đề thi thành công!');
+      await updateExam(examId, examData);
+
+      toast.success('Cập nhật đề thi thành công!');
       navigate(`/courses/${course.id}/exams`);
     } catch (error) {
-      console.error('Error creating exam:', error);
-      toast.error('Có lỗi xảy ra khi tạo đề thi. Vui lòng thử lại sau.');
-    }
-  };
-
-  const handleCancel = () => {
-    if (course?.id) {
-      navigate(`/courses/${course.id}/exams`);
-    } else {
-      navigate(-1);
+      console.error('Error updating exam:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật đề thi. Vui lòng thử lại sau.');
     }
   };
 
@@ -369,7 +425,7 @@ const ExamCreatePage: React.FC = () => {
     </div>
   );
 
-  if (isCourseLoading) {
+  if (isCourseLoading || isExamLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="flex items-center gap-2">
@@ -377,7 +433,7 @@ const ExamCreatePage: React.FC = () => {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
           </svg>
-          <span className="text-blue-600">Đang tải dữ liệu khóa học...</span>
+          <span className="text-blue-600">Đang tải dữ liệu...</span>
         </div>
       </div>
     );
@@ -393,7 +449,7 @@ const ExamCreatePage: React.FC = () => {
           <form onSubmit={handleSubmit} className="layout-content-container flex flex-col md:w-[600px] lg:w-[768px] py-5 gap-6 flex-1 space-y-3">
             <div className="p-4">
               <div className="flex min-w-72 flex-col gap-1">
-                <h1 className="text-[#0d141c] dark:text-slate-100 text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Tạo đề thi mới</h1>
+                <h1 className="text-[#0d141c] dark:text-slate-100 text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Chỉnh sửa đề thi</h1>
               </div>
             </div>
 
@@ -403,24 +459,21 @@ const ExamCreatePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setActiveTab('general')}
-                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'general' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'
-                      }`}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'general' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'}`}
                   >
                     <p className="text-sm font-bold leading-normal tracking-[0.015em]">Thông tin chung</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('questionBank')}
-                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'questionBank' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'
-                      }`}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'questionBank' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'}`}
                   >
                     <p className="text-sm font-bold leading-normal tracking-[0.015em]">Kho câu hỏi</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('other')}
-                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'other' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'
-                      }`}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-3 transition-colors ${activeTab === 'other' ? 'border-b-[#0d7cf2] text-[#0d141c] dark:text-slate-100' : 'border-b-transparent text-[#49719c] dark:text-slate-400 hover:border-b-slate-300 dark:hover:border-b-slate-600'}`}
                   >
                     <p className="text-sm font-bold leading-normal tracking-[0.015em]">Cài đặt khác</p>
                   </button>
@@ -462,6 +515,7 @@ const ExamCreatePage: React.FC = () => {
 
                   <div className="pt-3">
                     <h3 className="text-[#0d141c] dark:text-slate-100 text-lg font-semibold leading-tight tracking-[-0.015em] pb-2">Phân bổ câu hỏi và điểm</h3>
+                    {/* Container cho renderQuestionTypeInputs có thể cần điều chỉnh layout nếu bạn muốn chúng trên một hàng */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                       {renderQuestionTypeInputs("Nhận biết", "numRecognitionQuestions", "pointsPerRecognitionQuestion")}
                       {renderQuestionTypeInputs("Thông hiểu", "numComprehensionQuestions", "pointsPerComprehensionQuestion")}
@@ -555,7 +609,7 @@ const ExamCreatePage: React.FC = () => {
                           <h3 className="font-medium text-[#0d141c] dark:text-slate-100 flex-1">{question.title}</h3>
                           <button
                             onClick={() => setSelectedQuestions(prev => prev.filter(q => q.id !== question.id))}
-                            className="text-red-500 hover:text-red-700 transition w-8 h-8"
+                            className="text-red-500 hover:text-red-700 transition w-8 h-8 flex items-center justify-center" // Added flex for centering
                           >
                             <img src={RemoveIcon} alt="Remove" className='w-5 h-5' />
                           </button>
@@ -614,7 +668,6 @@ const ExamCreatePage: React.FC = () => {
                     </div>
                   </div>
 
-
                   <div className="pt-4">
                     <h3 className="text-[#0d141c] dark:text-slate-200 text-lg font-semibold leading-tight tracking-[-0.015em] pb-2">Tùy chọn xem lại</h3>
                     <div className="space-y-3">
@@ -629,11 +682,11 @@ const ExamCreatePage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end items-center gap-3 px-4 py-6 sticky bottom-0 border-t border-slate-200 dark:border-slate-700 dark:bg-slate-800">
+            <div className="flex flex-col sm:flex-row justify-end items-center gap-3 px-4 py-6 sticky bottom-0 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"> {/* Added bg for sticky footer */}
               <button
                 type="button"
-                onClick={handleCancel}
-                className="flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-6 bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 text-[#0d141c] dark:text-slate-100 text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
+                onClick={() => navigate(`/courses/${courseId}/exams`)}
+                className="flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-6 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[#0d141c] dark:text-slate-100 text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
               >
                 <span className="truncate">Huỷ</span>
               </button>
@@ -641,7 +694,7 @@ const ExamCreatePage: React.FC = () => {
                 type="submit"
                 className="flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-6 bg-[#0d7cf2] hover:bg-[#0b68d1] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
               >
-                <span className="truncate">Tạo đề thi</span>
+                <span className="truncate">Cập nhật</span>
               </button>
             </div>
           </form>
@@ -654,12 +707,11 @@ const ExamCreatePage: React.FC = () => {
         searchPlaceholder="Nhập từ khóa tìm kiếm câu hỏi (+ enter)"
         onSearch={searchQuestionsHandler}
         renderItem={(question, selected, onToggle) => {
-          console.log('Rendering question:', question);
           return (
             <div
               key={question.id}
               onClick={() => onToggle(question)}
-              className={`cursor-pointer border rounded-lg p-3 mb-2 transition ${selected ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+              className={`cursor-pointer border rounded-lg p-3 mb-2 transition ${selected ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600'}`} // Added dark mode styles
             >
               <div className="flex items-center gap-2">
                 <input
@@ -667,12 +719,12 @@ const ExamCreatePage: React.FC = () => {
                   checked={selected}
                   readOnly
                   className="accent-blue-500"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()} // Prevent row click when clicking checkbox
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-[#0d141c]">{question.title}</p>
+                  <p className="font-medium text-[#0d141c] dark:text-slate-100">{question.title}</p>
                   {question.sharedMedia && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
                       {question.sharedMedia.title}
                     </p>
                   )}
@@ -694,5 +746,4 @@ const ExamCreatePage: React.FC = () => {
   );
 };
 
-export default ExamCreatePage;
-
+export default ExamEditPage;
