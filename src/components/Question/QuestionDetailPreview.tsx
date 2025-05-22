@@ -147,9 +147,9 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
           <div className="flex justify-end gap-3 mb-4">
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#0D7CF2] text-slate-50 text-sm font-bold leading-normal mr-12"
-              onClick={() => navigate(`/question-bank/${question.id}/approve`, { state: { subjectId: question.subjectId } })}
+              onClick={() => navigate(`/question-bank/${question.id}/solutions`, { state: { subjectId: question.subjectId } })}
             >
-              <span className="truncate">Thêm lời giải</span>
+              <span className="truncate">Lời giải</span>
             </button>
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal"
@@ -198,8 +198,7 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
         <div className="mt-4 pt-4 border-t border-gray-200">
           <h3 className="text-gray-800 font-semibold mb-2">Chi tiết:</h3>
           <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Ngày tạo:</strong> {formatDate(question.createdAt)}</p>
-            <p><strong>Ngày cập nhật:</strong> {formatDate(question.updatedAt)}</p>
+            <p><strong>Môn học:</strong> {question.subjectName}</p>
             {question.categories.length > 0 && (
               <p><strong>Danh mục:</strong> {question.categories.join(', ')}</p>
             )}

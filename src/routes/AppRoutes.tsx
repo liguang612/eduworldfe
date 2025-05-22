@@ -27,7 +27,8 @@ import DoExamPage from '@/pages/DoExamPage';
 import DoEndQuestion from '@/pages/DoEndQuestion';
 import ExamCreatePage from '@/pages/ExamCreatePage';
 import ExamEditPage from '@/pages/ExamEditPage';
-import ApproveQuestion from '@/pages/ApproveQuestion';
+import SolutionCreatePage from '@/pages/SolutionCreatePage';
+import SolutionPage from '@/pages/SolutionPage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -204,12 +205,23 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+    {/* Question Solutions */}
     <Route
-      path="/question-bank/:questionId/approve"
+      path="/question-bank/:questionId/solutions"
       element={
         <ProtectedRoute allowedRoles={[1]}>
           <Layout>
-            <ApproveQuestion />
+            <SolutionPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/question-bank/:questionId/solutions/create"
+      element={
+        <ProtectedRoute allowedRoles={[1]}>
+          <Layout>
+            <SolutionCreatePage />
           </Layout>
         </ProtectedRoute>
       }

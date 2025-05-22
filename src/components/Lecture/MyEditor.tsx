@@ -13,7 +13,7 @@ import { DndPlugin } from '@udecode/plate-dnd';
 import { NodeIdPlugin } from '@udecode/plate-node-id';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { PlaceholderPlugin, VideoPlugin, AudioPlugin } from '@udecode/plate-media/react';
+import { PlaceholderPlugin, VideoPlugin, AudioPlugin, ImagePlugin, FilePlugin } from '@udecode/plate-media/react';
 import { MediaVideoElement } from '@/components/ui/media-video-element';
 
 export interface MyEditorRef {
@@ -46,6 +46,18 @@ const MyEditor = forwardRef<MyEditorRef, MyEditorProps>(({ initValue, editable =
             maxFileSize: "32MB",
             mediaType: AudioPlugin.key,
           },
+          image: {
+            maxFileSize: "8MB",
+            mediaType: ImagePlugin.key,
+          },
+          pdf: {
+            maxFileSize: "32MB",
+            mediaType: FilePlugin.key,
+          },
+          blob: {
+            maxFileSize: "32MB",
+            mediaType: FilePlugin.key,
+          }
         },
         disableEmptyPlaceholder: true,
       },

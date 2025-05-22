@@ -1,23 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import MyEditor from '../components/Lecture/MyEditor'; // Adjust path as per your project structure
-import type { MyEditorRef } from '../components/Lecture/MyEditor'; // Adjust path as per your project structure
-import QuestionDetailPreview from '../components/Question/QuestionDetailPreview'; // Adjust path as per your project structure
-import type { Question } from '@/api/questionApi'; // Adjust path as per your project structure
-import { getQuestionDetail } from '@/api/questionApi'; // Placeholder: You'll need to implement this API call
-import { uploadFile } from '@/api/lectureApi'; // Re-using from LectureCreatePage for editor file uploads
-// import { submitQuestionContribution } from '@/api/contributionApi'; // Placeholder: API call for submitting contribution
+import MyEditor from '../components/Lecture/MyEditor';
+import type { MyEditorRef } from '../components/Lecture/MyEditor';
+import QuestionDetailPreview from '../components/Question/QuestionDetailPreview';
+import type { Question } from '@/api/questionApi';
+import { getQuestionDetail } from '@/api/questionApi';
+import { uploadFile } from '@/api/lectureApi';
+import { createSolution } from '@/api/solutionApi';
 import { toast } from 'react-toastify';
 import { baseURL } from '@/config/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// Mock API function for submitting contribution - replace with your actual API call
-const submitQuestionContribution = async (data: { questionId: string; userId: string; content: string; }) => {
-  console.log("Submitting contribution:", data);
-  return new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-};
-
-
-const CreateSolutionPage: React.FC = () => {
+const SolutionCreatePage: React.FC = () => {
   const { questionId } = useParams<{ questionId: string }>();
   const navigate = useNavigate();
 
@@ -36,13 +29,12 @@ const CreateSolutionPage: React.FC = () => {
       }
       try {
         setIsQuestionLoading(true);
-        // Replace with your actual API call to fetch question details
         const data = await getQuestionDetail(questionId);
         setOriginalQuestion(data);
       } catch (error) {
         console.error('Error fetching question:', error);
         toast.error('Không thể tải dữ liệu câu hỏi gốc.');
-        setOriginalQuestion(null); // Set to null on error to show appropriate message
+        setOriginalQuestion(null);
       } finally {
         setIsQuestionLoading(false);
       }
@@ -66,59 +58,67 @@ const CreateSolutionPage: React.FC = () => {
     setStatusMessage(null);
 
     try {
-      const contents = [...editorValue];
+      const contents = editorValue;
+      const processedContents: typeof contents = [];
 
-      // File upload handling, similar to LectureCreatePage
       for (let i = 0; i < contents.length; i++) {
-        const contentItem = contents[i]; // Renamed to avoid conflict with 'content' in contributionData
+        const contentItem = contents[i];
         if (contentItem.isUpload && contentItem.url.startsWith('blob:')) {
-          const response = await fetch(contentItem.url);
-          const blob = await response.blob();
+          const metadata = contentItem.type?.split('/');
+          console.log(contentItem);
+          if (metadata && (metadata[0] === 'image' || contentItem.type === 'img')) {
+            try {
+              setStatusMessage(`Đang tải hình ảnh...`);
+              const response = await fetch(contentItem.url);
+              const blob = await response.blob();
 
-          const metadata = blob.type.split('/');
-          const fileName = contentItem.name && contentItem.name !== '' ? contentItem.name : `uploaded_file_${Date.now()}.${metadata[1] || 'bin'}`;
-          const file = new File([blob], fileName, { type: blob.type });
+              const fileName = contentItem.name && contentItem.name !== '' ? contentItem.name : `uploaded_image_${Date.now()}.${metadata[1] || 'png'}`;
+              const file = new File([blob], fileName, { type: blob.type });
 
-          setStatusMessage(`Đang tải ${metadata[0] === 'image' ? 'hình ảnh' : metadata[0] === 'video' ? 'video' : metadata[0] === 'audio' ? 'âm thanh' : 'file'}...`);
-          const fileUrl = await uploadFile(file, metadata[0]); //
+              const fileUrl = await uploadFile(file, 'solutions');
 
-          const writableContentItem = { ...contentItem };
-          writableContentItem.url = `${baseURL}${fileUrl}`; //
-          delete writableContentItem.placeholderId;
-          contents[i] = writableContentItem;
+              const writableContentItem = { ...contentItem };
+              writableContentItem.url = `${baseURL}${fileUrl}`;
+
+              delete writableContentItem.placeholderId;
+              processedContents.push(writableContentItem);
+            } catch (uploadError) {
+              console.error('Error uploading image:', uploadError);
+              toast.error(`Không thể tải lên hình ảnh: ${contentItem.name || 'file'}. Vui lòng thử lại.`);
+            }
+          } else {
+            console.log(`Skipping non-image upload: ${contentItem.type}`);
+          }
+        } else {
+          processedContents.push(contentItem);
         }
       }
 
-      setStatusMessage('Đang gửi đóng góp...');
-      // Ensure 'user' item in localStorage and its 'id' property exist
-      const userString = localStorage.getItem('user');
-      const userId = userString ? (JSON.parse(userString)).id : null;
-
-      if (!userId) {
-        toast.error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
-        setLoading(false);
-        setStatusMessage(null);
+      if (!questionId) {
+        toast.error('Không tìm thấy ID câu hỏi.');
         return;
       }
 
-      const contributionData = {
+      setStatusMessage('Đang gửi lời giải...');
+
+      const solutionData = {
         questionId: questionId,
-        userId: userId,
-        content: JSON.stringify(contents), // The rich content from PlateJS
+        content: JSON.stringify(processedContents),
       };
 
-      await submitQuestionContribution(contributionData); // Actual API call to submit
+      await createSolution(solutionData);
 
-      toast.success('Đóng góp của bạn đã được gửi thành công!');
+      toast.success('Lời giải đã được gửi thành công!');
       setLoading(false);
       setStatusMessage(null);
-      // Navigate to the question detail page or a list, adjust as needed
-      navigate(`/questions/${questionId}`); // Example navigation
+
+      navigate(-1);
     } catch (error) {
       setLoading(false);
       setStatusMessage(null);
-      console.error('Error saving contribution:', error);
-      toast.error('Có lỗi xảy ra khi gửi đóng góp. Vui lòng thử lại.');
+
+      console.error('Error saving solution:', error);
+      toast.error('Có lỗi xảy ra khi gửi lời giải. Vui lòng thử lại (Bạn có thể export tài liệu này dưới dạng HTML để có thể import lại sau).');
     }
   };
 
@@ -201,4 +201,4 @@ const CreateSolutionPage: React.FC = () => {
   );
 };
 
-export default CreateSolutionPage;
+export default SolutionCreatePage;

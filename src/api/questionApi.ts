@@ -45,6 +45,7 @@ export interface Question {
   }>;
   selectedOptionIndex?: number | null;
   isFlagged?: boolean;
+  subjectName: string;
 }
 
 export interface ChoiceOption {

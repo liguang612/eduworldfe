@@ -23,6 +23,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 import { type ChoiceOption } from '../api/questionApi';
 import { type Exam } from '../api/examApi';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 
 const initialQuestionsData: Question[] = [];
 
@@ -49,6 +50,8 @@ const DoExamPage: React.FC = () => {
   // State for timer
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState(false);
+
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   const groupQuestionsBySharedMedia = useCallback((questions: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
@@ -321,8 +324,14 @@ const DoExamPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      // Kiểm tra nếu còn thời gian thì hiển thị dialog xác nhận
+      if (timeLeft !== null && timeLeft > 0) {
+        setShowSubmitConfirm(true);
+        return;
+      }
+
       setIsGrading(true);
-      setIsTimerActive(false); // Stop timer on submit attempt
+      setIsTimerActive(false);
       const answersToGrade: { [key: string]: any } = {};
       const updatedSurveyModels = { ...surveyModels };
 
@@ -339,24 +348,42 @@ const DoExamPage: React.FC = () => {
         }
       });
 
-      if (Object.keys(answersToGrade).length !== questions.length) {
-        toast.warning('Vui lòng trả lời tất cả câu hỏi trước khi nộp bài');
-        setIsGrading(false); // Allow timer to resume if needed, or user to continue
-        // Check if timer should resume if time is left
-        if (timeLeft !== null && timeLeft > 0 && Object.keys(gradingResults).length === 0) {
-          // setIsTimerActive(true); // No, keep it stopped after a submit attempt. User needs to be aware.
+      const response = await gradeAnswers({ answers: answersToGrade });
+      setGradingResults(response.results);
+      setCorrectAnswers(response.correctAnswers);
+    } catch (error) {
+      console.error('Error grading answers:', error);
+      setIsGrading(false);
+    }
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowSubmitConfirm(false);
+    try {
+      setIsGrading(true);
+      setIsTimerActive(false);
+      const answersToGrade: { [key: string]: any } = {};
+      const updatedSurveyModels = { ...surveyModels };
+
+      questions.forEach(question => {
+        const model = updatedSurveyModels[question.id];
+        if (model) {
+          const questionName = `question_${question.id}`;
+          const value = model.getValue(questionName);
+
+          if (value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : value !== "")) {
+            answersToGrade[`${question.id}`] = value;
+          }
+          model.data = { [questionName]: value };
         }
-        return;
-      }
+      });
 
       const response = await gradeAnswers({ answers: answersToGrade });
       setGradingResults(response.results);
       setCorrectAnswers(response.correctAnswers);
     } catch (error) {
       console.error('Error grading answers:', error);
-      setIsGrading(false); // Reset grading status on error
-    } finally {
-      // setIsGrading(false); // Moved up for specific cases
+      setIsGrading(false);
     }
   };
 
@@ -454,7 +481,7 @@ const DoExamPage: React.FC = () => {
                           }`}
                       >
                         <img src={IconSource} className='w-5 h-5' alt='status icon' />
-                        <p className="text-[#0d141c] text-sm font-medium leading-normal flex-1">{q.title}</p>
+                        <p className="text-[#0d141c] text-sm font-medium leading-normal flex-1">{`${index + 1}. ${q.title}`}</p>
                         {resultIcon}
                       </div>
                     );
@@ -526,14 +553,19 @@ const DoExamPage: React.FC = () => {
             )}
 
             <div className="overflow-y-auto">
-              {currentQuestion && currentMediaQuestions.map((question) => ( // Ensure currentQuestion is available
+              {currentQuestion && currentMediaQuestions.map((question) => (
                 <div key={question.id} className="p-4 border-b border-slate-200">
                   {surveyModels[question.id] && (
                     <div className="survey-container mb-4">
                       <Survey
                         model={surveyModels[question.id]}
-                        onValueChanged={() => handleSurveyValueChange(question.id, surveyModels[question.id])}
-                        readOnly={Object.keys(gradingResults).length > 0 || (timeLeft === 0 && !isTimerActive)} // Disable survey if time is up
+                        onValueChanged={(sender: Model, options: any) => {
+                          // Cập nhật giá trị ngay lập tức khi có thay đổi
+                          const value = sender.getValue(`question_${question.id}`);
+                          sender.data = { [`question_${question.id}`]: value };
+                          handleSurveyValueChange(question.id, sender);
+                        }}
+                        readOnly={Object.keys(gradingResults).length > 0 || (timeLeft === 0 && !isTimerActive)}
                       />
                     </div>
                   )}
@@ -550,13 +582,13 @@ const DoExamPage: React.FC = () => {
               ))}
             </div>
 
-            {currentQuestion && Object.keys(gradingResults).length === 0 && ( // Ensure currentQuestion is available
+            {currentQuestion && Object.keys(gradingResults).length === 0 && (
               <div className="px-4 pb-4 flex justify-end gap-3">
                 <button
                   onClick={handleToggleFlag}
                   title={currentQuestion.isFlagged ? "Bỏ đánh dấu câu hỏi" : "Đánh dấu câu hỏi để xem lại"}
                   className={`p-2 rounded-lg hover:bg-slate-200 ${currentQuestion.isFlagged ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'text-slate-600'}`}
-                  disabled={(timeLeft === 0 && !isTimerActive)} // Disable if time up
+                  disabled={(timeLeft === 0 && !isTimerActive)}
                 >
                   <img src={currentQuestion.isFlagged ? FlagFillIcon : FlagIcon} className="size-5" alt="flag icon" />
                 </button>
@@ -564,7 +596,7 @@ const DoExamPage: React.FC = () => {
                   onClick={handleClearResponse}
                   title="Xóa lựa chọn"
                   className="p-2 rounded-lg text-slate-600 hover:bg-slate-200"
-                  disabled={(timeLeft === 0 && !isTimerActive)} // Disable if time up
+                  disabled={(timeLeft === 0 && !isTimerActive)}
                 >
                   <img src={ClearIcon} className='w-5 h-5' alt="clear response" />
                 </button>
@@ -590,6 +622,16 @@ const DoExamPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <ConfirmationDialog
+        isOpen={showSubmitConfirm}
+        onClose={() => setShowSubmitConfirm(false)}
+        title="Xác nhận nộp bài"
+        message="Bạn vẫn chắc chắn muốn nộp bài khi vẫn còn thời gian chứ?"
+        onConfirm={handleConfirmSubmit}
+        confirmButtonText="Nộp bài"
+        cancelButtonText="Tiếp tục làm"
+        confirmButtonColorClass="bg-[#0d7cf2] hover:bg-[#0b68c3]"
+      />
       <ToastContainer />
     </div>
   );
