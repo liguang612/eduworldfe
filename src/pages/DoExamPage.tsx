@@ -209,6 +209,7 @@ const DoExamPage: React.FC = () => {
             model.showCompletedPage = false;
             model.showPreviewBeforeComplete = "off";
             model.showCorrectAnswers = false;
+            model.textUpdateMode = "onTyping";
 
             models[question.id] = model;
           });
@@ -237,8 +238,9 @@ const DoExamPage: React.FC = () => {
       return () => clearInterval(timerId);
     } else if (isTimerActive && timeLeft === 0) {
       setIsTimerActive(false);
-      toast.error('Đã hết giờ làm bài! Vui lòng nộp bài của bạn.');
-      // Optionally, you could auto-submit here or disable inputs
+      toast.error('Đã hết giờ làm bài! Bài của bạn sẽ được nộp tự động.');
+      // Tự động nộp bài khi hết thời gian
+      handleSubmit();
     }
   }, [isTimerActive, timeLeft]);
 
@@ -248,7 +250,6 @@ const DoExamPage: React.FC = () => {
       setIsTimerActive(false);
     }
   }, [gradingResults, isGrading]);
-
 
   const handleToggleFlag = () => {
     setQuestions((prevQuestions) =>
@@ -322,14 +323,9 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  // Hàm nộp bài dùng chung
+  const submitExam = async () => {
     try {
-      // Kiểm tra nếu còn thời gian thì hiển thị dialog xác nhận
-      if (timeLeft !== null && timeLeft > 0) {
-        setShowSubmitConfirm(true);
-        return;
-      }
-
       setIsGrading(true);
       setIsTimerActive(false);
       const answersToGrade: { [key: string]: any } = {};
@@ -357,34 +353,19 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  const handleConfirmSubmit = async () => {
-    setShowSubmitConfirm(false);
-    try {
-      setIsGrading(true);
-      setIsTimerActive(false);
-      const answersToGrade: { [key: string]: any } = {};
-      const updatedSurveyModels = { ...surveyModels };
-
-      questions.forEach(question => {
-        const model = updatedSurveyModels[question.id];
-        if (model) {
-          const questionName = `question_${question.id}`;
-          const value = model.getValue(questionName);
-
-          if (value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : value !== "")) {
-            answersToGrade[`${question.id}`] = value;
-          }
-          model.data = { [questionName]: value };
-        }
-      });
-
-      const response = await gradeAnswers({ answers: answersToGrade });
-      setGradingResults(response.results);
-      setCorrectAnswers(response.correctAnswers);
-    } catch (error) {
-      console.error('Error grading answers:', error);
-      setIsGrading(false);
+  const handleSubmit = async () => {
+    if (timeLeft !== null && timeLeft > 0) {
+      setShowSubmitConfirm(true);
+      return;
     }
+
+    // Nếu hết thời gian rồi thì nộp bài luôn
+    submitExam();
+  };
+
+  const handleConfirmSubmit = () => {
+    setShowSubmitConfirm(false);
+    submitExam();
   };
 
   // Helper function to format time
@@ -404,11 +385,6 @@ const DoExamPage: React.FC = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  if (!currentQuestion && questions.length > 0) {
-    // This case should ideally be handled by useEffect setting currentQuestionIndex correctly
-    // return <div>Đang tải câu hỏi hiện tại...</div>; // Or handle gracefully
-  }
-
 
   const rootStyle = {
     "--checkbox-tick-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
@@ -560,12 +536,11 @@ const DoExamPage: React.FC = () => {
                       <Survey
                         model={surveyModels[question.id]}
                         onValueChanged={(sender: Model, options: any) => {
-                          // Cập nhật giá trị ngay lập tức khi có thay đổi
                           const value = sender.getValue(`question_${question.id}`);
                           sender.data = { [`question_${question.id}`]: value };
                           handleSurveyValueChange(question.id, sender);
                         }}
-                        readOnly={Object.keys(gradingResults).length > 0 || (timeLeft === 0 && !isTimerActive)}
+                        readOnly={Object.keys(gradingResults).length > 0 || (!isTimerActive)}
                       />
                     </div>
                   )}
