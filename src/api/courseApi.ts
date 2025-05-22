@@ -1,7 +1,5 @@
 import axios from '../config/axios';
 import type { User } from '../contexts/AuthContext';
-import type { Question } from './questionApi';
-
 const API_URL = '/api';
 
 export type Course = {

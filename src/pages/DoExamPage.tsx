@@ -3,27 +3,25 @@ import ClearIcon from '@/assets/clear.svg';
 import DotRegularIcon from '@/assets/dot_regular.svg';
 import DotFillIcon from '@/assets/dot_fill.svg';
 import DotFillFlagIcon from '@/assets/dot_fill_flag.svg';
-import DotFillTrueIcon from '@/assets/dot_fill_true.svg';
-import DotFillFalseIcon from '@/assets/dot_fill_false.svg';
 import FlagIcon from '@/assets/flag.svg';
 import FlagFillIcon from '@/assets/flag_fill.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import { baseURL } from '@/config/axios';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../api/courseApi';
 import { type Question } from '../api/questionApi';
-import { getExamQuestionsDetails } from '../api/examApi';
-import { gradeAnswers } from '../api/gradingApi';
+import { getExamQuestionsDetails, startExamAttempt } from '../api/examApi';
+import { saveExamAnswer, submitExamAttempt } from '../api/examApi';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import "../components/Question/survey-custom.css";
 import { toast, ToastContainer } from 'react-toastify';
-import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 import { type ChoiceOption } from '../api/questionApi';
 import { type Exam } from '../api/examApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
+import { debounce } from '@/lib/utils';
 
 const initialQuestionsData: Question[] = [];
 
@@ -31,13 +29,16 @@ const DoExamPage: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>(initialQuestionsData);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [surveyModels, setSurveyModels] = useState<{ [key: string]: Model }>({});
-  const [gradingResults, setGradingResults] = useState<{ [key: string]: boolean }>({});
-  const [correctAnswers, setCorrectAnswers] = useState<{ [key: string]: any }>({});
   const [isGrading, setIsGrading] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+
   const { user } = useAuth();
   const { examId } = useParams<{ examId: string }>();
   const location = useLocation();
-  const { subjectId } = location.state as { subjectId: string };
+  const navigate = useNavigate();
+  const { subjectId, attemptId: locationAttemptId } = location.state || {};
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
@@ -52,6 +53,25 @@ const DoExamPage: React.FC = () => {
   const [isTimerActive, setIsTimerActive] = useState(false);
 
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+
+  // Tìm và thiết lập attemptId từ location state hoặc localStorage
+  useEffect(() => {
+    if (examId) {
+      if (locationAttemptId) {
+        setAttemptId(locationAttemptId);
+      } else {
+        const savedAttemptId = localStorage.getItem(`exam_attempt_${examId}`);
+        if (savedAttemptId) {
+          setAttemptId(savedAttemptId);
+        } else {
+          toast.error('Không tìm thấy phiên làm bài hợp lệ');
+          navigate(`/courses/${examId}/exams/instructions`, {
+            state: { examId, courseId: subjectId }
+          });
+        }
+      }
+    }
+  }, [examId, locationAttemptId, navigate, subjectId]);
 
   const groupQuestionsBySharedMedia = useCallback((questions: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
@@ -157,79 +177,126 @@ const DoExamPage: React.FC = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        if (examId) {
-          setLoadingQuestions(true);
-          const response = await getExamQuestionsDetails(examId);
-          setExam(response.exam);
-          const formattedQuestions: Question[] = response.questions.map((q: any) => ({
-            ...q,
-            selectedOptionIndex: null,
-            isFlagged: false,
-          }));
-          setQuestions(formattedQuestions);
+        if (!examId) {
+          setQuestions([]);
+          setLoadingQuestions(false);
+          return;
+        }
 
-          // Initialize timer if exam duration is available
-          if (response.exam && response.exam.durationMinutes > 0 && Object.keys(gradingResults).length === 0) {
-            setTimeLeft(response.exam.durationMinutes * 60);
-            setIsTimerActive(true);
+        setLoadingQuestions(true);
+
+        const attemptResponse = await startExamAttempt(examId);
+        const attempt = attemptResponse;
+
+        // Lưu attemptId vào localStorage (nếu có attempt mới hoặc đang làm dở)
+        if (attempt && attempt.id) {
+          localStorage.setItem(`exam_attempt_${examId}`, attempt.id);
+          setAttemptId(attempt.id);
+        }
+
+        // Lấy thông tin đề thi và câu hỏi
+        const examDetailsResponse = await getExamQuestionsDetails(examId);
+        setExam(examDetailsResponse.exam);
+        let formattedQuestions: Question[] = examDetailsResponse.questions.map((q: any) => ({
+          ...q,
+          selectedOptionIndex: null,
+          isFlagged: false,
+        }));
+
+        // Khởi tạo models cho các câu hỏi
+        const models: { [key: string]: Model } = {};
+        formattedQuestions.forEach(question => {
+          const surveyJson: any = {
+            elements: [{
+              name: `question_${question.id}`,
+              title: question.title,
+              type: question.type === 'radio' ? 'radiogroup' :
+                question.type === 'checkbox' ? 'checkbox' :
+                  question.type === 'itemConnector' ? 'itemConnector' :
+                    question.type === 'ranking' ? 'ranking' : 'text',
+              choices: question.choices?.map((choice: ChoiceOption) => ({
+                value: String(choice.value),
+                text: choice.text,
+              })),
+            }]
+          };
+
+          if (question.type === 'itemConnector' && question.matchingColumns) {
+            surveyJson.elements[0].leftItems = question.matchingColumns
+              .filter(col => col.side === 'left')
+              .map(col => ({ value: String(col.id), text: col.label }));
+            surveyJson.elements[0].rightItems = question.matchingColumns
+              .filter(col => col.side === 'right')
+              .map(col => ({ value: String(col.id), text: col.label }));
           }
 
-          const models: { [key: string]: Model } = {};
-          formattedQuestions.forEach(question => {
-            const surveyJson: any = {
-              elements: [{
-                name: `question_${question.id}`,
-                title: question.title,
-                type: question.type === 'radio' ? 'radiogroup' :
-                  question.type === 'checkbox' ? 'checkbox' :
-                    question.type === 'itemConnector' ? 'itemConnector' :
-                      question.type === 'ranking' ? 'ranking' : 'text',
-                choices: question.choices?.map((choice: ChoiceOption) => ({
-                  value: String(choice.value),
-                  text: choice.text,
-                })),
-              }]
-            };
+          const model = new Model(surveyJson);
+          model.applyTheme(BorderlessLight);
+          model.showCompleteButton = false;
+          model.showProgressBar = "off";
+          model.showQuestionNumbers = "off";
+          model.showNavigationButtons = false;
+          model.showCompletedPage = false;
+          model.showPreviewBeforeComplete = "off";
+          model.showCorrectAnswers = false;
+          model.textUpdateMode = "onTyping";
 
-            if (question.type === 'itemConnector' && question.matchingColumns) {
-              surveyJson.elements[0].leftItems = question.matchingColumns
-                .filter(col => col.side === 'left')
-                .map(col => ({ value: String(col.id), text: col.label }));
-              surveyJson.elements[0].rightItems = question.matchingColumns
-                .filter(col => col.side === 'right')
-                .map(col => ({ value: String(col.id), text: col.label }));
-            }
+          models[question.id] = model;
+        });
 
-            const model = new Model(surveyJson);
-            model.applyTheme(BorderlessLight);
-            model.showCompleteButton = false;
-            model.showProgressBar = "off";
-            model.showQuestionNumbers = "off";
-            model.showNavigationButtons = false;
-            model.showCompletedPage = false;
-            model.showPreviewBeforeComplete = "off";
-            model.showCorrectAnswers = false;
-            model.textUpdateMode = "onTyping";
+        setSurveyModels(models);
 
-            models[question.id] = model;
-          });
+        // Nếu attempt có trạng thái 'in_progress' và có startTime, khôi phục trạng thái
+        if (attempt && attempt.status === 'in_progress' && attempt.startTime && attempt.duration !== undefined) {
+          // Tính toán thời gian còn lại
+          const startTime = new Date(attempt.startTime);
+          const now = new Date();
+          const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+          const remainingSeconds = Math.max(0, attempt.duration * 60 - elapsedSeconds);
+          setTimeLeft(remainingSeconds);
+          setIsTimerActive(true);
 
-          setSurveyModels(models);
-        } else {
-          setQuestions([]);
+          // Khôi phục các câu trả lời đã làm và cập nhật trạng thái câu hỏi
+          if (attempt.savedAnswers) {
+            const updatedQuestions = [...formattedQuestions];
+            Object.entries(attempt.savedAnswers).forEach(([questionId, answer]) => {
+              const model = models[questionId];
+              if (model && answer !== "") {
+                model.setValue(`question_${questionId}`, answer);
+
+                const questionIndex = updatedQuestions.findIndex(q => q.id === questionId);
+                if (questionIndex !== -1) {
+                  updatedQuestions[questionIndex] = {
+                    ...updatedQuestions[questionIndex],
+                    selectedOptionIndex: 0
+                  };
+                }
+              }
+            });
+            formattedQuestions = updatedQuestions;
+          }
+        } else if (examDetailsResponse.exam && examDetailsResponse.exam.durationMinutes > 0) {
+          setTimeLeft(examDetailsResponse.exam.durationMinutes * 60);
+          setIsTimerActive(true);
         }
+
+        setQuestions(formattedQuestions); // Cập nhật state questions sau khi đã khôi phục đáp án
+
       } catch (error) {
-        console.error('Error fetching questions:', error);
+        console.error('Error fetching exam details or starting attempt:', error);
         setQuestions([]);
+        toast.error('Có lỗi xảy ra khi tải dữ liệu bài thi.');
+
+        navigate(`/courses/${subjectId}/exams/instructions`, { state: { examId, courseId: subjectId } });
       } finally {
         setLoadingQuestions(false);
       }
     };
 
     fetchQuestions();
-  }, [examId, gradingResults]); // Added gradingResults to dependencies
+  }, [examId]);
 
-  // Timer countdown effect
+  // Timer
   useEffect(() => {
     if (isTimerActive && timeLeft !== null && timeLeft > 0) {
       const timerId = setInterval(() => {
@@ -239,17 +306,10 @@ const DoExamPage: React.FC = () => {
     } else if (isTimerActive && timeLeft === 0) {
       setIsTimerActive(false);
       toast.error('Đã hết giờ làm bài! Bài của bạn sẽ được nộp tự động.');
-      // Tự động nộp bài khi hết thời gian
+
       handleSubmit();
     }
   }, [isTimerActive, timeLeft]);
-
-  // Effect to stop timer if exam is graded or grading is in progress
-  useEffect(() => {
-    if (Object.keys(gradingResults).length > 0 || isGrading) {
-      setIsTimerActive(false);
-    }
-  }, [gradingResults, isGrading]);
 
   const handleToggleFlag = () => {
     setQuestions((prevQuestions) =>
@@ -297,11 +357,31 @@ const DoExamPage: React.FC = () => {
     [answeredQuestionsCount, questions.length]
   );
 
+  // Thêm debounce để tránh gọi API liên tục
+  const debouncedSaveAnswer = useCallback(
+    debounce(async (questionId: string, answer: any) => {
+      if (!attemptId || !questionId) return;
+
+      setSaveStatus('saving');
+      try {
+        await saveExamAnswer(attemptId, questionId, answer);
+        setSaveStatus('saved');
+        setLastSavedTime(new Date());
+      } catch (error) {
+        console.error('Lỗi khi lưu câu trả lời:', error);
+        setSaveStatus('error');
+      }
+    }, 1000),
+    [attemptId]
+  );
+
+  // Chỉnh sửa hàm xử lý khi giá trị survey thay đổi để lưu câu trả lời
   const handleSurveyValueChange = (questionId: string, model: Model) => {
     const value = model.getValue(`question_${questionId}`);
     const isAnswered = value !== undefined && value !== null &&
       (Array.isArray(value) ? value.length > 0 : value !== "");
 
+    // Cập nhật UI
     if (isAnswered) {
       const questionIndex = questions.findIndex(q => q.id === questionId);
       if (questionIndex !== -1 && (questions[questionIndex].selectedOptionIndex === null || questions[questionIndex].selectedOptionIndex === undefined)) {
@@ -321,35 +401,61 @@ const DoExamPage: React.FC = () => {
         );
       }
     }
+
+    // Lưu câu trả lời lên server
+    if (value !== undefined && value !== null) {
+      debouncedSaveAnswer(questionId, value);
+    }
   };
 
-  // Hàm nộp bài dùng chung
+  // Chỉnh sửa hàm nộp bài
   const submitExam = async () => {
     try {
       setIsGrading(true);
       setIsTimerActive(false);
-      const answersToGrade: { [key: string]: any } = {};
-      const updatedSurveyModels = { ...surveyModels };
 
-      questions.forEach(question => {
-        const model = updatedSurveyModels[question.id];
+      // Chắc chắn rằng tất cả câu trả lời đã được lưu
+      const answersToSave = [];
+      for (const question of questions) {
+        const model = surveyModels[question.id];
         if (model) {
           const questionName = `question_${question.id}`;
           const value = model.getValue(questionName);
 
           if (value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : value !== "")) {
-            answersToGrade[`${question.id}`] = value;
+            answersToSave.push({ questionId: question.id, value });
           }
-          model.data = { [questionName]: value };
+        }
+      }
+
+      // Lưu các câu trả lời còn lại
+      if (attemptId && answersToSave.length > 0) {
+        await Promise.all(
+          answersToSave.map(item => saveExamAnswer(attemptId, item.questionId, item.value))
+        );
+      }
+
+      // Nộp bài
+      if (attemptId) {
+        await submitExamAttempt(attemptId);
+      }
+
+      // Xóa attemptId khỏi localStorage vì bài thi đã hoàn thành
+      localStorage.removeItem(`exam_attempt_${examId}`);
+
+      // Chuyển hướng sang trang chúc mừng
+      navigate(`/attempts/${attemptId}/congratulation`, {
+        state: {
+          examId,
+          courseId: subjectId,
+          attemptId
         }
       });
 
-      const response = await gradeAnswers({ answers: answersToGrade });
-      setGradingResults(response.results);
-      setCorrectAnswers(response.correctAnswers);
     } catch (error) {
-      console.error('Error grading answers:', error);
+      console.error('Lỗi khi nộp bài:', error);
       setIsGrading(false);
+      toast.error('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.');
     }
   };
 
@@ -414,6 +520,12 @@ const DoExamPage: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="text-xs text-end">
+                  {saveStatus === 'saving' && <span className="text-amber-500">Đang lưu...</span>}
+                  {saveStatus === 'saved' && <span className="text-green-600">Đã lưu lúc {lastSavedTime?.toLocaleTimeString()}</span>}
+                  {saveStatus === 'error' && <span className="text-red-500">Lỗi khi lưu!</span>}
+                </div>
+
                 <div className="flex flex-col gap-1 mb-2">
                   <div className="flex justify-between text-xs text-[#49719c]">
                     <span>Tiến độ</span>
@@ -433,20 +545,7 @@ const DoExamPage: React.FC = () => {
                     if (q.isFlagged) {
                       IconSource = DotFillFlagIcon;
                     } else if (surveyModels[q.id]?.getValue(`question_${q.id}`) !== undefined) {
-                      if (gradingResults[q.id] !== undefined) {
-                        IconSource = gradingResults[q.id] ? DotFillTrueIcon : DotFillFalseIcon;
-                        resultIcon = gradingResults[q.id] ? (
-                          <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        );
-                      } else {
-                        IconSource = DotFillIcon;
-                      }
+                      IconSource = DotFillIcon;
                     }
 
                     return (
@@ -463,13 +562,13 @@ const DoExamPage: React.FC = () => {
                     );
                   })}
                 </div>
-                {Object.keys(gradingResults).length === 0 && <button
+                <button
                   onClick={handleSubmit}
                   disabled={isGrading || (timeLeft === 0 && !isTimerActive)} // Disable submit if time is up and timer stopped
                   className="w-full mt-4 px-4 py-3 bg-[#0d7cf2] text-white text-base font-semibold rounded-xl shadow-sm hover:bg-[#0b68c3] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:ring-opacity-50 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Nộp bài
-                </button>}
+                  {isGrading ? 'Đang nộp bài...' : 'Nộp bài'}
+                </button>
               </div>
             </div>
           </div>
@@ -486,7 +585,7 @@ const DoExamPage: React.FC = () => {
                 {exam && <span>Điểm tối đa: {exam.maxScore}</span>}
                 {exam && (
                   <div className="flex gap-4 text-[#49719c] text-sm items-center">
-                    {timeLeft !== null && Object.keys(gradingResults).length === 0 && !isGrading && (
+                    {timeLeft !== null && !isGrading && (
                       <span
                         className={`font-semibold ${timeLeft <= 300 && timeLeft > 0 ? 'text-red-500' : 'text-[#0d141c]'}`}
                       >
@@ -535,21 +634,12 @@ const DoExamPage: React.FC = () => {
                     <div className="survey-container mb-4">
                       <Survey
                         model={surveyModels[question.id]}
-                        onValueChanged={(sender: Model, options: any) => {
+                        onValueChanged={(sender: Model, _: any) => {
                           const value = sender.getValue(`question_${question.id}`);
                           sender.data = { [`question_${question.id}`]: value };
                           handleSurveyValueChange(question.id, sender);
                         }}
-                        readOnly={Object.keys(gradingResults).length > 0 || (!isTimerActive)}
-                      />
-                    </div>
-                  )}
-                  {Object.keys(gradingResults).length > 0 && correctAnswers[question.id] !== undefined && (
-                    <div className="p-3 border rounded-md bg-green-50 border-green-300 shadow">
-                      <h4 className="text-md font-semibold text-green-800 mb-2">Đáp án đúng:</h4>
-                      <FormatCorrectAnswer
-                        correctAnswerData={correctAnswers[question.id]}
-                        question={question}
+                        readOnly={!isTimerActive}
                       />
                     </div>
                   )}
@@ -557,7 +647,7 @@ const DoExamPage: React.FC = () => {
               ))}
             </div>
 
-            {currentQuestion && Object.keys(gradingResults).length === 0 && (
+            {currentQuestion && (
               <div className="px-4 pb-4 flex justify-end gap-3">
                 <button
                   onClick={handleToggleFlag}

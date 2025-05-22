@@ -44,10 +44,19 @@ const CourseExams: React.FC = () => {
   };
 
   const handleExamCardClick = (examId: string) => {
-    navigate(`/courses/${courseId}/exams/${examId}/do`, {
+    const clickedExam = exams.find(exam => exam.id === examId);
+    if (!clickedExam) return;
+
+    navigate(`/courses/${courseId}/exams/${examId}/instructions`, {
       state: {
-        lectureName: context?.course?.name || '',
-        subjectId: context?.course?.subjectId || '',
+        examId,
+        courseId,
+        examTitle: clickedExam.title,
+        courseName: context?.course?.name || '',
+        subjectName: context?.subject?.name || '',
+        subjectGrade: context?.subject?.grade || '',
+        duration: clickedExam.durationMinutes,
+        numQuestions: clickedExam.totalQuestions,
       }
     });
   };

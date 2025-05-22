@@ -114,8 +114,11 @@ export default function AccountPage() {
 
       if (selectedFile) {
         try {
-          const isAvatarUpdated = await updateUserAvatar(selectedFile);
-          if (!isAvatarUpdated) {
+          const newUser = await updateUserAvatar(selectedFile);
+          if (newUser) {
+            toast.success('Cập nhật avatar thành công!');
+            updateUser({ ...newUser });
+          } else {
             toast.warning('Không thể cập nhật avatar');
           }
         } catch (error) {

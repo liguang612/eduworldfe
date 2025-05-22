@@ -29,7 +29,9 @@ import ExamCreatePage from '@/pages/ExamCreatePage';
 import ExamEditPage from '@/pages/ExamEditPage';
 import SolutionCreatePage from '@/pages/SolutionCreatePage';
 import SolutionPage from '@/pages/SolutionPage';
-
+import ExamInstructionsPage from '@/pages/ExamInstructions';
+import AttemptListPage from '@/pages/AttemptListPage';
+import AttemptCongratulationPage from '@/pages/AttemptCongratulationPage';
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -259,11 +261,43 @@ const AppRoutes: React.FC = () => (
       }
     />
     <Route
+      path="/courses/:courseId/exams/:examId/instructions"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <ExamInstructionsPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
       path="/courses/:courseId/exams/:examId/do"
       element={
         <ProtectedRoute>
           <Layout>
             <DoExamPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Attempt List */}
+    <Route
+      path="/attempts"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <AttemptListPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/attempts/:attemptId/congratulation"
+      element={
+        <ProtectedRoute allowedRoles={[0]}>
+          <Layout>
+            <AttemptCongratulationPage />
           </Layout>
         </ProtectedRoute>
       }

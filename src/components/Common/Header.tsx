@@ -55,8 +55,11 @@ const Header: React.FC<HeaderProps> = () => {
           {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exams')}>
             Đề thi
           </a>}
-          {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => { }}>
+          {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts')}>
             Kết quả
+          </a>}
+          {<a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts/1/congratulation')}>
+            Temp
           </a>}
         </div>
         {!user ? (
