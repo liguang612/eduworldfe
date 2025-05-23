@@ -21,7 +21,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { type ChoiceOption } from '../api/questionApi';
 import { type Exam } from '../api/examApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { debounce } from '@/lib/utils';
+import { debounce, shuffleArray } from '@/lib/utils';
 
 const initialQuestionsData: Question[] = [];
 
@@ -55,7 +55,6 @@ const DoExamPage: React.FC = () => {
 
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
-  // Tìm và thiết lập attemptId từ location state hoặc localStorage
   useEffect(() => {
     if (examId) {
       if (locationAttemptId) {
@@ -66,7 +65,9 @@ const DoExamPage: React.FC = () => {
           setAttemptId(savedAttemptId);
         } else {
           toast.error('Không tìm thấy phiên làm bài hợp lệ');
-          navigate(`/courses/${examId}/exams/instructions`, {
+          exam ? navigate(`/courses/${exam?.classId}/exams/instructions`, {
+            state: { examId, courseId: subjectId }
+          }) : navigate(`/courses`, {
             state: { examId, courseId: subjectId }
           });
         }
@@ -74,9 +75,9 @@ const DoExamPage: React.FC = () => {
     }
   }, [examId, locationAttemptId, navigate, subjectId]);
 
-  const groupQuestionsBySharedMedia = useCallback((questions: Question[]) => {
+  const groupQuestionsBySharedMedia = useCallback((questionsToGroup: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
-    questions.forEach(question => {
+    questionsToGroup.forEach(question => {
       if (question.sharedMedia) {
         const mediaId = question.sharedMedia.id;
         if (!groups[mediaId]) {
@@ -88,54 +89,63 @@ const DoExamPage: React.FC = () => {
     return groups;
   }, []);
 
-  const sortQuestions = useCallback((questions: Question[]) => {
-    const groups = groupQuestionsBySharedMedia(questions);
-    const sorted: (Question | null)[] = [];
+  const sortQuestions = useCallback((questionsToSort: Question[]) => {
+    if (!questionsToSort || questionsToSort.length === 0) return [];
+
+    const groups = groupQuestionsBySharedMedia(questionsToSort);
+    const sortedResult: Question[] = [];
     const processedIds = new Set<string>();
 
+    // Tạo một mảng các entry [originalIndex, group] để có thể sắp xếp các nhóm media
+    // dựa trên vị trí xuất hiện của câu hỏi đầu tiên trong nhóm đó.
+    const mediaGroupEntries: [number, Question[]][] = [];
     Object.values(groups).forEach(group => {
       if (group.length > 0 && group[0].sharedMedia) {
-        const firstQuestionIndex = questions.findIndex(q => q.id === group[0].id);
-        while (sorted.length <= firstQuestionIndex) {
-          sorted.push(null);
+        // Tìm index của câu hỏi đầu tiên trong group này trong mảng questionsToSort gốc
+        const firstQuestionOriginalIndex = questionsToSort.findIndex(q => q.id === group[0].id);
+        // Chỉ thêm vào nếu tìm thấy (luôn nên tìm thấy nếu group[0] từ questionsToSort)
+        if (firstQuestionOriginalIndex !== -1) {
+          mediaGroupEntries.push([firstQuestionOriginalIndex, group]);
         }
-        group.forEach((q, groupIndex) => {
-          const insertIndex = firstQuestionIndex + groupIndex;
-          while (sorted.length <= insertIndex) {
-            sorted.push(null);
-          }
-          sorted[insertIndex] = q;
-          processedIds.add(q.id);
-        });
       }
     });
 
-    questions.forEach(q => {
+    mediaGroupEntries.sort((entryA, entryB) => entryA[0] - entryB[0]);
+
+    mediaGroupEntries.forEach(([, group]) => {
+      group.forEach(qInGroup => {
+        if (!processedIds.has(qInGroup.id)) {
+          sortedResult.push(qInGroup);
+          processedIds.add(qInGroup.id);
+        }
+      });
+    });
+
+    questionsToSort.forEach(q => {
       if (!processedIds.has(q.id)) {
-        const emptyIndex = sorted.findIndex(item => !item);
-        if (emptyIndex !== -1) {
-          sorted[emptyIndex] = q;
-        } else {
-          sorted.push(q);
-        }
-        processedIds.add(q.id);
+        sortedResult.push(q);
       }
     });
 
-    return sorted.filter((item): item is Question => item !== null);
+    return sortedResult;
   }, [groupQuestionsBySharedMedia]);
 
   useEffect(() => {
     if (questions.length > 0) {
       setSortedQuestions(sortQuestions(questions));
+    } else {
+      setSortedQuestions([]);
     }
   }, [questions, sortQuestions]);
 
+  // handleSelectQuestion (GIỮ NGUYÊN TỪ FILE GỐC)
   const handleSelectQuestion = (index: number) => {
     if (index >= 0 && index < sortedQuestions.length) {
       const question = sortedQuestions[index];
       const originalIndex = questions.findIndex(q => q.id === question.id);
-      setCurrentQuestionIndex(originalIndex);
+      if (originalIndex !== -1) { // Kiểm tra nếu tìm thấy
+        setCurrentQuestionIndex(originalIndex);
+      }
     }
   };
 
@@ -149,15 +159,19 @@ const DoExamPage: React.FC = () => {
         setCurrentMediaQuestions(groups[mediaId] || []);
       } else {
         setCurrentSharedMedia(null);
-        setCurrentMediaQuestions([currentQuestion]);
+        setCurrentMediaQuestions(currentQuestion ? [currentQuestion] : []);
       }
     } else if (questions.length > 0 && sortedQuestions.length > 0) {
-      // Handle initial load or invalid index by selecting the first sorted question
       const firstSortedQuestion = sortedQuestions[0];
-      const originalIndex = questions.findIndex(q => q.id === firstSortedQuestion.id);
-      if (originalIndex !== -1) {
-        setCurrentQuestionIndex(originalIndex);
+      if (firstSortedQuestion) {
+        const originalIndex = questions.findIndex(q => q.id === firstSortedQuestion.id);
+        if (originalIndex !== -1) {
+          setCurrentQuestionIndex(originalIndex);
+        }
       }
+    } else {
+      setCurrentSharedMedia(null);
+      setCurrentMediaQuestions([]);
     }
   }, [currentQuestionIndex, questions, groupQuestionsBySharedMedia, sortedQuestions]);
 
@@ -183,19 +197,24 @@ const DoExamPage: React.FC = () => {
           setLoadingQuestions(false);
           return;
         }
-
         setLoadingQuestions(true);
-
         const attemptResponse = await startExamAttempt(examId);
         const attempt = attemptResponse;
-
-        // Lưu attemptId vào localStorage (nếu có attempt mới hoặc đang làm dở)
+        if (attempt && attempt.status === 'submitted') {
+          toast.error('Bài thi đã kết thúc');
+          navigate(`/attempts/${attempt.id}/congratulation`, {
+            state: {
+              examId,
+              courseId: subjectId,
+              attemptId: attempt.id
+            }
+          });
+          return;
+        }
         if (attempt && attempt.id) {
           localStorage.setItem(`exam_attempt_${examId}`, attempt.id);
           setAttemptId(attempt.id);
         }
-
-        // Lấy thông tin đề thi và câu hỏi
         const examDetailsResponse = await getExamQuestionsDetails(examId);
         setExam(examDetailsResponse.exam);
         let formattedQuestions: Question[] = examDetailsResponse.questions.map((q: any) => ({
@@ -203,10 +222,15 @@ const DoExamPage: React.FC = () => {
           selectedOptionIndex: null,
           isFlagged: false,
         }));
-
-        // Khởi tạo models cho các câu hỏi
         const models: { [key: string]: Model } = {};
         formattedQuestions.forEach(question => {
+          let choices = question.choices?.map((choice: ChoiceOption) => ({
+            value: String(choice.value),
+            text: choice.text,
+          }));
+          if (attempt && 'shuffleChoice' in attempt && attempt.shuffleChoice && choices) {
+            choices = shuffleArray(choices);
+          }
           const surveyJson: any = {
             elements: [{
               name: `question_${question.id}`,
@@ -215,13 +239,9 @@ const DoExamPage: React.FC = () => {
                 question.type === 'checkbox' ? 'checkbox' :
                   question.type === 'itemConnector' ? 'itemConnector' :
                     question.type === 'ranking' ? 'ranking' : 'text',
-              choices: question.choices?.map((choice: ChoiceOption) => ({
-                value: String(choice.value),
-                text: choice.text,
-              })),
+              choices: choices,
             }]
           };
-
           if (question.type === 'itemConnector' && question.matchingColumns) {
             surveyJson.elements[0].leftItems = question.matchingColumns
               .filter(col => col.side === 'left')
@@ -230,7 +250,6 @@ const DoExamPage: React.FC = () => {
               .filter(col => col.side === 'right')
               .map(col => ({ value: String(col.id), text: col.label }));
           }
-
           const model = new Model(surveyJson);
           model.applyTheme(BorderlessLight);
           model.showCompleteButton = false;
@@ -241,30 +260,31 @@ const DoExamPage: React.FC = () => {
           model.showPreviewBeforeComplete = "off";
           model.showCorrectAnswers = false;
           model.textUpdateMode = "onTyping";
-
           models[question.id] = model;
         });
-
         setSurveyModels(models);
-
-        // Nếu attempt có trạng thái 'in_progress' và có startTime, khôi phục trạng thái
+        if (attempt && attempt.status === 'out_of_attempt') {
+          toast.error('Đã hết số lần làm bài cho phép');
+          exam ? navigate(`/courses/${exam?.classId}/exams`, {
+            state: { subjectId: subjectId }
+          }) : navigate(`/courses`, {
+            state: { subjectId: subjectId }
+          });
+          return;
+        }
         if (attempt && attempt.status === 'in_progress' && attempt.startTime && attempt.duration !== undefined) {
-          // Tính toán thời gian còn lại
           const startTime = new Date(attempt.startTime);
           const now = new Date();
           const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
           const remainingSeconds = Math.max(0, attempt.duration * 60 - elapsedSeconds);
           setTimeLeft(remainingSeconds);
           setIsTimerActive(true);
-
-          // Khôi phục các câu trả lời đã làm và cập nhật trạng thái câu hỏi
           if (attempt.savedAnswers) {
             const updatedQuestions = [...formattedQuestions];
             Object.entries(attempt.savedAnswers).forEach(([questionId, answer]) => {
               const model = models[questionId];
               if (model && answer !== "") {
                 model.setValue(`question_${questionId}`, answer);
-
                 const questionIndex = updatedQuestions.findIndex(q => q.id === questionId);
                 if (questionIndex !== -1) {
                   updatedQuestions[questionIndex] = {
@@ -280,22 +300,20 @@ const DoExamPage: React.FC = () => {
           setTimeLeft(examDetailsResponse.exam.durationMinutes * 60);
           setIsTimerActive(true);
         }
-
-        setQuestions(formattedQuestions); // Cập nhật state questions sau khi đã khôi phục đáp án
-
+        setQuestions(formattedQuestions);
       } catch (error) {
         console.error('Error fetching exam details or starting attempt:', error);
         setQuestions([]);
         toast.error('Có lỗi xảy ra khi tải dữ liệu bài thi.');
-
-        navigate(`/courses/${subjectId}/exams/instructions`, { state: { examId, courseId: subjectId } });
+        exam ? navigate(`/courses/${exam?.classId}/exams/instructions`, { state: { examId, courseId: subjectId } }) : navigate(`/courses`, { state: { examId, courseId: subjectId } });
       } finally {
         setLoadingQuestions(false);
       }
     };
-
-    fetchQuestions();
-  }, [examId]);
+    if (attemptId !== undefined) {
+      fetchQuestions();
+    }
+  }, [examId, attemptId, navigate, subjectId]); // Giữ nguyên dependencies gốc, thêm attemptId
 
   // Timer
   useEffect(() => {
@@ -307,7 +325,6 @@ const DoExamPage: React.FC = () => {
     } else if (isTimerActive && timeLeft === 0) {
       setIsTimerActive(false);
       toast.error('Đã hết giờ làm bài! Bài của bạn sẽ được nộp tự động.');
-
       handleSubmit();
     }
   }, [isTimerActive, timeLeft]);
@@ -320,13 +337,15 @@ const DoExamPage: React.FC = () => {
     );
   };
 
+  // handleClearResponse
   const handleClearResponse = () => {
-    if (currentQuestion) {
-      const model = surveyModels[currentQuestion.id];
+    const currentQ = questions[currentQuestionIndex]; // Lấy từ mảng questions gốc
+    if (currentQ) {
+      const model = surveyModels[currentQ.id];
       if (model) {
-        model.clearValue(`question_${currentQuestion.id}`);
-        if (currentQuestion.type === 'itemConnector') {
-          const itemConnectorComponent = document.querySelector(`[data-question-id="${currentQuestion.id}"] .item-connector`);
+        model.clearValue(`question_${currentQ.id}`);
+        if (currentQ.type === 'itemConnector') {
+          const itemConnectorComponent = document.querySelector(`[data-question-id="${currentQ.id}"] .item-connector`);
           if (itemConnectorComponent) {
             const event = new CustomEvent('connectionsChange', { detail: [] });
             itemConnectorComponent.dispatchEvent(event);
@@ -341,6 +360,7 @@ const DoExamPage: React.FC = () => {
     }
   };
 
+  // answeredQuestionsCount
   const answeredQuestionsCount = useMemo(
     () => {
       return questions.filter(q => {
@@ -353,16 +373,16 @@ const DoExamPage: React.FC = () => {
     [questions, surveyModels]
   );
 
+  // progressPercentage
   const progressPercentage = useMemo(
     () => (questions.length > 0 ? (answeredQuestionsCount / questions.length) * 100 : 0),
     [answeredQuestionsCount, questions.length]
   );
 
-  // Thêm debounce để tránh gọi API liên tục
+  // debouncedSaveAnswer
   const debouncedSaveAnswer = useCallback(
     debounce(async (questionId: string, answer: any) => {
       if (!attemptId || !questionId) return;
-
       setSaveStatus('saving');
       try {
         await saveExamAnswer(attemptId, questionId, answer);
@@ -376,15 +396,14 @@ const DoExamPage: React.FC = () => {
     [attemptId]
   );
 
-  // Chỉnh sửa hàm xử lý khi giá trị survey thay đổi để lưu câu trả lời
+  // handleSurveyValueChange
   const handleSurveyValueChange = (questionId: string, model: Model) => {
     const value = model.getValue(`question_${questionId}`);
     const isAnswered = value !== undefined && value !== null &&
       (Array.isArray(value) ? value.length > 0 : value !== "");
+    const questionIndex = questions.findIndex(q => q.id === questionId);
 
-    // Cập nhật UI
     if (isAnswered) {
-      const questionIndex = questions.findIndex(q => q.id === questionId);
       if (questionIndex !== -1 && (questions[questionIndex].selectedOptionIndex === null || questions[questionIndex].selectedOptionIndex === undefined)) {
         setQuestions((prevQuestions) =>
           prevQuestions.map((q, idx) =>
@@ -393,7 +412,6 @@ const DoExamPage: React.FC = () => {
         );
       }
     } else {
-      const questionIndex = questions.findIndex(q => q.id === questionId);
       if (questionIndex !== -1) {
         setQuestions((prevQuestions) =>
           prevQuestions.map((q, idx) =>
@@ -402,49 +420,36 @@ const DoExamPage: React.FC = () => {
         );
       }
     }
-
-    // Lưu câu trả lời lên server
     if (value !== undefined && value !== null) {
       debouncedSaveAnswer(questionId, value);
     }
   };
 
-  // Chỉnh sửa hàm nộp bài
+  // submitExam
   const submitExam = async () => {
     try {
       setIsGrading(true);
       setIsTimerActive(false);
-
-      // Chắc chắn rằng tất cả câu trả lời đã được lưu
       const answersToSave = [];
       for (const question of questions) {
         const model = surveyModels[question.id];
         if (model) {
           const questionName = `question_${question.id}`;
           const value = model.getValue(questionName);
-
           if (value !== undefined && value !== null && (Array.isArray(value) ? value.length > 0 : value !== "")) {
             answersToSave.push({ questionId: question.id, value });
           }
         }
       }
-
-      // Lưu các câu trả lời còn lại
       if (attemptId && answersToSave.length > 0) {
         await Promise.all(
           answersToSave.map(item => saveExamAnswer(attemptId, item.questionId, item.value))
         );
       }
-
-      // Nộp bài
       if (attemptId) {
         await submitExamAttempt(attemptId);
       }
-
-      // Xóa attemptId khỏi localStorage vì bài thi đã hoàn thành
       localStorage.removeItem(`exam_attempt_${examId}`);
-
-      // Chuyển hướng sang trang chúc mừng
       navigate(`/attempts/${attemptId}/congratulation`, {
         state: {
           examId,
@@ -452,7 +457,6 @@ const DoExamPage: React.FC = () => {
           attemptId
         }
       });
-
     } catch (error) {
       console.error('Lỗi khi nộp bài:', error);
       setIsGrading(false);
@@ -460,28 +464,34 @@ const DoExamPage: React.FC = () => {
     }
   };
 
+  // handleSubmit
   const handleSubmit = async () => {
     if (timeLeft !== null && timeLeft > 0) {
       setShowSubmitConfirm(true);
       return;
     }
-
-    // Nếu hết thời gian rồi thì nộp bài luôn
-    submitExam();
   };
 
+  // handleConfirmSubmit
   const handleConfirmSubmit = () => {
     setShowSubmitConfirm(false);
     submitExam();
   };
 
-  // Helper function to format time
+  // formatTime
   const formatTime = (seconds: number | null): string => {
     if (seconds === null) return '00:00';
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
+
+  // currentQuestionInSortedListIndex
+  const currentQuestionInSortedListIndex = useMemo(() => {
+    if (!questions[currentQuestionIndex] || sortedQuestions.length === 0) return -1;
+    return sortedQuestions.findIndex(q => q.id === questions[currentQuestionIndex].id);
+  }, [currentQuestionIndex, questions, sortedQuestions]);
+
 
   if (loadingQuestions) {
     return <div>Đang tải câu hỏi...</div>;
@@ -491,7 +501,7 @@ const DoExamPage: React.FC = () => {
     return <div>Không tìm thấy câu hỏi nào cho đề thi này.</div>;
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = questions[currentQuestionIndex]; // Vẫn lấy từ mảng questions gốc
 
   const rootStyle = {
     "--checkbox-tick-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
@@ -506,9 +516,11 @@ const DoExamPage: React.FC = () => {
     >
       <div className="layout-container flex h-full grow flex-col">
         <div className="gap-1 px-6 flex flex-1 py-5">
+          {/* Panel bên trái */}
           <div className="layout-content-container flex flex-col w-80">
             <div className="flex h-full min-h-[700px] flex-col justify-between bg-slate-50 p-4">
               <div className="flex flex-col gap-4">
+                {/* User Info */}
                 <div className="flex gap-3 items-center">
                   <img
                     src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
@@ -521,12 +533,14 @@ const DoExamPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Save Status */}
                 <div className="text-xs text-end">
                   {saveStatus === 'saving' && <span className="text-amber-500">Đang lưu...</span>}
                   {saveStatus === 'saved' && <span className="text-green-600">Đã lưu lúc {lastSavedTime?.toLocaleTimeString()}</span>}
                   {saveStatus === 'error' && <span className="text-red-500">Lỗi khi lưu!</span>}
                 </div>
 
+                {/* Progress Bar */}
                 <div className="flex flex-col gap-1 mb-2">
                   <div className="flex justify-between text-xs text-[#49719c]">
                     <span>Tiến độ</span>
@@ -537,35 +551,42 @@ const DoExamPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Question List - Render từ sortedQuestions */}
                 <div className="flex flex-col gap-2">
-                  {sortedQuestions.map((q, index) => {
-                    const originalIndex = questions.findIndex(question => question.id === q.id);
-                    let resultIcon = null;
-                    let IconSource = DotRegularIcon;
+                  {sortedQuestions.map((q_sorted, index_in_sorted_list) => {
+                    // Tìm câu hỏi gốc tương ứng để lấy trạng thái isFlagged, selectedOptionIndex
+                    const originalQuestionData = questions.find(oq => oq.id === q_sorted.id) || q_sorted;
+                    const isCurrentlySelected = originalQuestionData.id === questions[currentQuestionIndex]?.id;
 
-                    if (q.isFlagged) {
+                    let IconSource = DotRegularIcon;
+                    if (originalQuestionData.isFlagged) {
                       IconSource = DotFillFlagIcon;
-                    } else if (surveyModels[q.id]?.getValue(`question_${q.id}`) !== undefined) {
+                    } else if (surveyModels[originalQuestionData.id]?.getValue(`question_${originalQuestionData.id}`) !== undefined &&
+                      surveyModels[originalQuestionData.id]?.getValue(`question_${originalQuestionData.id}`) !== null &&
+                      (Array.isArray(surveyModels[originalQuestionData.id]?.getValue(`question_${originalQuestionData.id}`)) ?
+                        (surveyModels[originalQuestionData.id]?.getValue(`question_${originalQuestionData.id}`) as any[]).length > 0 :
+                        surveyModels[originalQuestionData.id]?.getValue(`question_${originalQuestionData.id}`) !== "")
+                    ) {
                       IconSource = DotFillIcon;
                     }
-
                     return (
                       <div
-                        key={q.id}
-                        onClick={() => handleSelectQuestion(index)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${originalIndex === currentQuestionIndex ? 'bg-[#e7edf4]' : 'hover:bg-slate-100'
+                        key={q_sorted.id}
+                        onClick={() => handleSelectQuestion(index_in_sorted_list)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${isCurrentlySelected ? 'bg-[#e7edf4]' : 'hover:bg-slate-100'
                           }`}
                       >
                         <img src={IconSource} className='w-5 h-5' alt='status icon' />
-                        <p className="text-[#0d141c] text-sm font-medium leading-normal flex-1">{`${index + 1}. ${q.title}`}</p>
-                        {resultIcon}
+                        <p className="text-[#0d141c] text-sm font-medium leading-normal flex-1">
+                          <span className="font-semibold">{index_in_sorted_list + 1}.</span> {q_sorted.title}
+                        </p>
                       </div>
                     );
                   })}
                 </div>
                 <button
                   onClick={handleSubmit}
-                  disabled={isGrading || (timeLeft === 0 && !isTimerActive)} // Disable submit if time is up and timer stopped
+                  disabled={isGrading || (timeLeft === 0 && !isTimerActive)}
                   className="w-full mt-4 px-4 py-3 bg-[#0d7cf2] text-white text-base font-semibold rounded-xl shadow-sm hover:bg-[#0b68c3] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:ring-opacity-50 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isGrading ? 'Đang nộp bài...' : 'Nộp bài'}
@@ -574,7 +595,9 @@ const DoExamPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Panel bên phải - Hiển thị câu hỏi */}
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+            {/* Exam Info */}
             <div className="flex flex-col gap-2 p-4 border-b border-slate-200">
               <h1 className="text-[#0d141c] font-bold leading-tight tracking-[-0.015em] text-xl">
                 {exam?.title}
@@ -593,12 +616,12 @@ const DoExamPage: React.FC = () => {
                         Thời gian còn lại: {formatTime(timeLeft)}
                       </span>
                     )}
-
                   </div>
                 )}
               </div>
             </div>
 
+            {/* Shared Media Display */}
             {currentSharedMedia && (
               <div className="p-4 border-b border-slate-200">
                 {currentSharedMedia.mediaType === 0 && currentSharedMedia.text && (
@@ -628,19 +651,18 @@ const DoExamPage: React.FC = () => {
               </div>
             )}
 
+            {/* Questions Area - Render từ currentMediaQuestions */}
             <div className="overflow-y-auto">
-              {currentQuestion && currentMediaQuestions.map((question) => (
+              {currentMediaQuestions.map((question) => (
                 <div key={question.id} className="p-4 border-b border-slate-200">
                   {surveyModels[question.id] && (
                     <div className="survey-container mb-4">
                       <Survey
                         model={surveyModels[question.id]}
                         onValueChanged={(sender: Model, _: any) => {
-                          const value = sender.getValue(`question_${question.id}`);
-                          sender.data = { [`question_${question.id}`]: value };
                           handleSurveyValueChange(question.id, sender);
                         }}
-                        readOnly={!isTimerActive}
+                        readOnly={!isTimerActive || isGrading}
                       />
                     </div>
                   )}
@@ -648,13 +670,14 @@ const DoExamPage: React.FC = () => {
               ))}
             </div>
 
+            {/* Action Buttons cho currentQuestion */}
             {currentQuestion && (
               <div className="px-4 pb-4 flex justify-end gap-3">
                 <button
                   onClick={handleToggleFlag}
                   title={currentQuestion.isFlagged ? "Bỏ đánh dấu câu hỏi" : "Đánh dấu câu hỏi để xem lại"}
                   className={`p-2 rounded-lg hover:bg-slate-200 ${currentQuestion.isFlagged ? 'bg-amber-100 text-amber-600 hover:bg-amber-200' : 'text-slate-600'}`}
-                  disabled={(timeLeft === 0 && !isTimerActive)}
+                  disabled={(!isTimerActive && timeLeft === 0) || isGrading}
                 >
                   <img src={currentQuestion.isFlagged ? FlagFillIcon : FlagIcon} className="size-5" alt="flag icon" />
                 </button>
@@ -662,24 +685,25 @@ const DoExamPage: React.FC = () => {
                   onClick={handleClearResponse}
                   title="Xóa lựa chọn"
                   className="p-2 rounded-lg text-slate-600 hover:bg-slate-200"
-                  disabled={(timeLeft === 0 && !isTimerActive)}
+                  disabled={(!isTimerActive && timeLeft === 0) || isGrading}
                 >
                   <img src={ClearIcon} className='w-5 h-5' alt="clear response" />
                 </button>
               </div>
             )}
 
+            {/* Navigation Buttons */}
             <div className="flex justify-between p-4 border-t border-slate-200">
               <button
-                onClick={() => handleSelectQuestion(sortedQuestions.findIndex(q => q.id === currentQuestion?.id) - 1)}
-                disabled={sortedQuestions.findIndex(q => q.id === currentQuestion?.id) === 0 || (timeLeft === 0 && !isTimerActive)}
+                onClick={() => handleSelectQuestion(currentQuestionInSortedListIndex - 1)}
+                disabled={currentQuestionInSortedListIndex <= 0 || (!isTimerActive && timeLeft === 0) || isGrading}
                 className="px-6 py-3 bg-slate-200 text-slate-700 text-base font-semibold rounded-xl hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Trở lại
               </button>
               <button
-                onClick={() => handleSelectQuestion(sortedQuestions.findIndex(q => q.id === currentQuestion?.id) + 1)}
-                disabled={sortedQuestions.findIndex(q => q.id === currentQuestion?.id) === sortedQuestions.length - 1 || (timeLeft === 0 && !isTimerActive)}
+                onClick={() => handleSelectQuestion(currentQuestionInSortedListIndex + 1)}
+                disabled={currentQuestionInSortedListIndex >= sortedQuestions.length - 1 || (!isTimerActive && timeLeft === 0) || isGrading}
                 className="px-6 py-3 bg-[#0d7cf2] text-white text-base font-semibold rounded-xl shadow-sm hover:bg-[#0b68c3] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:ring-opacity-50 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Tiếp theo
@@ -688,6 +712,7 @@ const DoExamPage: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Confirmation Dialog và ToastContainer (GIỮ NGUYÊN TỪ FILE GỐC) */}
       <ConfirmationDialog
         isOpen={showSubmitConfirm}
         onClose={() => setShowSubmitConfirm(false)}
@@ -703,4 +728,4 @@ const DoExamPage: React.FC = () => {
   );
 };
 
-export default DoExamPage; 
+export default DoExamPage;

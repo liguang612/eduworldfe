@@ -120,6 +120,11 @@ export interface ExamAttempt {
   duration: number;
   maxScore: number;
   title: string;
+  easyScore?: number;
+  mediumScore?: number;
+  hardScore?: number;
+  veryHardScore?: number;
+  shuffleChoice?: boolean;
   userId: string;
   startTime: string;
   endTime?: string;
@@ -150,6 +155,7 @@ export const startExamAttempt = async (examId: string): Promise<ExamAttempt> => 
       Authorization: `Bearer ${token}`,
     },
   });
+
   return response.data;
 };
 

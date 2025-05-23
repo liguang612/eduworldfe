@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { searchQuestions } from '../api/lectureApi';
 import { type Question } from '../api/questionApi';
 import AddIcon from '@/assets/add.svg';
-import RemoveIcon from '@/assets/remove.svg';
 import { getCourseById, type Course } from '../api/courseApi';
 import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '../api/examApi';
 import { toast } from 'react-toastify';
@@ -87,8 +86,16 @@ const ExamEditPage: React.FC = () => {
   const [totalPoints, setTotalPoints] = useState(0);
 
   const [isQuestionSearchOpen, setIsQuestionSearchOpen] = useState(false);
-  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
+
+  // Thêm các state mới cho chức năng tìm kiếm và sắp xếp trong tab kho câu hỏi
+  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
+  const [loadingAvailableQuestions, setLoadingAvailableQuestions] = useState(false);
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [isSearchingQuestions, setIsSearchingQuestions] = useState(false);
+  const [sortColumn, setSortColumn] = useState<'title' | 'level' | 'createdAt'>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [selectAll, setSelectAll] = useState(false);
 
   // Thêm hàm helper để đếm số lượng câu hỏi theo từng loại
   const countQuestionsByLevel = (questions: Question[]) => {
@@ -463,6 +470,148 @@ const ExamEditPage: React.FC = () => {
     </div>
   );
 
+  // Hàm lấy văn bản hiển thị cho mức độ câu hỏi
+  const getLevelText = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'Nhận biết';
+      case 2:
+        return 'Thông hiểu';
+      case 3:
+        return 'Vận dụng';
+      case 4:
+        return 'Vận dụng cao';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  // Hàm format ngày tháng
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // Màu cho từng level câu hỏi
+  const levelColorClasses: { [key: string]: string } = {
+    'Nhận biết': 'bg-green-100 text-green-800',
+    'Thông hiểu': 'bg-blue-100 text-blue-800',
+    'Vận dụng': 'bg-orange-100 text-orange-800',
+    'Vận dụng cao': 'bg-red-100 text-red-800',
+  };
+
+  // Hàm xử lý sắp xếp câu hỏi
+  const handleSort = (column: 'title' | 'level' | 'createdAt') => {
+    if (sortColumn === column) {
+      // Đảo chiều sắp xếp
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection(column === 'createdAt' ? 'desc' : 'asc');
+    }
+  };
+
+  // Sắp xếp danh sách câu hỏi
+  const sortedAvailableQuestions = [...availableQuestions].sort((a, b) => {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    if (sortColumn === 'title') {
+      return a.title.localeCompare(b.title) * direction;
+    } else if (sortColumn === 'level') {
+      return (a.level - b.level) * direction;
+    } else if (sortColumn === 'createdAt') {
+      return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * direction;
+    }
+    return 0;
+  });
+
+  // Hàm xử lý tìm kiếm câu hỏi
+  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsSearchingQuestions(true);
+      try {
+        if (!user || !course?.subjectId) return;
+
+        const data = await searchQuestions(searchInput, course.subjectId, user.id);
+        setAvailableQuestions(data);
+      } catch (error) {
+        console.error('Error searching questions:', error);
+        toast.error('Có lỗi xảy ra khi tìm kiếm câu hỏi');
+      } finally {
+        setIsSearchingQuestions(false);
+      }
+    }
+  };
+
+  // Hàm xử lý chọn/bỏ chọn tất cả câu hỏi
+  const handleSelectAll = () => {
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
+
+    if (newSelectAll) {
+      // Nếu chọn tất cả, thêm tất cả câu hỏi chưa được chọn vào danh sách
+      const allSelectedIds = selectedQuestions.map(q => q.id);
+      const newSelectedQuestions = [
+        ...selectedQuestions,
+        ...availableQuestions.filter(q => !allSelectedIds.includes(q.id))
+      ];
+      setSelectedQuestions(newSelectedQuestions);
+    } else {
+      setSelectedQuestions([]);
+    }
+  };
+
+  // Hàm xử lý chọn/bỏ chọn một câu hỏi
+  const handleSelectQuestion = (question: Question) => {
+    const isSelected = selectedQuestions.some(q => q.id === question.id);
+
+    if (isSelected) {
+      // Nếu đã chọn, bỏ chọn
+      setSelectedQuestions(prev => prev.filter(q => q.id !== question.id));
+      setSelectAll(false);
+    } else {
+      // Nếu chưa chọn, thêm vào danh sách
+      setSelectedQuestions(prev => [...prev, question]);
+
+      // Kiểm tra nếu tất cả đã được chọn
+      const allSelectedAfterAdd = availableQuestions.every(q =>
+        selectedQuestions.some(sq => sq.id === q.id) || q.id === question.id
+      );
+      setSelectAll(allSelectedAfterAdd);
+    }
+  };
+
+  // Tải danh sách câu hỏi khi tab kho câu hỏi được chọn
+  useEffect(() => {
+    if (activeTab === 'questionBank' && course?.subjectId && user) {
+      setLoadingAvailableQuestions(true);
+      searchQuestions('', course.subjectId, user.id)
+        .then(data => {
+          setAvailableQuestions(data);
+        })
+        .catch(error => {
+          console.error('Error fetching available questions:', error);
+        })
+        .finally(() => {
+          setLoadingAvailableQuestions(false);
+        });
+    }
+  }, [activeTab, course?.subjectId, user]);
+
   if (isCourseLoading || isExamLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -627,33 +776,134 @@ const ExamEditPage: React.FC = () => {
                       <img src={AddIcon} alt="Add" className='w-4 h-4' />
                     </button>
                   </div>
-                  <div className="space-y-4">
-                    {isLoadingQuestions ? (
-                      <div className="flex justify-center items-center py-8">
-                        <div className="flex items-center gap-2">
-                          <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                          </svg>
-                          <span className="text-blue-600">Đang tải câu hỏi...</span>
+
+                  <div className="mt-2">
+                    <div className="relative bg-white dark:bg-slate-700">
+                      <input
+                        type="text"
+                        placeholder="Tìm kiếm câu hỏi... (Nhấn Enter)"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={handleSearch}
+                        className="w-full px-4 py-2 rounded-lg border border-[#d0dbe7] dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:border-transparent text-sm dark:bg-slate-700 dark:text-slate-100"
+                      />
+                      {isSearchingQuestions && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#0d7cf2] dark:border-blue-400"></div>
                         </div>
-                      </div>
-                    ) : selectedQuestions.length === 0 ? (
-                      <p className="text-[#49719c] dark:text-slate-400 text-lg">Chưa có câu hỏi nào được chọn</p>
-                    ) : (
-                      selectedQuestions.map((question) => (
-                        <div key={question.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-white dark:bg-slate-800 flex justify-between items-center">
-                          <h3 className="font-medium text-[#0d141c] dark:text-slate-100 flex-1">{question.title}</h3>
-                          <button
-                            onClick={() => setSelectedQuestions(prev => prev.filter(q => q.id !== question.id))}
-                            className="text-red-500 hover:text-red-700 transition w-8 h-8 flex items-center justify-center" // Added flex for centering
-                          >
-                            <img src={RemoveIcon} alt="Remove" className='w-5 h-5' />
-                          </button>
-                        </div>
-                      ))
-                    )}
+                      )}
+                    </div>
                   </div>
+
+                  {loadingAvailableQuestions ? (
+                    <div className="flex justify-center items-center p-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1980e6] dark:border-blue-400"></div>
+                    </div>
+                  ) : (
+                    <div className="flex overflow-hidden rounded-xl border border-[#d0dbe7] dark:border-slate-600 bg-white dark:bg-slate-800">
+                      <table className="flex-1 w-full">
+                        <thead>
+                          <tr className="bg-white dark:bg-slate-800">
+                            <th className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[5%] text-sm font-bold leading-normal">
+                              <input
+                                type="checkbox"
+                                checked={selectAll}
+                                onChange={handleSelectAll}
+                                className="accent-blue-500 size-4"
+                              />
+                            </th>
+                            <th
+                              className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[40%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                              onClick={() => handleSort('title')}
+                            >
+                              Câu hỏi
+                              {sortColumn === 'title' && (
+                                <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                              )}
+                            </th>
+                            <th
+                              className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[15%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                              onClick={() => handleSort('level')}
+                            >
+                              Độ khó
+                              {sortColumn === 'level' && (
+                                <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                              )}
+                            </th>
+                            <th
+                              className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[20%] text-sm font-bold leading-normal cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                              onClick={() => handleSort('createdAt')}
+                            >
+                              Ngày tạo
+                              {sortColumn === 'createdAt' && (
+                                <span>{sortDirection === 'asc' ? ' ↑' : ' ↓'}</span>
+                              )}
+                            </th>
+                            <th className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[20%] text-sm font-bold leading-normal">
+                              Tag
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedAvailableQuestions.length === 0 ? (
+                            <tr className="border-t border-t-[#d0dbe7] dark:border-slate-600">
+                              <td colSpan={5} className="h-[72px] px-4 py-2 text-[#4e7397] dark:text-slate-400 text-sm font-normal leading-normal text-center">
+                                Không tìm thấy câu hỏi
+                              </td>
+                            </tr>
+                          ) : (
+                            sortedAvailableQuestions.map((q) => {
+                              const isSelected = selectedQuestions.some(sq => sq.id === q.id);
+                              return (
+                                <tr
+                                  key={q.id}
+                                  className={`border-t border-t-[#d0dbe7] dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                                >
+                                  <td className="h-[72px] px-4 py-2 text-[#0e141b] dark:text-slate-200 text-sm font-normal leading-normal align-top pt-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => handleSelectQuestion(q)}
+                                      className="accent-blue-500 size-4"
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  </td>
+                                  <td
+                                    className="h-[72px] px-4 py-2 text-[#0e141b] dark:text-slate-200 text-sm font-normal leading-normal align-top pt-3"
+                                    onClick={() => handleSelectQuestion(q)}
+                                  >
+                                    {q.title}
+                                  </td>
+                                  <td
+                                    className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3"
+                                    onClick={() => handleSelectQuestion(q)}
+                                  >
+                                    <button
+                                      className={`flex min-w-[70px] max-w-[120px] cursor-default items-center justify-center overflow-hidden rounded-md h-7 px-3 text-xs font-medium leading-normal w-full ${levelColorClasses[getLevelText(q.level)] || 'bg-[#d0dbe7] text-[#0e141b]'}`}
+                                    >
+                                      <span className="truncate">{getLevelText(q.level)}</span>
+                                    </button>
+                                  </td>
+                                  <td
+                                    className="h-[72px] px-4 py-2 text-[#4e7397] dark:text-slate-400 text-sm font-normal leading-normal align-top pt-3"
+                                    onClick={() => handleSelectQuestion(q)}
+                                  >
+                                    {formatDate(q.createdAt)}
+                                  </td>
+                                  <td
+                                    className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3"
+                                    onClick={() => handleSelectQuestion(q)}
+                                  >
+                                    <span className="block max-w-[150px]">{q.categories?.join(', ') || 'No categories'}</span>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -737,6 +987,7 @@ const ExamEditPage: React.FC = () => {
           </form>
         </main>
       </div>
+      <ToastContainer />
       <SearchableDialogMulti<Question>
         isOpen={isQuestionSearchOpen}
         onClose={() => setIsQuestionSearchOpen(false)}
@@ -748,7 +999,7 @@ const ExamEditPage: React.FC = () => {
             <div
               key={question.id}
               onClick={() => onToggle(question)}
-              className={`cursor-pointer border rounded-lg p-3 mb-2 transition ${selected ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600'}`} // Added dark mode styles
+              className={`cursor-pointer border rounded-lg p-3 mb-2 transition ${selected ? 'bg-blue-100 border-blue-400' : 'bg-white border-gray-200 hover:bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600'}`}
             >
               <div className="flex items-center gap-2">
                 <input
@@ -756,7 +1007,7 @@ const ExamEditPage: React.FC = () => {
                   checked={selected}
                   readOnly
                   className="accent-blue-500"
-                  onClick={(e) => e.stopPropagation()} // Prevent row click when clicking checkbox
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex-1">
                   <p className="font-medium text-[#0d141c] dark:text-slate-100">{question.title}</p>
@@ -778,7 +1029,6 @@ const ExamEditPage: React.FC = () => {
         }}
         confirmButtonText="Thêm các câu hỏi đã chọn"
       />
-      <ToastContainer />
     </>
   );
 };
