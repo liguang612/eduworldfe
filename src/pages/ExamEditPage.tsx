@@ -90,6 +90,18 @@ const ExamEditPage: React.FC = () => {
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
+  // Thêm hàm helper để đếm số lượng câu hỏi theo từng loại
+  const countQuestionsByLevel = (questions: Question[]) => {
+    return questions.reduce((acc, q) => {
+      const level = q.level;
+      if (level === 1) acc.easy++;
+      else if (level === 2) acc.medium++;
+      else if (level === 3) acc.hard++;
+      else if (level === 4) acc.veryHard++;
+      return acc;
+    }, { easy: 0, medium: 0, hard: 0, veryHard: 0 });
+  };
+
   useEffect(() => {
     const fetchCourseData = async () => {
       if (!courseId) {
@@ -259,6 +271,32 @@ const ExamEditPage: React.FC = () => {
     }
     if (formData.enableCloseDateTime && !formData.closeDateTime) {
       toast.error('Vui lòng nhập thời gian đóng đề hoặc tắt tùy chọn này.');
+      return;
+    }
+
+    // Kiểm tra số lượng câu hỏi trong kho
+    const questionCounts = countQuestionsByLevel(selectedQuestions);
+    const requiredCounts = {
+      easy: parseInt(formData.numRecognitionQuestions) || 0,
+      medium: parseInt(formData.numComprehensionQuestions) || 0,
+      hard: parseInt(formData.numApplicationQuestions) || 0,
+      veryHard: parseInt(formData.numHighApplicationQuestions) || 0
+    };
+
+    if (questionCounts.easy < requiredCounts.easy) {
+      toast.error('Số lượng câu hỏi loại Nhận biết trong kho câu hỏi chưa đủ. Hãy chọn thêm.');
+      return;
+    }
+    if (questionCounts.medium < requiredCounts.medium) {
+      toast.error('Số lượng câu hỏi loại Thông hiểu trong kho câu hỏi chưa đủ. Hãy chọn thêm.');
+      return;
+    }
+    if (questionCounts.hard < requiredCounts.hard) {
+      toast.error('Số lượng câu hỏi loại Vận dụng trong kho câu hỏi chưa đủ. Hãy chọn thêm.');
+      return;
+    }
+    if (questionCounts.veryHard < requiredCounts.veryHard) {
+      toast.error('Số lượng câu hỏi loại Vận dụng cao trong kho câu hỏi chưa đủ. Hãy chọn thêm.');
       return;
     }
 

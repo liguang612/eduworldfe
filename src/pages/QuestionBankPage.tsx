@@ -5,14 +5,16 @@ import { getQuestions, getQuestionDetail, type Question } from '../api/questionA
 import { type Subject, getSubjectsByGrade } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import QuestionDetailPreview from '../components/Question/QuestionDetailPreview';
+import { searchQuestions } from '../api/lectureApi';
+import { toast } from 'react-toastify';
 
 const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 const levelColorClasses: { [key: string]: string } = {
-  Easy: 'bg-green-100 text-green-800',
-  Medium: 'bg-blue-100 text-blue-800',
-  Hard: 'bg-orange-100 text-orange-800',
-  VeryHard: 'bg-red-100 text-red-800',
+  'Nhận biết': 'bg-green-100 text-green-800',
+  'Thông hiểu': 'bg-blue-100 text-blue-800',
+  'Vận dụng': 'bg-orange-100 text-orange-800',
+  'Vận dụng cao': 'bg-red-100 text-red-800',
 };
 
 const QuestionBankPage: React.FC = () => {
@@ -24,9 +26,15 @@ const QuestionBankPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const [selectedGrade, setSelectedGrade] = useState<string>(grades[0]);
+  const [selectedGrade, setSelectedGrade] = useState<string>(() => {
+    const savedGrade = localStorage.getItem('selectedGrade');
+    return savedGrade || grades[0];
+  });
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(() => {
+    const savedSubjectId = localStorage.getItem('selectedSubjectId');
+    return savedSubjectId || '';
+  });
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchInput, setSearchInput] = useState<string>('');
@@ -41,8 +49,21 @@ const QuestionBankPage: React.FC = () => {
           .slice()
           .sort((a, b) => a.name.localeCompare(b.name));
         setSubjects(sortData);
-        if (sortData.length > 0) {
-          setSelectedSubjectId(sortData[0].id);
+
+        // Nếu có selectedSubjectId đã lưu và nó thuộc danh sách môn học hiện tại
+        if (selectedSubjectId) {
+          const subjectExists = sortData.some(subject => subject.id === selectedSubjectId);
+          if (!subjectExists) {
+            // Nếu môn học đã chọn không tồn tại trong danh sách mới, chọn môn học đầu tiên
+            const newSubjectId = sortData[0]?.id || '';
+            setSelectedSubjectId(newSubjectId);
+            localStorage.setItem('selectedSubjectId', newSubjectId);
+          }
+        } else if (sortData.length > 0) {
+          // Nếu chưa có môn học nào được chọn, chọn môn học đầu tiên
+          const newSubjectId = sortData[0].id;
+          setSelectedSubjectId(newSubjectId);
+          localStorage.setItem('selectedSubjectId', newSubjectId);
         }
       } catch (error) {
         console.error('Error fetching subjects:', error);
@@ -75,11 +96,15 @@ const QuestionBankPage: React.FC = () => {
   }, [selectedSubjectId, userId, searchKeyword]);
 
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedGrade(event.target.value);
+    const newGrade = event.target.value;
+    setSelectedGrade(newGrade);
+    localStorage.setItem('selectedGrade', newGrade);
   };
 
   const handleSubjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSubjectId(event.target.value);
+    const newSubjectId = event.target.value;
+    setSelectedSubjectId(newSubjectId);
+    localStorage.setItem('selectedSubjectId', newSubjectId);
   };
 
   const handleViewQuestion = async (question: Question) => {
@@ -115,13 +140,13 @@ const QuestionBankPage: React.FC = () => {
   const getLevelText = (level: number) => {
     switch (level) {
       case 1:
-        return 'Easy';
+        return 'Nhận biết';
       case 2:
-        return 'Medium';
+        return 'Thông hiểu';
       case 3:
-        return 'Hard';
+        return 'Vận dụng';
       case 4:
-        return 'VeryHard';
+        return 'Vận dụng cao';
       default:
         return 'Unknown';
     }
@@ -173,14 +198,20 @@ const QuestionBankPage: React.FC = () => {
     }
   };
 
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setIsSearching(true);
-      setSearchKeyword(searchInput);
-      // Thêm timeout để hiển thị loading indicator
-      setTimeout(() => {
+      try {
+        if (!userId || !selectedSubjectId) return;
+
+        const data = await searchQuestions(searchInput, selectedSubjectId, userId);
+        setQuestions(data);
+      } catch (error) {
+        console.error('Error searching questions:', error);
+        toast.error('Có lỗi xảy ra khi tìm kiếm câu hỏi');
+      } finally {
         setIsSearching(false);
-      }, 500);
+      }
     }
   };
 
