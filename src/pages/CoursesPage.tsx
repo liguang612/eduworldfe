@@ -6,12 +6,12 @@ import type { Course, Subject } from '../api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
 import { toast, ToastContainer } from 'react-toastify';
+import { baseURL } from '@/config/axios';
 
 const CoursesPage: React.FC = () => {
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
   const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
   const navigate = useNavigate();
-  const API_URL = 'http://localhost:8080';
   const grades = ['Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedGrade, setSelectedGrade] = useState(1);
@@ -219,7 +219,7 @@ const CoursesPage: React.FC = () => {
                   >
                     <div
                       className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                      style={{ backgroundImage: `url("${API_URL}${course.avatar}")` }}
+                      style={{ backgroundImage: `url("${baseURL}${course.avatar}")` }}
                     ></div>
                     <div>
                       <p className="text-[#0e141b] text-base font-medium leading-normal">{course.name}</p>

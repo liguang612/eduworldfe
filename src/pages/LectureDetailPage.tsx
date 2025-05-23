@@ -58,7 +58,7 @@ const LectureDetailPage: React.FC = () => {
     try {
       await deleteLecture(id);
       toast.success('Xóa bài giảng thành công!');
-      navigate(-1); // Navigate back to previous page
+      navigate('/lectures'); // Navigate back to previous page
     } catch (error) {
       console.error('Error deleting lecture:', error);
       toast.error('Không thể xóa bài giảng. Vui lòng thử lại.');

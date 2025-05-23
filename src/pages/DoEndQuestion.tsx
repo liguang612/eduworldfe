@@ -455,23 +455,23 @@ const DoEndQuestion: React.FC = () => {
                   </div>
                 )}
                 {currentSharedMedia.mediaType === 1 && currentSharedMedia.mediaUrl && (
-                  <audio controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
-                    Định dạng file không được hỗ trợ
-                  </audio>
-                )}
-                {currentSharedMedia.mediaType === 2 && currentSharedMedia.mediaUrl && (
-                  <video controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="video/mp4" />
-                    Định dạng file không được hỗ trợ
-                  </video>
-                )}
-                {currentSharedMedia.mediaType === 3 && currentSharedMedia.mediaUrl && (
                   <img
                     src={`${baseURL}${currentSharedMedia.mediaUrl}`}
                     alt="Question media"
                     className="max-w-full h-auto rounded-md"
                   />
+                )}
+                {currentSharedMedia.mediaType === 2 && currentSharedMedia.mediaUrl && (
+                  <audio controls className="w-full">
+                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
+                    Định dạng file không được hỗ trợ
+                  </audio>
+                )}
+                {currentSharedMedia.mediaType === 3 && currentSharedMedia.mediaUrl && (
+                  <video controls className="w-full">
+                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="video/mp4" />
+                    Định dạng file không được hỗ trợ
+                  </video>
                 )}
               </div>
             )}

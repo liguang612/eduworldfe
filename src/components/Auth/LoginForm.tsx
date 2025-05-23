@@ -30,7 +30,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const onSubmit = async (data: { email: string; password: string }) => {
     setLoginError(null);
     try {
-      console.log(data);
       const response = await login(data.email, data.password);
       if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '../components/Question/types';
 import FullPreview from '../components/Question/FullPreview';
 import QuestionChoices from '../components/Question/QuestionChoices';
@@ -61,7 +61,6 @@ const QuestionCreatePage: React.FC = () => {
         toast.error('Định dạng file không được hỗ trợ.');
         setSharedMedia(undefined);
       }
-
     }
   };
 
@@ -193,7 +192,7 @@ const QuestionCreatePage: React.FC = () => {
           const response = await uploadSharedMedia({
             file: sharedMedia.file,
             title: sharedMedia.fileName || 'Untitled Media',
-            mediaType: sharedMedia.type === 'image' ? 0 : sharedMedia.type === 'audio' ? 1 : 2,
+            mediaType: sharedMedia.type === 'image' ? 1 : sharedMedia.type === 'audio' ? 2 : 3,
           });
           sharedMediaId = response.id;
         }
@@ -271,10 +270,6 @@ const QuestionCreatePage: React.FC = () => {
               isCorrect: isCorrect
             };
           });
-
-          console.log(surveyValue.value);
-          console.log(choices);
-          console.log(choicesToCreate);
 
           questionApi.createChoicesBatch({
             questionId: createdQuestion.id,
@@ -477,6 +472,7 @@ const QuestionCreatePage: React.FC = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

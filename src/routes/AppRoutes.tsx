@@ -32,6 +32,7 @@ import SolutionPage from '@/pages/SolutionPage';
 import ExamInstructionsPage from '@/pages/ExamInstructions';
 import AttemptListPage from '@/pages/AttemptListPage';
 import AttemptCongratulationPage from '@/pages/AttemptCongratulationPage';
+import AttemptDetailPage from '@/pages/AttemptDetailPage';
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -298,6 +299,16 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute allowedRoles={[0]}>
           <Layout>
             <AttemptCongratulationPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/attempt/:id"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <AttemptDetailPage />
           </Layout>
         </ProtectedRoute>
       }

@@ -142,8 +142,13 @@ export default function AccountPage() {
         <div className="px-40 flex flex-1 justify-center py-5">
           <div className="flex flex-col md:flex-row gap-8 p-4">
             <div className="flex flex-col w-[512px] max-w-[512px] py-5 max-w-[960px] flex-1">
-              <div className="flex flex-wrap justify-between gap-3 p-4">
+              <div className="flex flex-wrap justify-between gap-3 pt-4">
                 <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight min-w-72">Thông tin cá nhân</p>
+              </div>
+              <div className="flex max-w-[480px] flex-wrap items-end gap-4 pt-1 pb-6">
+                <label className="flex flex-col min-w-40 flex-1">
+                  <p className="text-[#0e141b] text-[24px] font-medium leading-normal pb-2">{user?.role === 0 ? "Học sinh" : "Giáo viên"}</p>
+                </label>
               </div>
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
@@ -179,7 +184,7 @@ export default function AccountPage() {
                   />
                 </label>
               </div>
-              <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              {user?.role === 0 && <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Lớp</p>
                   <select
@@ -196,7 +201,7 @@ export default function AccountPage() {
                     ))}
                   </select>
                 </label>
-              </div>
+              </div>}
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Địa chỉ</p>

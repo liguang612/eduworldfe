@@ -12,7 +12,7 @@ interface ExamInstructionsProps {
 const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { examId, courseId, duration, numQuestions, courseName, subjectName, subjectGrade, examTitle } = location.state || {};
+  const { examId, courseId, duration, numQuestions, courseName, subjectName, subjectGrade, examTitle, subjectId } = location.state || {};
   const [isLoading, setIsLoading] = useState(false);
 
   const pageStyle: React.CSSProperties = {
@@ -42,7 +42,8 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
             subjectGrade,
             duration,
             numQuestions,
-            attemptId: attempt.id
+            attemptId: attempt.id,
+            subjectId,
           }
         });
       } catch (error) {

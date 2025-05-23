@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import type { Course, Chapter } from '../api/courseApi'; // Adjust path
+import type { Course } from '../api/courseApi'; // Adjust path
 import { getCourseById, deleteCourse, getSubjectById } from '../api/courseApi'; // Adjust path
 import { ConfirmationDialog } from '../components/Common/ConfirmationDialog'; // Adjust path
 import { ToastContainer, toast } from 'react-toastify';
@@ -15,14 +15,15 @@ interface Subject {
 }
 
 export interface CourseDetailContextType {
+  courseId: string | undefined;
+  role: number | null;
+  isCourseLoading: boolean;
   course: Course | null;
   subject: Subject | null;
-  role: number | null;
+  subjectId: string | undefined;
   openChapterIds: string[];
   handleToggleChapter: (chapterId: string) => Promise<void>;
   chapterLectures: { [key: string]: LectureResponse[] };
-  courseId: string | undefined;
-  isCourseLoading: boolean;
 }
 
 const CourseDetailPage: React.FC = () => {
@@ -154,6 +155,7 @@ const CourseDetailPage: React.FC = () => {
     chapterLectures,
     courseId,
     isCourseLoading,
+    subjectId: course?.subjectId,
   };
 
   return (

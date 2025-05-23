@@ -240,10 +240,6 @@ const LectureEditPage: React.FC = () => {
                 </div>
               </div>
 
-              <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] p-4">
-                Câu hỏi ôn tập
-              </h3>
-
               <div className="flex px-4 py-3 flex-col items-end gap-2">
                 {statusMessage && (
                   <div className="text-sm text-blue-600 font-medium mb-2 w-full text-right">{statusMessage}</div>

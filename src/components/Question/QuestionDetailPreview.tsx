@@ -53,25 +53,6 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
     VeryHard: 'bg-red-100 text-red-700',
   };
 
-
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return 'Hôm nay';
-    } else if (diffDays === 1) {
-      return 'Hôm qua';
-    } else if (diffDays < 7) {
-      return `${diffDays} ngày trước`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   const getCorrectAnswer = () => {
     if (question.type === 'shortAnswer') {
       return question.choices?.[0]?.value;
@@ -174,13 +155,18 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
                 <p className="text-gray-700 whitespace-pre-wrap">{question.sharedMedia.text}</p>
               </div>
             )}
-            {question.sharedMedia.mediaType === 1 && (
+            {question.sharedMedia.mediaType === 1 && question.sharedMedia.mediaUrl && (
+              <div className="rounded-lg items-center justify-center flex-row">
+                <img src={`${baseURL}${question.sharedMedia.mediaUrl}`} alt="Shared Media" className="max-w-full h-auto rounded-lg" />
+              </div>
+            )}
+            {question.sharedMedia.mediaType === 2 && (
               <audio controls className="w-full">
                 <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="audio/mpeg" />
                 Định dạng file không được hỗ trợ
               </audio>
             )}
-            {question.sharedMedia.mediaType === 2 && question.sharedMedia.mediaUrl && (
+            {question.sharedMedia.mediaType === 3 && question.sharedMedia.mediaUrl && (
               <video controls className="w-full">
                 <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="video/mp4" />
                 Định dạng file không được hỗ trợ

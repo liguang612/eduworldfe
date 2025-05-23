@@ -27,6 +27,9 @@ const QuestionBankPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>(grades[0]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
+  const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchInput, setSearchInput] = useState<string>('');
 
   const [sortColumn, setSortColumn] = useState<'title' | 'level' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -56,7 +59,11 @@ const QuestionBankPage: React.FC = () => {
       setLoading(true);
       try {
         const data = await getQuestions(userId, selectedSubjectId);
-        setQuestions(data);
+        // Lọc câu hỏi dựa trên từ khóa tìm kiếm
+        const filteredData = searchKeyword
+          ? data.filter(q => q.title.toLowerCase().includes(searchKeyword.toLowerCase()))
+          : data;
+        setQuestions(filteredData);
       } catch (error) {
         console.error('Error fetching questions:', error);
       } finally {
@@ -65,7 +72,7 @@ const QuestionBankPage: React.FC = () => {
     };
 
     fetchQuestions();
-  }, [selectedSubjectId, userId]);
+  }, [selectedSubjectId, userId, searchKeyword]);
 
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedGrade(event.target.value);
@@ -166,6 +173,17 @@ const QuestionBankPage: React.FC = () => {
     }
   };
 
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsSearching(true);
+      setSearchKeyword(searchInput);
+      // Thêm timeout để hiển thị loading indicator
+      setTimeout(() => {
+        setIsSearching(false);
+      }, 500);
+    }
+  };
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -223,6 +241,24 @@ const QuestionBankPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className="relative bg-white">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm câu hỏi... (Nhấn Enter)"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={handleSearch}
+                  className="w-full px-4 py-2 rounded-lg border border-[#d0dbe7] focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:border-transparent text-sm"
+                />
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#0d7cf2]"></div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -57,6 +57,7 @@ const CourseExams: React.FC = () => {
         subjectGrade: context?.subject?.grade || '',
         duration: clickedExam.durationMinutes,
         numQuestions: clickedExam.totalQuestions,
+        subjectId: context?.subjectId,
       }
     });
   };

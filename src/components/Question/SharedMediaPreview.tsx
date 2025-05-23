@@ -18,10 +18,12 @@ const SharedMediaPreview: React.FC<{ media?: SharedMediaData }> = ({ media }) =>
         <img src={media.url} alt={media.fileName || "Shared image"} className="max-w-full h-auto rounded" />
       )}
       {media.type === 'audio' && media.url && (
-        <audio controls src={media.url} className="w-full">
-          Your browser does not support the audio element.
+        <audio controls className="w-full">
+          <source src={`${media.url}`} type="audio/mpeg" />
+          Định dạng file không được hỗ trợ
         </audio>
       )}
+
       {media.type === 'video' && media.url && (
         <video controls src={media.url} className="max-w-full h-auto rounded w-full">
           Your browser does not support the video element.
@@ -35,7 +37,7 @@ const SharedMediaPreview: React.FC<{ media?: SharedMediaData }> = ({ media }) =>
         </div>
       )}
       {media.fileName && <p className="text-xs text-gray-500 mt-1">{media.fileName}</p>}
-    </div>
+    </div >
   );
 };
 

@@ -1,7 +1,9 @@
 import React from 'react';
 import Congratulation from '@/assets/congratulations.svg';
+import { useNavigate } from 'react-router-dom';
 
 const AttemptCongratulationPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -19,6 +21,9 @@ const AttemptCongratulationPage: React.FC = () => {
           <div className="flex px-4 py-3 w-full sm:w-auto">
             <button
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#0D7CF2] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em]"
+              onClick={() => {
+                navigate('/attempts');
+              }}
             >
               <span className="truncate">Xem kết quả</span>
             </button>

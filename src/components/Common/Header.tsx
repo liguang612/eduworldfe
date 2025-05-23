@@ -58,9 +58,9 @@ const Header: React.FC<HeaderProps> = () => {
           {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts')}>
             Kết quả
           </a>}
-          {<a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts/1/congratulation')}>
+          {/* {<a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts/1/congratulation')}>
             Temp
-          </a>}
+          </a>} */}
         </div>
         {!user ? (
           location.pathname === '/register' ? (

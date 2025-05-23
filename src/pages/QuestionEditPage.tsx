@@ -164,7 +164,7 @@ const QuestionEditPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching question:', error);
         toast.error('Không thể tải thông tin câu hỏi. Vui lòng thử lại.');
-        navigate('/question-bank');
+        navigate(-1);
       }
     };
 
