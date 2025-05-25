@@ -32,6 +32,9 @@ export interface Exam {
   allowReview: boolean;
   allowViewAnswer: boolean;
   maxAttempts: number;
+  className: string;
+  subjectName: string;
+  grade: number;
 }
 
 export interface CreateExamRequest {
@@ -182,6 +185,33 @@ export const saveExamAnswer = async (attemptId: string, questionId: string, answ
 export const submitExamAttempt = async (attemptId: string): Promise<ExamAttempt> => {
   const token = localStorage.getItem('token');
   const response = await axios.post(`/api/exam-attempts/${attemptId}/submit`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+export interface ExamAttemptResult {
+  id: string;
+  title: string;
+  score: number;
+  maxScore: number;
+  startTime: string;
+  endTime: string;
+  status: string;
+  className: string;
+  classId: string;
+  userId: string;
+  studentName: string;
+  studentAvatar: string;
+  studentSchool: string;
+  studentGrade: number;
+}
+
+export const getExamAttemptsByExamId = async (examId: string): Promise<ExamAttemptResult[]> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.get(`/api/exam-attempts/exam/${examId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

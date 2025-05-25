@@ -2,6 +2,7 @@ import { type Exam } from "@/api/examApi";
 import ClockIcon from "@/assets/clock.svg";
 import EditIcon from "@/assets/edit.svg";
 import TrashIcon from "@/assets/delete.svg";
+import ResultIcon from "@/assets/result.svg";
 import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
 
 export interface ExamCardProps {
@@ -9,9 +10,10 @@ export interface ExamCardProps {
   onClick?: (examId: string) => void;
   onEdit?: (examId: string) => void;
   onDelete?: (examId: string) => void;
+  onViewResults?: (examId: string) => void;
 }
 
-const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete }) => {
+const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, onViewResults }) => {
   const formatTimeRange = (openTime: string | null, closeTime: string | null): string => {
     const now = new Date();
 
@@ -69,6 +71,16 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete }) 
         </div>
       </div>
       <div className="shrink-0 flex items-center gap-2">
+        {onViewResults && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onViewResults(exam.id); }}
+            className="text-[#0d141c] flex size-8 items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
+            aria-label={`Xem kết quả đề thi ${exam.title}`}
+            title="Xem kết quả"
+          >
+            <img src={ResultIcon} alt="Results" className="w-4 h-4" />
+          </button>
+        )}
         {onEdit && (
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(exam.id); }}

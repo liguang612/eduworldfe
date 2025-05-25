@@ -33,6 +33,9 @@ import ExamInstructionsPage from '@/pages/ExamInstructions';
 import AttemptListPage from '@/pages/AttemptListPage';
 import AttemptCongratulationPage from '@/pages/AttemptCongratulationPage';
 import AttemptDetailPage from '@/pages/AttemptDetailPage';
+import ExamPages from '@/pages/ExamPages';
+import ExamResultsPage from '@/pages/ExamResultsPage';
+
 const AppRoutes: React.FC = () => (
   <Routes>
     {/* Homepage */}
@@ -212,7 +215,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/:questionId/solutions"
       element={
-        <ProtectedRoute allowedRoles={[1]}>
+        <ProtectedRoute>
           <Layout>
             <SolutionPage />
           </Layout>
@@ -222,7 +225,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/:questionId/solutions/create"
       element={
-        <ProtectedRoute allowedRoles={[1]}>
+        <ProtectedRoute>
           <Layout>
             <SolutionCreatePage />
           </Layout>
@@ -236,7 +239,7 @@ const AppRoutes: React.FC = () => (
       element={
         <ProtectedRoute>
           <Layout>
-            <CourseExams />
+            <ExamPages />
           </Layout>
         </ProtectedRoute>
       }
@@ -309,6 +312,18 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute>
           <Layout>
             <AttemptDetailPage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Exam Results */}
+    <Route
+      path="/courses/:courseId/exams/:examId/results"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <ExamResultsPage />
           </Layout>
         </ProtectedRoute>
       }

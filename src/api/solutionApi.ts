@@ -47,4 +47,13 @@ export const deleteSolution = async (solutionId: string): Promise<void> => {
       Authorization: `Bearer ${token}`,
     },
   });
+};
+
+export const reviewSolution = async (solutionId: string, status: number): Promise<void> => {
+  const token = localStorage.getItem('token');
+  await axios.post(`/api/solutions/${solutionId}/review?status=${status}`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }; 

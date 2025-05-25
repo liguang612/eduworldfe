@@ -138,12 +138,12 @@ const DoExamPage: React.FC = () => {
     }
   }, [questions, sortQuestions]);
 
-  // handleSelectQuestion (GIỮ NGUYÊN TỪ FILE GỐC)
+  // handleSelectQuestion 
   const handleSelectQuestion = (index: number) => {
     if (index >= 0 && index < sortedQuestions.length) {
       const question = sortedQuestions[index];
       const originalIndex = questions.findIndex(q => q.id === question.id);
-      if (originalIndex !== -1) { // Kiểm tra nếu tìm thấy
+      if (originalIndex !== -1) {
         setCurrentQuestionIndex(originalIndex);
       }
     }

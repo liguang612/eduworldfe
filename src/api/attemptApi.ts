@@ -38,6 +38,11 @@ export interface ExamAttemptDetails extends ExamAttempt {
   answers: { [key: string]: any };
   questions: Question[];
   correctAnswers: { [key: string]: any };
+  // Thêm thông tin học sinh
+  studentName: string;
+  studentEmail: string;
+  studentAvatar: string;
+  studentSchool: string;
 }
 
 export const getExamAttemptsByStatus = async (status: 'in_progress' | 'submitted'): Promise<ExamAttempt[]> => {

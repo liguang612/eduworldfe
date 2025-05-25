@@ -3,13 +3,17 @@ import MyEditor from '../Lecture/MyEditor';
 import type { Solution } from '@/api/solutionApi';
 import { baseURL } from '@/config/axios';
 import DeleteIcon from '@/assets/delete_white.svg';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SolutionPreviewPaneProps {
   solution: Solution | null;
   onDelete?: (solutionId: string) => Promise<void>;
+  questionAuthorId?: string;
 }
 
-const SolutionPreviewPane: React.FC<SolutionPreviewPaneProps> = ({ solution, onDelete }) => {
+const SolutionPreviewPane: React.FC<SolutionPreviewPaneProps> = ({ solution, onDelete, questionAuthorId }) => {
+  const { user } = useAuth();
+
   if (!solution) {
     return (
       <div className="p-6 bg-gray-50 h-full flex items-center justify-center rounded-lg border-l border-gray-200">
@@ -33,7 +37,7 @@ const SolutionPreviewPane: React.FC<SolutionPreviewPaneProps> = ({ solution, onD
           <p className="text-xs text-gray-500">{`Lớp ${solution.creatorGrade} - ${solution.creatorSchool}`}</p>
           <p className="text-xs text-gray-500">{new Date(solution.createdAt).toLocaleDateString()}</p>
         </div>
-        {onDelete && (
+        {onDelete && user?.id === questionAuthorId && (
           <button
             onClick={() => onDelete(solution.id)}
             className="ml-auto p-2 text-slate-50 focus:outline-none bg-red-600 rounded-lg px-2 py-1"

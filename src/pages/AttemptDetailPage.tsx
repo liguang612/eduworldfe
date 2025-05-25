@@ -29,7 +29,7 @@ const AttemptDetailPage: React.FC = () => {
   const [currentSharedMedia, setCurrentSharedMedia] = useState<SharedMedia | null>(null);
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
 
-  // Hàm để nhóm các câu hỏi theo sharedMedia (GIỮ NGUYÊN TỪ FILE GỐC)
+  // Hàm để nhóm các câu hỏi theo sharedMedia
   const groupQuestionsBySharedMedia = useCallback((questions: Question[] | undefined) => {
     const groups: { [key: string]: Question[] } = {};
     if (!questions) return groups;
@@ -83,7 +83,7 @@ const AttemptDetailPage: React.FC = () => {
     return sortedResult;
   }, [groupQuestionsBySharedMedia]);
 
-  // Cập nhật currentQuestionIndex khi chọn câu hỏi từ danh sách đã sắp xếp (GIỮ NGUYÊN TỪ FILE GỐC)
+  // Cập nhật currentQuestionIndex khi chọn câu hỏi từ danh sách đã sắp xếp
   const handleSelectQuestion = (indexInSortedList: number) => {
     if (!attemptDetail?.questions || sortedQuestions.length === 0) return;
     // Đảm bảo indexInSortedList nằm trong phạm vi hợp lệ của sortedQuestions
@@ -96,7 +96,7 @@ const AttemptDetailPage: React.FC = () => {
     }
   };
 
-  // Lấy dữ liệu chi tiết bài thi từ API (GIỮ NGUYÊN TỪ FILE GỐC)
+  // Lấy dữ liệu chi tiết bài thi từ API 
   useEffect(() => {
     const fetchAttemptDetails = async () => {
       if (!id) {
@@ -284,13 +284,14 @@ const AttemptDetailPage: React.FC = () => {
                 {/* User Info & Exam Icon */}
                 <div className="flex gap-3 items-center">
                   <img
-                    src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
+                    src={`${baseURL}${attemptDetail.studentAvatar}`}
                     alt="avatar"
                     className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
                   />
                   <div className="flex flex-col">
-                    <h2 className="text-[#0e141b] text-sm text-[18px] font-medium leading-normal">{user?.name}</h2>
-                    <p className="text-[#49719c] text-sm font-normal leading-normal">{user?.email}</p>
+                    <h2 className="text-[#0e141b] text-sm text-[18px] font-medium leading-normal">{attemptDetail.studentName}</h2>
+                    <p className="text-[#49719c] text-sm font-normal leading-normal">{attemptDetail.studentEmail}</p>
+                    <p className="text-[#49719c] text-xs font-normal leading-normal">{attemptDetail.studentSchool}</p>
                   </div>
                 </div>
 

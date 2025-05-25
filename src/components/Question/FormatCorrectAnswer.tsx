@@ -1,6 +1,9 @@
 import type { Question } from "@/api/questionApi";
+import { useNavigate } from 'react-router-dom';
 
 const FormatCorrectAnswer: React.FC<{ correctAnswerData: any; question: Question }> = ({ correctAnswerData, question }) => {
+  const navigate = useNavigate();
+
   if (correctAnswerData === undefined || correctAnswerData === null) {
     return <p className="text-sm text-gray-700">Không có thông tin đáp án cho câu hỏi này.</p>;
   }
@@ -75,8 +78,19 @@ const FormatCorrectAnswer: React.FC<{ correctAnswerData: any; question: Question
   }
 
   return (
-    <div className="mt-1">
-      {displayElements}
+    <div className="mt-1 flex flex-row items-center">
+      <div className="flex-1">
+        {displayElements}
+      </div>
+      {question.id && (
+        <button
+          onClick={() => navigate(`/question-bank/${question.id}/solutions`)}
+          className="inline-flex items-center text-blue-600 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Lời giải
+          <svg className="ml-2 -mr-0.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      )}
     </div>
   );
 };

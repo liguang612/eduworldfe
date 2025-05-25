@@ -7,11 +7,13 @@ import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
 import ExamCard from '@/components/Exam/ExamCard';
 import { toast, ToastContainer } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CourseExams: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
   const navigate = useNavigate();
   const { courseId, role, isCourseLoading } = context || {};
+  const { user } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [exams, setExams] = useState<Exam[]>([]);
@@ -130,6 +132,10 @@ const CourseExams: React.FC = () => {
     setExamToDeleteId(null);
   };
 
+  const handleViewResults = (examId: string) => {
+    navigate(`/courses/${courseId}/exams/${examId}/results`);
+  };
+
   return (
     <div className="layout-content-container flex flex-col flex-1 pb-8">
       <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-slate-200 mb-4">
@@ -170,7 +176,14 @@ const CourseExams: React.FC = () => {
           </h3>
           <div className="px-4 space-y-2">
             {ongoingExams.map(exam => (
-              <ExamCard key={exam.id} exam={exam} onClick={() => handleExamCardClick(exam.id)} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
+              <ExamCard
+                key={exam.id}
+                exam={exam}
+                onClick={() => handleExamCardClick(exam.id)}
+                onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
+                onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
+                onViewResults={() => handleViewResults(exam.id)}
+              />
             ))}
           </div>
         </>
@@ -184,7 +197,13 @@ const CourseExams: React.FC = () => {
           </h3>
           <div className="px-4 space-y-2">
             {upcomingExams.map(exam => (
-              <ExamCard key={exam.id} exam={exam} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
+              <ExamCard
+                key={exam.id}
+                exam={exam}
+                onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
+                onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
+                onViewResults={() => handleViewResults(exam.id)}
+              />
             ))}
           </div>
         </>
@@ -198,7 +217,13 @@ const CourseExams: React.FC = () => {
           </h3>
           <div className="px-4 space-y-2">
             {pastExams.map(exam => (
-              <ExamCard key={exam.id} exam={exam} onEdit={() => handleEditExam(exam.id)} onDelete={() => handleDeleteExam(exam.id)} />
+              <ExamCard
+                key={exam.id}
+                exam={exam}
+                onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
+                onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
+                onViewResults={() => handleViewResults(exam.id)}
+              />
             ))}
           </div>
         </>

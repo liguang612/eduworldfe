@@ -2,20 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Outlet } from 'react-router-dom';
 import type { Question } from '@/api/questionApi';
 import type { Solution } from '@/api/solutionApi';
-import { getSolutionsByQuestionId } from '@/api/solutionApi';
+import { getSolutionsByQuestionId, reviewSolution } from '@/api/solutionApi';
 import { getQuestionDetail } from '@/api/questionApi';
 import QuestionPreviewSection from '@/components/Solution/QuestionPreviewSection';
 import SolutionPreviewPane from '@/components/Solution/SolutionPreviewPane';
 import SolutionListItem from '@/components/Solution/SolutionListItem';
 import { deleteSolution } from '@/api/solutionApi';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SolutionPage: React.FC = () => {
   const { questionId } = useParams<{ questionId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [question, setQuestion] = useState<Question | null>(null);
   const [solutions, setSolutions] = useState<Solution[]>([]);
+  const [pendingSolutions, setPendingSolutions] = useState<Solution[]>([]);
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -34,10 +37,13 @@ const SolutionPage: React.FC = () => {
         ]);
 
         setQuestion(questionData);
-        setSolutions(solutionsData);
+        const newApprovedSolutions = solutionsData.filter(s => s.status === 1);
+        const newPendingSolutions = solutionsData.filter(s => s.status === 0);
+        setSolutions(newApprovedSolutions);
+        setPendingSolutions(newPendingSolutions);
 
-        if (solutionsData.length > 0) {
-          setSelectedSolutionId(solutionsData[0].id);
+        if (newApprovedSolutions.length > 0) {
+          setSelectedSolutionId(newApprovedSolutions[0].id);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -70,10 +76,13 @@ const SolutionPage: React.FC = () => {
       toast.success('Lời giải đã được xóa thành công!');
       // Refetch solutions after deletion
       const solutionsData = await getSolutionsByQuestionId(questionId);
-      setSolutions(solutionsData);
+      const newApprovedSolutions = solutionsData.filter(s => s.status === 1);
+      const newPendingSolutions = solutionsData.filter(s => s.status === 0);
+      setSolutions(newApprovedSolutions);
+      setPendingSolutions(newPendingSolutions);
       // Select the first solution or set to null if none left
-      if (solutionsData.length > 0) {
-        setSelectedSolutionId(solutionsData[0].id);
+      if (newApprovedSolutions.length > 0) {
+        setSelectedSolutionId(newApprovedSolutions[0].id);
       } else {
         setSelectedSolutionId(null);
       }
@@ -91,6 +100,32 @@ const SolutionPage: React.FC = () => {
   const handleCancelDelete = () => {
     setIsDeleteDialogOpen(false);
     setSolutionToDeleteId(null);
+  };
+
+  const handleReviewSolution = async (solutionId: string, status: number) => {
+    try {
+      setLoading(true);
+      setStatusMessage('Đang xử lý phê duyệt...');
+      await reviewSolution(solutionId, status);
+      if (status === 1) {
+        toast.success('Đã phê duyệt lời giải!');
+      } else if (status === 2) {
+        toast.success('Đã từ chối lời giải!');
+      }
+
+      // Refresh solutions list
+      const solutionsData = await getSolutionsByQuestionId(questionId!);
+      const newApprovedSolutions = solutionsData.filter(s => s.status === 1);
+      const newPendingSolutions = solutionsData.filter(s => s.status === 0);
+      setSolutions(newApprovedSolutions);
+      setPendingSolutions(newPendingSolutions);
+    } catch (error) {
+      console.error('Error reviewing solution:', error);
+      toast.error('Có lỗi xảy ra khi phê duyệt lời giải. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+      setStatusMessage(null);
+    }
   };
 
   if (loading) {
@@ -149,11 +184,56 @@ const SolutionPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Phần lời giải đang chờ phê duyệt */}
+          {pendingSolutions.length > 0 && (user?.id === question?.createdBy || pendingSolutions.some(s => s.creatorId === user?.id)) && (
+            <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-gray-700 text-xl font-bold leading-tight tracking-[-0.015em]">
+                  Lời giải đang chờ phê duyệt ({pendingSolutions.length})
+                </h3>
+              </div>
+              <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm bg-white">
+                {pendingSolutions.map((solution) => (
+                  <div key={solution.id} className="border-b border-gray-200 last:border-b-0">
+                    <SolutionListItem
+                      solution={solution}
+                      isSelected={selectedSolutionId === solution.id}
+                      onSelect={handleSelectSolution}
+                      onDelete={handleDeleteSolution}
+                    />
+                    {user?.id === question?.createdBy && (
+                      <div className="flex justify-end gap-2 p-2 bg-gray-50">
+                        <button
+                          onClick={() => handleReviewSolution(solution.id, 2)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-md"
+                          title="Từ chối"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleReviewSolution(solution.id, 1)}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-md"
+                          title="Phê duyệt"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Preview Pane */}
         <div className="flex-[50%] sticky top-0 h-screen">
-          <SolutionPreviewPane solution={selectedSolution} onDelete={handleDeleteSolution} />
+          <SolutionPreviewPane solution={selectedSolution} onDelete={handleDeleteSolution} questionAuthorId={question?.createdBy} />
         </div>
       </div>
       <Outlet />
@@ -167,6 +247,7 @@ const SolutionPage: React.FC = () => {
         cancelButtonText="Hủy"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
+      <ToastContainer />
     </div>
   );
 };

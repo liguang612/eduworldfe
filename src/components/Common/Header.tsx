@@ -40,16 +40,16 @@ const Header: React.FC<HeaderProps> = () => {
       </div>
       <div className="flex flex-1 justify-end gap-8">
         <div className="flex items-center gap-9">
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/')}>
+          {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/')}>
             Trang chủ
-          </a>
-          <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/courses')}>
+          </a>}
+          {user && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/courses')}>
             Lớp học
-          </a>
+          </a>}
           {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/lectures')}>
             Bài giảng
           </a>}
-          {user?.role !== 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/question-bank')}>
+          {user?.role === 1 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/question-bank')}>
             Ngân hàng câu hỏi
           </a>}
           {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/exams')}>
