@@ -11,13 +11,14 @@ import RejectIcon from '../assets/reject.svg';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '../config/axios';
 import { ChapterItem } from '../components/Course/ChapterItem';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MemberItemProps {
   id: string;
   name: string;
   avatar: string;
   email: string;
-  onRemove: (id: string) => void;
+  onRemove: ((id: string) => void) | undefined;
   onReject: (id: string) => void;
   onApprove: (id: string) => void;
 }
@@ -38,14 +39,14 @@ const AssistantItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onR
           <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
         </div>
       </div>
-      <button
+      {onRemove && <button
         type="button"
         onClick={() => onRemove(id)}
         className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
         aria-label="Remove member"
       >
         <img src={RemoveIcon} alt="Remove" className="size-5" />
-      </button>
+      </button>}
     </div>
   );
 };
@@ -66,14 +67,14 @@ const StudentItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onRem
           <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
         </div>
       </div>
-      <button
+      {onRemove && <button
         type="button"
         onClick={() => onRemove(id)}
         className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
         aria-label="Remove member"
       >
         <img src={RemoveIcon} alt="Remove" className="size-5" />
-      </button>
+      </button>}
     </div>
   );
 };
@@ -123,6 +124,7 @@ const CourseEditPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'chapters' | 'members'>('general');
   const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
   const [hidden, setHidden] = useState<boolean>(false);
+  const { user } = useAuth();
 
   // State cho teacher assistants và students
   const [isTeacherSearchOpen, setIsTeacherSearchOpen] = useState(false);
@@ -510,6 +512,7 @@ const CourseEditPage: React.FC = () => {
                       onChapterUpdated={handleChapterUpdated}
                       onChapterDeleted={handleChapterDeleted}
                       subjectId={course.subjectId}
+                      isOwner={course.teacher?.id === user?.id}
                     />
                   ))}
                 </div>
@@ -517,9 +520,17 @@ const CourseEditPage: React.FC = () => {
                   <button
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => setIsChapterDialogOpen(true)}
-                    disabled={isCreatingChapter}
+                    disabled={isCreatingChapter || (course?.teacher?.id !== user?.id)}
                   >
-                    <span className="truncate">{isCreatingChapter ? 'Đang tạo...' : 'Chương mới'}</span>
+                    <span className="truncate">
+                      {isCreatingChapter
+                        ? 'Đang tạo...'
+                        : (course?.teacher?.id !== user?.id
+                          ? 'Chỉ có giáo viên tạo lớp học mới có quyền sửa đổi chương và bài giảng'
+                          : 'Chương mới'
+                        )
+                      }
+                    </span>
                   </button>
                 </div>
               </div>
@@ -546,7 +557,7 @@ const CourseEditPage: React.FC = () => {
                       name={assistant.name}
                       avatar={assistant.avatar}
                       email={assistant.email}
-                      onRemove={(id) => setSelectedAssistants(prev => prev.filter(t => t.id !== id))}
+                      onRemove={course.teacher?.id === user?.id ? (id) => setSelectedAssistants(prev => prev.filter(t => t.id !== id)) : undefined}
                       onReject={(_) => { }}
                       onApprove={(_) => { }}
                     />

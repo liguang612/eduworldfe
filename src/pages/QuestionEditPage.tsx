@@ -774,14 +774,14 @@ const QuestionEditPage: React.FC = () => {
               onClick={handleCancel}
               className="flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300"
             >
-              <span className="truncate">Cancel</span>
+              <span className="truncate">Hủy</span>
             </button>
             <button
               onClick={handleSaveQuestion}
               disabled={isSaving}
               className={`flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <span className="truncate">{isSaving ? 'Saving...' : 'Save Question'}</span>
+              <span className="truncate">{isSaving ? 'Đang lưu...' : 'Lưu câu hỏi'}</span>
             </button>
           </div>
         </div>

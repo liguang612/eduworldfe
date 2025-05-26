@@ -16,9 +16,10 @@ interface ChapterItemProps {
   onChapterUpdated: (chapter: Chapter) => void;
   onChapterDeleted: (chapterId: string) => void;
   subjectId: string;
+  isOwner: boolean;
 }
 
-export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted, subjectId }: ChapterItemProps) {
+export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted, subjectId, isOwner }: ChapterItemProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -140,11 +141,11 @@ export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted
     <>
       <div className="flex flex-col border-t border-t-[#d0dbe7] py-2 group">
         <div className="flex items-center justify-between cursor-pointer" onClick={handleToggleExpand}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 py-1">
             <span className="text-[#0e141b] text-base font-normal">{`Chương ${index + 1}: `}</span>
             <span className="text-[#0e141b] text-base font-normal">{chapter.name}</span>
           </div>
-          <div className="flex items-center gap-2">
+          {isOwner && <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -192,7 +193,7 @@ export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
-          </div>
+          </div>}
         </div>
 
         {isExpanded && chapter.lectureIds.length > 0 && (
@@ -203,7 +204,7 @@ export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted
               lectures.map((lecture, index) => (
                 <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between border-b border-b-gray-100 last:border-b-0">
                   <div className="flex items-center gap-4">
-                    <button
+                    {isOwner && <button
                       onClick={() => handleRemoveLecture(lecture)}
                       disabled={removingLectureId === lecture.id}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
@@ -216,7 +217,7 @@ export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted
                       ) : (
                         <img src={RemoveIcon} alt="Remove" className="min-h-5 min-w-5" />
                       )}
-                    </button>
+                    </button>}
                     <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                         <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>

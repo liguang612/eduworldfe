@@ -10,6 +10,8 @@ import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '../
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import QuestionDetailPreview from "@/components/Question/QuestionDetailPreview";
 
 interface ExamFormData {
   examName: string;
@@ -96,6 +98,9 @@ const ExamEditPage: React.FC = () => {
   const [sortColumn, setSortColumn] = useState<'title' | 'level' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectAll, setSelectAll] = useState(false);
+
+  // Thêm state mới cho Dialog
+  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
 
   // Thêm hàm helper để đếm số lượng câu hỏi theo từng loại
   const countQuestionsByLevel = (questions: Question[]) => {
@@ -612,6 +617,14 @@ const ExamEditPage: React.FC = () => {
     }
   }, [activeTab, course?.subjectId, user]);
 
+  const handleOpenPreview = (question: Question) => {
+    setPreviewQuestion(question);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewQuestion(null);
+  };
+
   if (isCourseLoading || isExamLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -842,6 +855,9 @@ const ExamEditPage: React.FC = () => {
                             <th className="px-4 py-3 text-left text-[#0e141b] dark:text-slate-200 w-[20%] text-sm font-bold leading-normal">
                               Tag
                             </th>
+                            <th className="h-[72px] px-4 py-2 text-[#0e141b] dark:text-slate-200 text-sm font-bold leading-normal align-top pt-3">
+                              Xem trước
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -895,6 +911,18 @@ const ExamEditPage: React.FC = () => {
                                     onClick={() => handleSelectQuestion(q)}
                                   >
                                     <span className="block max-w-[150px]">{q.categories?.join(', ') || 'No categories'}</span>
+                                  </td>
+                                  <td className="h-[72px] px-4 py-2 text-sm font-normal leading-normal align-top pt-3">
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleOpenPreview(q);
+                                      }}
+                                      className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 active:bg-gray-200 transition"
+                                    >
+                                      <span className="text-gray-500">👁️</span>
+                                    </button>
                                   </td>
                                 </tr>
                               );
@@ -1029,6 +1057,16 @@ const ExamEditPage: React.FC = () => {
         }}
         confirmButtonText="Thêm các câu hỏi đã chọn"
       />
+      <Dialog open={!!previewQuestion} onOpenChange={() => handleClosePreview()}>
+        <DialogContent className="max-w-4xl">
+          {previewQuestion && (
+            <QuestionDetailPreview
+              question={previewQuestion}
+              showFunction={false}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

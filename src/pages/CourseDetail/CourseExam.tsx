@@ -179,7 +179,7 @@ const CourseExams: React.FC = () => {
               <ExamCard
                 key={exam.id}
                 exam={exam}
-                onClick={() => handleExamCardClick(exam.id)}
+                onClick={() => user?.role === 0 ? handleExamCardClick(exam.id) : undefined}
                 onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
                 onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
                 onViewResults={() => handleViewResults(exam.id)}

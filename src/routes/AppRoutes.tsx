@@ -267,7 +267,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/:courseId/exams/:examId/instructions"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0]}>
           <Layout>
             <ExamInstructionsPage />
           </Layout>
@@ -277,7 +277,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/:courseId/exams/:examId/do"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0]}>
           <Layout>
             <DoExamPage />
           </Layout>
