@@ -7,7 +7,7 @@ import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
-import "../components/Question/survey-custom.css";
+import '@/components/Question/survey-custom.css';
 import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 import DotRegularIcon from '@/assets/dot_regular.svg';
 import DotFillTrueIcon from '@/assets/dot_fill_true.svg';
