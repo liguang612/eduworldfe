@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Thêm useMemo
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { baseURL } from '@/config/axios';
 import { getExamAttemptDetails, type ExamAttemptDetails } from '@/api/attemptApi';
 import { type Question, type SharedMedia } from '@/api/questionApi'; // Đảm bảo ChoiceOption được import nếu cần cho Question type
@@ -14,11 +13,11 @@ import DotRegularIcon from '@/assets/dot_regular.svg';
 import DotFillTrueIcon from '@/assets/dot_fill_true.svg';
 import DotFillFalseIcon from '@/assets/dot_fill_false.svg';
 import DotFillIcon from '@/assets/dot_fill.svg';
+import { checkAnswerCorrectness } from '@/lib/utils';
 
 const AttemptDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [attemptDetail, setAttemptDetail] = useState<ExamAttemptDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -180,16 +179,14 @@ const AttemptDetailPage: React.FC = () => {
     fetchAttemptDetails();
   }, [id]);
 
-  // Cập nhật danh sách câu hỏi đã sắp xếp khi questions thay đổi (GIỮ NGUYÊN TỪ FILE GỐC)
   useEffect(() => {
     if (attemptDetail?.questions && attemptDetail.questions.length > 0) {
       setSortedQuestions(sortQuestions(attemptDetail.questions));
     } else {
-      setSortedQuestions([]); // Reset nếu không có câu hỏi
+      setSortedQuestions([]);
     }
   }, [attemptDetail?.questions, sortQuestions]);
 
-  // Cập nhật sharedMedia và câu hỏi liên quan (GIỮ NGUYÊN TỪ FILE GỐC, có điều chỉnh nhỏ)
   useEffect(() => {
     const questions = attemptDetail?.questions;
     if (questions && questions.length > 0 && currentQuestionIndex >= 0 && currentQuestionIndex < questions.length) {
@@ -204,13 +201,10 @@ const AttemptDetailPage: React.FC = () => {
         setCurrentMediaQuestions(currentQuestion ? [currentQuestion] : []);
       }
     } else if (questions && questions.length > 0 && sortedQuestions.length > 0) {
-      // Fallback nếu currentQuestionIndex không hợp lệ (ví dụ: khi attemptDetail.questions vừa load)
-      // và currentQuestionIndex chưa được set đúng.
-      // Chọn câu hỏi đầu tiên từ sortedQuestions làm mặc định.
       const firstSortedQuestion = sortedQuestions[0];
       if (firstSortedQuestion) {
         const originalIndex = questions.findIndex(q => q.id === firstSortedQuestion.id);
-        if (originalIndex !== -1 && currentQuestionIndex !== originalIndex) { // Chỉ set nếu khác để tránh vòng lặp
+        if (originalIndex !== -1 && currentQuestionIndex !== originalIndex) {
           setCurrentQuestionIndex(originalIndex);
         }
       }
@@ -221,7 +215,6 @@ const AttemptDetailPage: React.FC = () => {
   }, [currentQuestionIndex, attemptDetail?.questions, groupQuestionsBySharedMedia, sortedQuestions]);
 
 
-  // formatDateTime (GIỮ NGUYÊN TỪ FILE GỐC)
   const formatDateTime = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -234,7 +227,6 @@ const AttemptDetailPage: React.FC = () => {
     }).replace(',', ' -');
   };
 
-  // Tính toán vị trí của câu hỏi hiện tại trong danh sách đã sắp xếp
   const currentQuestionInSortedListIndex = useMemo(() => {
     if (!attemptDetail?.questions || !attemptDetail.questions[currentQuestionIndex] || sortedQuestions.length === 0) return -1;
     return sortedQuestions.findIndex(q => q.id === attemptDetail.questions[currentQuestionIndex].id);
@@ -318,10 +310,8 @@ const AttemptDetailPage: React.FC = () => {
                 {/* Question List */}
                 <div className="flex flex-col gap-2">
                   <div className="text-sm font-medium text-[#49719c] mb-1">Danh sách câu hỏi:</div>
-                  {sortedQuestions.map((q_sorted, index_in_sorted_list) => { // Đổi tên q thành q_sorted, index thành index_in_sorted_list
-                    // Để xác định câu hỏi này có đang được chọn hay không
+                  {sortedQuestions.map((q_sorted, index_in_sorted_list) => {
                     const isCurrentlySelected = q_sorted.id === attemptDetail.questions[currentQuestionIndex]?.id;
-                    // Lấy thông tin gốc của câu hỏi (ví dụ: để kiểm tra câu trả lời)
                     const originalQuestionData = attemptDetail.questions.find(oq => oq.id === q_sorted.id) || q_sorted;
 
                     let IconSource;
@@ -333,12 +323,9 @@ const AttemptDetailPage: React.FC = () => {
                       let isCorrect = false;
                       if (hasAnswer) {
                         const correctAnswer = attemptDetail.correctAnswers[originalQuestionData.id];
-                        // So sánh câu trả lời cần cẩn thận, đặc biệt với mảng/object
-                        if (typeof userAnswer === 'object' || typeof correctAnswer === 'object') {
-                          isCorrect = JSON.stringify(userAnswer) === JSON.stringify(correctAnswer);
-                        } else {
-                          isCorrect = String(userAnswer) === String(correctAnswer);
-                        }
+                        const questionType = originalQuestionData.type;
+
+                        isCorrect = checkAnswerCorrectness(userAnswer, correctAnswer, questionType);
                       }
 
                       if (hasAnswer) {
@@ -353,8 +340,8 @@ const AttemptDetailPage: React.FC = () => {
                           </svg>
                         );
                       } else {
-                        IconSource = DotRegularIcon; // Chưa trả lời nhưng có đáp án để so sánh
-                        resultIcon = ( // Có thể hiển thị là sai nếu không trả lời và có đáp án đúng
+                        IconSource = DotRegularIcon;
+                        resultIcon = (
                           <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                           </svg>
@@ -404,6 +391,8 @@ const AttemptDetailPage: React.FC = () => {
                 </p>
                 <p className="text-[#49719c] text-sm">
                   Thời gian làm bài: {attemptDetail.endTime ? Math.round((new Date(attemptDetail.endTime).getTime() - new Date(attemptDetail.startTime).getTime()) / 60000) : 0} phút
+                  {' '}
+                  {attemptDetail.endTime ? Math.round((new Date(attemptDetail.endTime).getTime() - new Date(attemptDetail.startTime).getTime()) / 1000) % 60 : 0} giây
                 </p>
               </div>
             </div>
@@ -450,7 +439,7 @@ const AttemptDetailPage: React.FC = () => {
                       />
                     </div>
                   )}
-                  {attemptDetail.correctAnswers && attemptDetail.correctAnswers[question.id] !== undefined && ( // Đảm bảo correctAnswer[question.id] không phải undefined
+                  {attemptDetail.correctAnswers && attemptDetail.correctAnswers[question.id] !== undefined && (
                     <div className="p-3 border rounded-md bg-green-50 border-green-300 shadow">
                       <h4 className="text-md font-semibold text-green-800 mb-2">Đáp án đúng:</h4>
                       <FormatCorrectAnswer
@@ -463,7 +452,7 @@ const AttemptDetailPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Navigation buttons - Sửa đổi để sử dụng currentQuestionInSortedListIndex */}
+            {/* Navigation buttons */}
             <div className="flex justify-between p-4 border-t border-slate-200">
               <button
                 onClick={() => handleSelectQuestion(currentQuestionInSortedListIndex - 1)}

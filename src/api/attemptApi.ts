@@ -1,5 +1,5 @@
 import axios from '@/config/axios';
-import { type Question, type SharedMedia } from '../api/questionApi';
+import { type Question } from '../api/questionApi';
 
 const API_URL = '/api/exam-attempts';
 

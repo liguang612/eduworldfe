@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { baseURL } from '@/config/axios';
 import { useLocation } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../api/courseApi';
-import { getQuestionsDetails, type Question } from '../api/questionApi'; // Đảm bảo type Question có choices và matchingColumns
+import { getQuestionsDetails, type Question } from '../api/questionApi';
 import { gradeAnswers } from '../api/gradingApi';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
@@ -24,7 +24,6 @@ import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 
 const initialQuestionsData: Question[] = [];
 
-// --- Main Exam Screen Component ---
 const DoEndQuestion: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>(initialQuestionsData);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -39,14 +38,11 @@ const DoEndQuestion: React.FC = () => {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
 
-  // Thêm state để theo dõi sharedMedia hiện tại
   const [currentSharedMedia, setCurrentSharedMedia] = useState<any>(null);
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
 
-  // Thêm state để lưu trữ danh sách câu hỏi đã sắp xếp
   const [sortedQuestions, setSortedQuestions] = useState<Question[]>([]);
 
-  // Hàm để nhóm các câu hỏi theo sharedMedia
   const groupQuestionsBySharedMedia = useCallback((questions: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
     questions.forEach(question => {
@@ -61,7 +57,6 @@ const DoEndQuestion: React.FC = () => {
     return groups;
   }, []);
 
-  // Hàm sắp xếp câu hỏi
   const sortQuestions = useCallback((questions: Question[]) => {
     const groups = groupQuestionsBySharedMedia(questions);
     const sorted: (Question | null)[] = [];
@@ -91,7 +86,6 @@ const DoEndQuestion: React.FC = () => {
       }
     });
 
-    // Thêm các câu hỏi còn lại vào các vị trí trống
     questions.forEach(q => {
       if (!processedIds.has(q.id)) {
         const emptyIndex = sorted.findIndex(item => !item);
@@ -104,25 +98,21 @@ const DoEndQuestion: React.FC = () => {
       }
     });
 
-    // Lọc bỏ các vị trí null và ép kiểu về Question[]
     return sorted.filter((item): item is Question => item !== null);
   }, [groupQuestionsBySharedMedia]);
 
-  // Cập nhật danh sách câu hỏi đã sắp xếp khi questions thay đổi
   useEffect(() => {
     if (questions.length > 0) {
       setSortedQuestions(sortQuestions(questions));
     }
   }, [questions, sortQuestions]);
 
-  // Cập nhật currentQuestionIndex khi chọn câu hỏi từ danh sách đã sắp xếp
   const handleSelectQuestion = (index: number) => {
     const question = sortedQuestions[index];
     const originalIndex = questions.findIndex(q => q.id === question.id);
     setCurrentQuestionIndex(originalIndex);
   };
 
-  // Cập nhật sharedMedia và câu hỏi liên quan khi chọn câu hỏi mới
   useEffect(() => {
     if (questions.length > 0) {
       const currentQuestion = questions[currentQuestionIndex];
@@ -158,7 +148,6 @@ const DoEndQuestion: React.FC = () => {
         if (endQuestionIds && endQuestionIds.length > 0) {
           setLoadingQuestions(true);
           const data = await getQuestionsDetails(endQuestionIds);
-          // Đảm bảo data trả về đúng cấu trúc Question, bao gồm choices và matchingColumns nếu có
           const formattedQuestions: Question[] = data.map((q: any) => ({
             ...q,
             selectedOptionIndex: null,
@@ -201,9 +190,7 @@ const DoEndQuestion: React.FC = () => {
             model.showNavigationButtons = false;
             model.showCompletedPage = false;
             model.showPreviewBeforeComplete = "off";
-            // Vẫn giữ showCorrectAnswers = true, SurveyJS sẽ tự xử lý việc không hiển thị nếu không có CSS
-            // Hoặc bạn có thể đặt là false nếu chỉ muốn hiển thị qua khu vực tùy chỉnh
-            model.showCorrectAnswers = false; // Đặt là false nếu chỉ muốn hiển thị qua khu vực mới
+            model.showCorrectAnswers = false;
 
             models[question.id] = model;
           });

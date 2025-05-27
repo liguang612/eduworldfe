@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getLectureById, deleteLecture } from '../api/lectureApi';
-import { createReview, getReviews, getComments, createComment, type Review, type Comment } from '../api/reviewApi';
+import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '../api/reviewApi';
 import MyEditor from '../components/Lecture/MyEditor';
 import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
 import { ToastContainer, toast } from 'react-toastify';
@@ -11,6 +11,10 @@ import User from '@/assets/user.svg';
 import RatingStars from '@/components/Common/RatingStars';
 import type { LectureResponse } from '@/api/lectureApi';
 import { useAuth } from '@/contexts/AuthContext';
+import SendIcon from '@/assets/send.svg';
+import ChevronDownIcon from '@/assets/chevron-down.svg';
+import ChevronUpIcon from '@/assets/chevron-up.svg';
+import { baseURL } from '@/config/axios';
 
 const LectureDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,34 +30,84 @@ const LectureDetailPage: React.FC = () => {
   const [isEditingReview, setIsEditingReview] = useState<boolean>(false);
   const [comments, setComments] = useState<{ [key: string]: Comment[] }>({});
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(0);
+  const [statistics, setStatistics] = useState<ReviewStatistics | null>(null);
+  const [expandedComments, setExpandedComments] = useState<{ [key: string]: boolean }>({});
+  const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchLecture = async () => {
+    const fetchData = async () => {
       try {
         if (id) {
+          setLoading(true);
+
           const data = await getLectureById(id);
           setLecture(data);
           document.title = data.name;
-          // Fetch reviews
-          const reviewsData = await getReviews(2, id); // 2 is for lecture
-          setReviews(reviewsData);
-          // Fetch comments for each review
-          const commentsData: { [key: string]: Comment[] } = {};
-          for (const review of reviewsData) {
-            const reviewComments = await getComments(review.id);
-            commentsData[review.id] = reviewComments;
+
+          // Fetch statistics
+          const stats = await getReviewStatistics(2, id);
+          setStatistics(stats);
+
+          const reviewsData = await getReviews(2, id, 0, 10);
+          setReviews(reviewsData.reviews);
+          setCurrentPage(reviewsData.currentPage);
+          setTotalPages(reviewsData.totalPages);
+
+          const userReview = reviewsData.reviews.find(review => review.userId === user?.id);
+          if (userReview) {
+            setSubmittedReview(userReview);
           }
-          setComments(commentsData);
         }
       } catch (error) {
-        console.error('Error fetching lecture:', error);
+        console.error('Error fetching data:', error);
+        toast.error('Không thể tải dữ liệu. Vui lòng thử lại.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLecture();
-  }, [id]);
+    fetchData();
+  }, [id, user?.id]);
+
+  const loadMoreReviews = async () => {
+    if (currentPage >= totalPages - 1) return;
+
+    try {
+      setLoadingReviews(true);
+      const nextPage = currentPage + 1;
+      const reviewsData = await getReviews(2, id!, nextPage, 10);
+      setReviews(prev => [...prev, ...reviewsData.reviews]);
+      setCurrentPage(reviewsData.currentPage);
+      setTotalPages(reviewsData.totalPages);
+    } catch (error) {
+      console.error('Error loading more reviews:', error);
+      toast.error('Không thể tải thêm đánh giá. Vui lòng thử lại.');
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const toggleComments = async (reviewId: string) => {
+    if (!expandedComments[reviewId]) {
+      try {
+        const reviewComments = await getComments(reviewId);
+        setComments(prev => ({
+          ...prev,
+          [reviewId]: reviewComments
+        }));
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+        toast.error('Không thể tải bình luận. Vui lòng thử lại.');
+        return;
+      }
+    }
+    setExpandedComments(prev => ({
+      ...prev,
+      [reviewId]: !prev[reviewId]
+    }));
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -76,7 +130,7 @@ const LectureDetailPage: React.FC = () => {
     try {
       await deleteLecture(id);
       toast.success('Xóa bài giảng thành công!');
-      navigate('/lectures'); // Navigate back to previous page
+      navigate('/lectures');
     } catch (error) {
       console.error('Error deleting lecture:', error);
       toast.error('Không thể xóa bài giảng. Vui lòng thử lại.');
@@ -96,8 +150,15 @@ const LectureDetailPage: React.FC = () => {
     }
     try {
       const newReview = await createReview(2, id!, userRating, userReviewText);
-      setReviews([newReview, ...reviews]);
-      setSubmittedReview(newReview);
+      const reviewWithUserInfo = {
+        ...newReview,
+        userName: user?.name || '',
+        userAvatar: user?.avatar || '',
+        userSchool: user?.school || '',
+        userGrade: user?.grade || 0,
+        userRole: user?.role
+      };
+      setSubmittedReview(reviewWithUserInfo);
       setIsEditingReview(false);
       setUserRating(0);
       setUserReviewText('');
@@ -123,9 +184,17 @@ const LectureDetailPage: React.FC = () => {
     }
     try {
       const comment = await createComment(reviewId, newComment[reviewId]);
+      const commentWithUserInfo = {
+        ...comment,
+        userName: user?.name || '',
+        userAvatar: user?.avatar || '',
+        userSchool: user?.school || '',
+        userGrade: user?.grade || 0,
+        userRole: user?.role
+      };
       setComments(prev => ({
         ...prev,
-        [reviewId]: [...(prev[reviewId] || []), comment]
+        [reviewId]: [...(prev[reviewId] || []), commentWithUserInfo]
       }));
       setNewComment(prev => ({ ...prev, [reviewId]: '' }));
       toast.success('Bình luận thành công!');
@@ -133,6 +202,15 @@ const LectureDetailPage: React.FC = () => {
       console.error('Error submitting comment:', error);
       toast.error('Không thể gửi bình luận. Vui lòng thử lại.');
     }
+  };
+
+  const renderUserRoleChip = (userRole?: number) => {
+    if (userRole === 1) {
+      return <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Giáo viên</span>;
+    } else if (userRole === 2) {
+      return <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Trợ giảng</span>;
+    }
+    return null;
   };
 
   return (
@@ -188,28 +266,35 @@ const LectureDetailPage: React.FC = () => {
               Đánh giá bài giảng
             </h3>
             <div className="flex flex-wrap gap-x-8 gap-y-6 p-4">
-              <div className="flex flex-col gap-2">
-                <p className="text-[#0e141b] text-4xl font-black leading-tight tracking-[-0.033em]">
-                  {(reviews.reduce((acc, review) => acc + review.score, 0) / (reviews.length || 1)).toFixed(1)}
-                </p>
-                <RatingStars rating={reviews.reduce((acc, review) => acc + review.score, 0) / (reviews.length || 1)} />
-                <p className="text-[#0e141b] text-base font-normal leading-normal">{reviews.length} đánh giá</p>
-              </div>
-              <div className="grid min-w-[200px] max-w-[400px] flex-1 grid-cols-[20px_1fr_40px] items-center gap-y-3">
-                {[5, 4, 3, 2, 1].map((star) => {
-                  const count = reviews.filter(r => r.score === star).length;
-                  const percentage = reviews.length ? (count / reviews.length * 100).toFixed(0) : 0;
-                  return (
-                    <React.Fragment key={star}>
-                      <p className="text-[#0e141b] text-sm font-normal leading-normal">{star}</p>
-                      <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[#d0dbe7]">
-                        <div className="rounded-full bg-[#1980e6]" style={{ width: `${percentage}%` }}></div>
-                      </div>
-                      <p className="text-[#4e7397] text-sm font-normal leading-normal text-right">{percentage}%</p>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+              {statistics && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[#0e141b] text-4xl font-black leading-tight tracking-[-0.033em]">
+                      {statistics.averageScore.toFixed(1)}
+                    </p>
+                    <RatingStars rating={statistics.averageScore} />
+                    <p className="text-[#0e141b] text-base font-normal leading-normal">
+                      {Object.values(statistics.scoreDistribution).reduce((a, b) => a + b, 0)} đánh giá
+                    </p>
+                  </div>
+                  <div className="grid min-w-[200px] max-w-[400px] flex-1 grid-cols-[20px_1fr_40px] items-center gap-y-3">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = statistics.scoreDistribution[star] || 0;
+                      const total = Object.values(statistics.scoreDistribution).reduce((a, b) => a + b, 0);
+                      const percentage = total ? (count / total * 100).toFixed(0) : 0;
+                      return (
+                        <React.Fragment key={star}>
+                          <p className="text-[#0e141b] text-sm font-normal leading-normal">{star}</p>
+                          <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[#d0dbe7]">
+                            <div className="rounded-full bg-[#1980e6]" style={{ width: `${percentage}%` }}></div>
+                          </div>
+                          <p className="text-[#4e7397] text-sm font-normal leading-normal text-right">{percentage}%</p>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* User's Review Form */}
@@ -219,7 +304,8 @@ const LectureDetailPage: React.FC = () => {
                 {submittedReview && !isEditingReview ? (
                   <div>
                     <div className="flex items-center mb-1">
-                      <span className="font-semibold text-[#0d141b] mr-2">Đánh giá của tôi</span>
+                      <img src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
+                      <span className="font-semibold text-[#0d141b] mr-2">{submittedReview.userName}</span>
                       <span className="text-xs text-gray-500">
                         {new Date(submittedReview.createdAt).toLocaleDateString('vi-VN')}
                       </span>
@@ -290,9 +376,11 @@ const LectureDetailPage: React.FC = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-[#0d141c]">Tất cả đánh giá</h3>
               {reviews.map((review) => (
-                <div key={review.id} className="p-4 border border-gray-200 rounded-md">
+                <div key={review.id} className="p-4 border border-gray-200 rounded-md bg-white">
                   <div className="flex items-center mb-1">
+                    <img src={`${baseURL}${review.userAvatar}`} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
                     <span className="font-semibold text-[#0d141b] mr-2">{review.userName}</span>
+                    {renderUserRoleChip(review.userRole)}
                     <span className="text-xs text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString('vi-VN')}
                     </span>
@@ -303,38 +391,69 @@ const LectureDetailPage: React.FC = () => {
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{review.comment}</p>
 
                   {/* Comments Section */}
-                  <div className="mt-4 space-y-3">
-                    {comments[review.id]?.map((comment) => (
-                      <div key={comment.id} className="pl-4 border-l-2 border-gray-200">
-                        <div className="flex items-center mb-1">
-                          <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700">{comment.content}</p>
-                      </div>
-                    ))}
-                    {user?.role === 0 && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={newComment[review.id] || ''}
-                          onChange={(e) => setNewComment(prev => ({ ...prev, [review.id]: e.target.value }))}
-                          placeholder="Viết bình luận..."
-                          className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-[#1980e6] focus:border-[#1980e6]"
-                        />
-                        <button
-                          onClick={() => handleSubmitComment(review.id)}
-                          className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] hover:bg-[#1368bd] text-white text-sm font-bold leading-normal tracking-[0.015em]"
-                        >
-                          <span className="truncate">Gửi</span>
-                        </button>
+                  <div className="mt-4">
+                    <button
+                      onClick={() => toggleComments(review.id)}
+                      className="flex items-center text-sm text-[#1980e6] hover:text-[#1368bd]"
+                    >
+                      <span>{expandedComments[review.id] ? 'Ẩn bình luận' : 'Xem bình luận'}</span>
+                      <img
+                        src={expandedComments[review.id] ? ChevronUpIcon : ChevronDownIcon}
+                        alt={expandedComments[review.id] ? 'up' : 'down'}
+                        className="w-4 h-4 ml-1"
+                      />
+                    </button>
+
+                    {expandedComments[review.id] && (
+                      <div className="mt-4 space-y-3">
+                        {comments[review.id]?.map((comment) => (
+                          <div key={comment.id} className={`pl-4 border-l-2 ${comment.userRole === 1 || comment.userRole === 2 ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                            <div className="flex items-center mb-1">
+                              <img src={`${baseURL}${comment.userAvatar}`} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
+                              <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
+                              {renderUserRoleChip(comment.userRole)}
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{comment.content}</p>
+                          </div>
+                        ))}
+                        {(user?.role === 0 || user?.role === 1 || user?.role === 2) && (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newComment[review.id] || ''}
+                              onChange={(e) => setNewComment(prev => ({ ...prev, [review.id]: e.target.value }))}
+                              placeholder="Viết bình luận..."
+                              className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-[#1980e6] focus:border-[#1980e6]"
+                            />
+                            <button
+                              onClick={() => handleSubmitComment(review.id)}
+                              className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-2 hover:bg-slate-50 leading-normal tracking-[0.015em]"
+                            >
+                              <img src={SendIcon} alt="send" className="w-8 h-8" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
               ))}
+
+              {/* Load More Button */}
+              {currentPage < totalPages - 1 && (
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={loadMoreReviews}
+                    disabled={loadingReviews}
+                    className="flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] hover:bg-[#dde3ec] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em]"
+                  >
+                    {loadingReviews ? 'Đang tải...' : 'Xem thêm'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

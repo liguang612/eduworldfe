@@ -12,6 +12,7 @@ export interface Review {
   userAvatar: string;
   userSchool: string;
   userGrade: number;
+  userRole?: number;
 }
 
 export interface Comment {
@@ -25,6 +26,21 @@ export interface Comment {
   userAvatar: string;
   userSchool: string;
   userGrade: number;
+  userRole?: number;
+}
+
+export interface ReviewPageResponse {
+  reviews: Review[];
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+}
+
+export interface ReviewStatistics {
+  averageScore: number;
+  scoreDistribution: {
+    [key: string]: number;
+  };
 }
 
 export const createReview = async (targetType: number, targetId: string, score: number, comment: string) => {
@@ -42,14 +58,24 @@ export const createReview = async (targetType: number, targetId: string, score: 
   return response.data;
 };
 
-export const getReviews = async (targetType: number, targetId: string) => {
+export const getReviews = async (targetType: number, targetId: string, page: number = 0, size: number = 10) => {
   const token = localStorage.getItem('token');
-  const response = await axios.get(`/api/reviews?targetType=${targetType}&targetId=${targetId}`, {
+  const response = await axios.get(`/api/reviews/page?targetType=${targetType}&targetId=${targetId}&page=${page}&size=${size}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
   });
-  return response.data as Review[];
+  return response.data as ReviewPageResponse;
+};
+
+export const getReviewStatistics = async (targetType: number, targetId: string) => {
+  const token = localStorage.getItem('token');
+  const response = await axios.get(`/api/reviews/statistics?targetType=${targetType}&targetId=${targetId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return response.data as ReviewStatistics;
 };
 
 export const getComments = async (reviewId: string) => {

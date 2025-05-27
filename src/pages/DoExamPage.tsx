@@ -10,8 +10,8 @@ import { baseURL } from '@/config/axios';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../api/courseApi';
 import { type Question } from '../api/questionApi';
-import { getExamQuestionsDetails, startExamAttempt } from '../api/examApi';
-import { saveExamAnswer, submitExamAttempt } from '../api/examApi';
+import { getExamAttemptDetails, type ExamAttemptDetails } from '../api/attemptApi';
+import { saveExamAnswer, submitExamAttempt, startExamAttempt } from '../api/examApi';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
@@ -19,9 +19,8 @@ import 'survey-core/survey-core.css';
 import "../components/Question/survey-custom.css";
 import { toast, ToastContainer } from 'react-toastify';
 import { type ChoiceOption } from '../api/questionApi';
-import { type Exam } from '../api/examApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { debounce, shuffleArray } from '@/lib/utils';
+import { debounce, isJsonString, shuffleArray } from '@/lib/utils';
 
 const initialQuestionsData: Question[] = [];
 
@@ -43,7 +42,7 @@ const DoExamPage: React.FC = () => {
   const [subject, setSubject] = useState<Subject | null>(null);
   const subjectId = locationSubjectId;
   const [loadingQuestions, setLoadingQuestions] = useState(true);
-  const [exam, setExam] = useState<Exam | null>(null);
+  const [exam, setExam] = useState<ExamAttemptDetails | null>(null);
 
   const [currentSharedMedia, setCurrentSharedMedia] = useState<any>(null);
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
@@ -192,12 +191,15 @@ const DoExamPage: React.FC = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        // Prepare for start exam attempt
         if (!examId) {
           setQuestions([]);
           setLoadingQuestions(false);
           return;
         }
         setLoadingQuestions(true);
+
+        // Start attempt
         const attemptResponse = await startExamAttempt(examId);
         const attempt = attemptResponse;
         if (attempt && attempt.status === 'submitted') {
@@ -214,9 +216,22 @@ const DoExamPage: React.FC = () => {
         if (attempt && attempt.id) {
           localStorage.setItem(`exam_attempt_${examId}`, attempt.id);
           setAttemptId(attempt.id);
+        } else {
+          throw new Error('No attempt ID available');
         }
-        const examDetailsResponse = await getExamQuestionsDetails(examId);
-        setExam(examDetailsResponse.exam);
+
+        if (attempt && attempt.status === 'out_of_attempt') {
+          toast.error('Đã hết số lần làm bài cho phép');
+          navigate(`/courses/${attempt.classId}/exams`, {
+            state: { subjectId: subjectId }
+          });
+          return;
+        }
+
+        // Get exam details
+        const examDetailsResponse = await getExamAttemptDetails(attempt.id);
+        setExam(examDetailsResponse);
+
         let formattedQuestions: Question[] = examDetailsResponse.questions.map((q: any) => ({
           ...q,
           selectedOptionIndex: null,
@@ -250,6 +265,7 @@ const DoExamPage: React.FC = () => {
               .filter(col => col.side === 'right')
               .map(col => ({ value: String(col.id), text: col.label }));
           }
+
           const model = new Model(surveyJson);
           model.applyTheme(BorderlessLight);
           model.showCompleteButton = false;
@@ -260,18 +276,12 @@ const DoExamPage: React.FC = () => {
           model.showPreviewBeforeComplete = "off";
           model.showCorrectAnswers = false;
           model.textUpdateMode = "onTyping";
+
           models[question.id] = model;
         });
+
         setSurveyModels(models);
-        if (attempt && attempt.status === 'out_of_attempt') {
-          toast.error('Đã hết số lần làm bài cho phép');
-          exam ? navigate(`/courses/${exam?.classId}/exams`, {
-            state: { subjectId: subjectId }
-          }) : navigate(`/courses`, {
-            state: { subjectId: subjectId }
-          });
-          return;
-        }
+
         if (attempt && attempt.status === 'in_progress' && attempt.startTime && attempt.duration !== undefined) {
           const startTime = new Date(attempt.startTime);
           const now = new Date();
@@ -279,12 +289,13 @@ const DoExamPage: React.FC = () => {
           const remainingSeconds = Math.max(0, attempt.duration * 60 - elapsedSeconds);
           setTimeLeft(remainingSeconds);
           setIsTimerActive(true);
+
           if (attempt.savedAnswers) {
             const updatedQuestions = [...formattedQuestions];
             Object.entries(attempt.savedAnswers).forEach(([questionId, answer]) => {
               const model = models[questionId];
               if (model && answer !== "") {
-                model.setValue(`question_${questionId}`, answer);
+                model.setValue(`question_${questionId}`, isJsonString(answer) ? JSON.parse(answer) : answer);
                 const questionIndex = updatedQuestions.findIndex(q => q.id === questionId);
                 if (questionIndex !== -1) {
                   updatedQuestions[questionIndex] = {
@@ -296,10 +307,11 @@ const DoExamPage: React.FC = () => {
             });
             formattedQuestions = updatedQuestions;
           }
-        } else if (examDetailsResponse.exam && examDetailsResponse.exam.durationMinutes > 0) {
-          setTimeLeft(examDetailsResponse.exam.durationMinutes * 60);
+        } else if (examDetailsResponse.duration > 0) {
+          setTimeLeft(examDetailsResponse.duration * 60);
           setIsTimerActive(true);
         }
+
         setQuestions(formattedQuestions);
       } catch (error) {
         console.error('Error fetching exam details or starting attempt:', error);
@@ -313,7 +325,7 @@ const DoExamPage: React.FC = () => {
     if (attemptId !== undefined) {
       fetchQuestions();
     }
-  }, [examId, attemptId, navigate, subjectId]); // Giữ nguyên dependencies gốc, thêm attemptId
+  }, [examId, attemptId, navigate, subjectId]);
 
   // Timer
   useEffect(() => {
@@ -385,6 +397,8 @@ const DoExamPage: React.FC = () => {
       if (!attemptId || !questionId) return;
       setSaveStatus('saving');
       try {
+        console.log(attemptId, questionId, answer);
+        // return;
         await saveExamAnswer(attemptId, questionId, answer);
         setSaveStatus('saved');
         setLastSavedTime(new Date());
