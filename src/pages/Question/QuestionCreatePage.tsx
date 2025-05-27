@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '../components/Question/types';
-import FullPreview from '../components/Question/FullPreview';
-import QuestionChoices from '../components/Question/QuestionChoices';
-import * as questionApi from '../api/questionApi';
-import { uploadSharedMedia, type LocationState, type SurveyValue } from '../api/questionApi';
+import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '@/components/Question/types';
+import FullPreview from '@/components/Question/FullPreview';
+import QuestionChoices from '@/components/Question/QuestionChoices';
+import * as questionApi from '@/api/questionApi';
+import { uploadSharedMedia, type LocationState, type SurveyValue } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
 
 

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getSubjectsByGrade, updateCoruseAvatar, type Subject } from '../api/courseApi';
-import AddIcon from '../assets/add.svg';
-import RemoveIcon from '../assets/remove.svg';
-import { SearchableDialog } from '../components/Common/SearchableDialog';
-import type { SearchUser } from '../api/courseApi';
-import { searchUserByEmail } from '../api/courseApi';
+import { getSubjectsByGrade, updateCoruseAvatar, type Subject } from '@/api/courseApi';
+import AddIcon from '@/assets/add.svg';
+import RemoveIcon from '@/assets/remove.svg';
+import { SearchableDialog } from '@/components/Common/SearchableDialog';
+import type { SearchUser } from '@/api/courseApi';
+import { searchUserByEmail } from '@/api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useAuth } from '../contexts/AuthContext';
-import { baseURL } from '../config/axios';
+import { useAuth } from '@/contexts/AuthContext';
+import { baseURL } from '@/config/axios';
 
 const CreateCoursePage: React.FC = () => {
   const navigate = useNavigate();

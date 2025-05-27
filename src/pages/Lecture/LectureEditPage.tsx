@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import MyEditor from '../components/Lecture/MyEditor';
-import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import { uploadFile, getLectureById, updateLecture, searchQuestions } from '../api/lectureApi';
-import { getQuestionsDetails, type Question } from '../api/questionApi';
-import type { LectureResponse } from '../api/lectureApi';
+import MyEditor from '@/components/Lecture/MyEditor';
+import type { MyEditorRef } from '@/components/Lecture/MyEditor';
+import { uploadFile, getLectureById, updateLecture, searchQuestions } from '@/api/lectureApi';
+import { getQuestionsDetails, type Question } from '@/api/questionApi';
+import type { LectureResponse } from '@/api/lectureApi';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
 import AddIcon from '@/assets/add.svg';

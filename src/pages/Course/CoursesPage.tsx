@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import StarRatingDisplay from '../components/Course/StarRatingDisplay';
+import StarRatingDisplay from '@/components/Course/StarRatingDisplay';
 
-import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '../api/courseApi';
-import type { Course, Subject } from '../api/courseApi';
+import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '@/api/courseApi';
+import type { Course, Subject } from '@/api/courseApi';
 import { useNavigate } from 'react-router-dom';
-import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
 

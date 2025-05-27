@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import MyEditor from '../components/Lecture/MyEditor';
-import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import QuestionDetailPreview from '../components/Question/QuestionDetailPreview';
+import MyEditor from '@/components/Lecture/MyEditor';
+import type { MyEditorRef } from '@/components/Lecture/MyEditor';
+import QuestionDetailPreview from '@/components/Question/QuestionDetailPreview';
 import type { Question } from '@/api/questionApi';
 import { getQuestionDetail } from '@/api/questionApi';
 import { uploadFile } from '@/api/lectureApi';

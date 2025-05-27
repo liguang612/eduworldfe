@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getLectureById, deleteLecture } from '../api/lectureApi';
-import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '../api/reviewApi';
-import MyEditor from '../components/Lecture/MyEditor';
-import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
+import { getLectureById, deleteLecture } from '@/api/lectureApi';
+import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
+import MyEditor from '@/components/Lecture/MyEditor';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Duration from '@/assets/duration.svg';

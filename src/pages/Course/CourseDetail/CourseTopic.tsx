@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { CourseDetailContextType } from '../CourseDetailPage'; // Adjust path
+import type { CourseDetailContextType } from '../Course/CourseDetailPage'; // Adjust path
 
 const CourseTopics: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();

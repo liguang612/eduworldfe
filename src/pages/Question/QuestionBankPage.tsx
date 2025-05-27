@@ -1,11 +1,11 @@
 // QuestionBankPage.tsx
 
 import React, { useState, useEffect } from 'react';
-import { getQuestions, getQuestionDetail, type Question } from '../api/questionApi';
-import { type Subject, getSubjectsByGrade } from '../api/courseApi';
+import { getQuestions, getQuestionDetail, type Question } from '@/api/questionApi';
+import { type Subject, getSubjectsByGrade } from '@/api/courseApi';
 import { useNavigate } from 'react-router-dom';
-import QuestionDetailPreview from '../components/Question/QuestionDetailPreview';
-import { searchQuestions } from '../api/lectureApi';
+import QuestionDetailPreview from '@/components/Question/QuestionDetailPreview';
+import { searchQuestions } from '@/api/lectureApi';
 import { toast } from 'react-toastify';
 
 const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];

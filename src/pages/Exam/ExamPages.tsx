@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getUpcomingExams } from '@/api/homeApi';
 import type { Exam } from '@/api/examApi';
 import ExamCard from '@/components/Exam/ExamCard';

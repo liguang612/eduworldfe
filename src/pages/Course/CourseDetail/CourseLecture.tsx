@@ -1,8 +1,8 @@
 import React from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import type { Chapter } from '../../api/courseApi';
-import { baseURL } from '../../config/axios';
-import type { CourseDetailContextType } from '../CourseDetailPage';
+import type { Chapter } from '@/api/courseApi';
+import { baseURL } from '@/config/axios';
+import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 
 const CourseLectures: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();

@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
-import type { Course } from '../api/courseApi'; // Adjust path
-import { getCourseById, deleteCourse, getSubjectById } from '../api/courseApi'; // Adjust path
-import { ConfirmationDialog } from '../components/Common/ConfirmationDialog'; // Adjust path
+import type { Course } from '@/api/courseApi';
+import { getCourseById, deleteCourse, getSubjectById } from '@/api/courseApi';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { getLecturesByIds, type LectureResponse } from '../api/lectureApi'; // Adjust path
-import CourseDrawer from '../components/Course/CourseDrawer'; // Adjust path
+import { getLecturesByIds, type LectureResponse } from '@/api/lectureApi';
+import CourseDrawer from '@/components/Course/CourseDrawer';
 
 interface Subject {
   id: string;

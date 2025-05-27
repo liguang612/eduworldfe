@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import MyEditor from '../components/Lecture/MyEditor';
-import type { MyEditorRef } from '../components/Lecture/MyEditor';
-import { getSubjectsByGrade } from '../api/courseApi';
-import { uploadFile, createLecture } from '../api/lectureApi';
-import type { Subject } from '../api/courseApi';
+import MyEditor from '@/components/Lecture/MyEditor';
+import type { MyEditorRef } from '@/components/Lecture/MyEditor';
+import { getSubjectsByGrade } from '@/api/courseApi';
+import { uploadFile, createLecture } from '@/api/lectureApi';
+import type { Subject } from '@/api/courseApi';
 import { toast } from 'react-toastify';
 import { baseURL } from '@/config/axios';
 import { useNavigate } from 'react-router-dom';

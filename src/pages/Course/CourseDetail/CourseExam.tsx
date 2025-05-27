@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import type { CourseDetailContextType } from '../../pages/CourseDetailPage';
-import MagnifyingGlassIcon from '../../assets/magnify_glass.svg';
-import { getExamsByClassId, type Exam, deleteExam } from '../../api/examApi';
+import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
+import MagnifyingGlassIcon from '@/assets/magnify_glass.svg';
+import { getExamsByClassId, type Exam, deleteExam } from '@/api/examApi';
 import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
 import ExamCard from '@/components/Exam/ExamCard';
 import { toast, ToastContainer } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CourseExams: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();

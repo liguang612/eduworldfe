@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import RatingStars from '../components/Common/RatingStars';
+import React, { useState, useEffect } from 'react';
+import RatingStars from '@/components/Common/RatingStars';
 import { useNavigate } from 'react-router-dom';
-import { getSubjectsByGrade } from '../api/courseApi';
-import type { Subject } from '../api/courseApi';
-import { getLectures, type LectureResponse } from '../api/lectureApi';
+import { getSubjectsByGrade } from '@/api/courseApi';
+import type { Subject } from '@/api/courseApi';
+import { getLectures, type LectureResponse } from '@/api/lectureApi';
 import { ToastContainer } from 'react-toastify';
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];

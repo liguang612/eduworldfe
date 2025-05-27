@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoginForm from '../components/Auth/LoginForm';
-import Header from '../components/Common/Header';
+import LoginForm from '@/components/Auth/LoginForm';
+import Header from '@/components/Common/Header';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();

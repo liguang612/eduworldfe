@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { CourseDetailContextType } from '../CourseDetailPage';
+import type { CourseDetailContextType } from '../Course/CourseDetailPage';
 import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';

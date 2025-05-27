@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar, createChapter, rejectJoinRequest, approveJoinRequest } from '../api/courseApi';
-import type { Chapter, Course } from '../api/courseApi';
-import { SearchableDialog } from '../components/Common/SearchableDialog';
-import { InputDialog } from '../components/Common/InputDialog';
-import AddIcon from '../assets/add.svg';
-import RemoveIcon from '../assets/remove.svg';
-import ApproveIcon from '../assets/approve.svg';
-import RejectIcon from '../assets/reject.svg';
+import { getCourseById, searchUserByEmail, type SearchUser, updateCourse, updateCoruseAvatar, createChapter, rejectJoinRequest, approveJoinRequest } from '@/api/courseApi';
+import type { Chapter, Course } from '@/api/courseApi';
+import { SearchableDialog } from '@/components/Common/SearchableDialog';
+import { InputDialog } from '@/components/Common/InputDialog';
+import AddIcon from '@/assets/add.svg';
+import RemoveIcon from '@/assets/remove.svg';
+import ApproveIcon from '@/assets/approve.svg';
+import RejectIcon from '@/assets/reject.svg';
 import { toast, ToastContainer } from 'react-toastify';
-import { baseURL } from '../config/axios';
-import { ChapterItem } from '../components/Course/ChapterItem';
+import { baseURL } from '@/config/axios';
+import { ChapterItem } from '@/components/Course/ChapterItem';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MemberItemProps {

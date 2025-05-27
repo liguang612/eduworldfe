@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import axios from '../config/axios';
+import axios from '@/config/axios';
 import { toast } from 'react-toastify';
 
 interface ChangePasswordForm {

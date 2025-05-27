@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption, MatchingColumn, FillInBlankOption, SortingOption } from '../components/Question/types';
-import FullPreview from '../components/Question/FullPreview';
-import QuestionChoices from '../components/Question/QuestionChoices';
-import * as questionApi from '../api/questionApi';
-import { type LocationState, type SurveyValue, getQuestionsBySharedMedia } from '../api/questionApi';
+import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption, MatchingColumn, FillInBlankOption, SortingOption } from '@/components/Question/types';
+import FullPreview from '@/components/Question/FullPreview';
+import QuestionChoices from '@/components/Question/QuestionChoices';
+import * as questionApi from '@/api/questionApi';
+import { type LocationState, type SurveyValue, getQuestionsBySharedMedia } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
 import { baseURL } from '@/config/axios';
-import { ConfirmationDialog } from '../components/Common/ConfirmationDialog';
+import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 
 const QuestionEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
