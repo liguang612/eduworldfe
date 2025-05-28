@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { startExamAttempt } from '@/api/examApi';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,7 +12,6 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { examId, courseId, duration, numQuestions, courseName, subjectName, subjectGrade, examTitle, subjectId } = location.state || {};
-  const [isLoading, setIsLoading] = useState(false);
 
   const pageStyle: React.CSSProperties = {
     fontFamily: 'Lexend, "Noto Sans", sans-serif',
@@ -23,35 +21,19 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
     navigate(-1);
   };
 
-  const handleStartExam = async () => {
+  const handleStartExam = () => {
     if (examId && courseId) {
-      try {
-        setIsLoading(true);
-        // Tạo một exam attempt mới
-        const attempt = await startExamAttempt(examId);
-
-        // Lưu attempt ID vào localStorage để khôi phục khi người dùng F5
-        localStorage.setItem(`exam_attempt_${examId}`, attempt.id);
-
-        // Chuyển đến trang làm bài
-        navigate(`/courses/${courseId}/exams/${examId}/do`, {
-          state: {
-            examTitle,
-            courseName,
-            subjectName,
-            subjectGrade,
-            duration,
-            numQuestions,
-            attemptId: attempt.id,
-            subjectId,
-          }
-        });
-      } catch (error) {
-        console.error('Lỗi khi bắt đầu bài thi:', error);
-        toast.error('Không thể bắt đầu bài thi. Vui lòng thử lại sau.');
-      } finally {
-        setIsLoading(false);
-      }
+      navigate(`/courses/${courseId}/exams/${examId}/do`, {
+        state: {
+          examTitle,
+          courseName,
+          subjectName,
+          subjectGrade,
+          duration,
+          numQuestions,
+          subjectId,
+        }
+      });
     } else {
       toast.error('Không tìm thấy thông tin bài thi.');
     }
@@ -130,10 +112,9 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
               </button>
               <button
                 onClick={handleStartExam}
-                disabled={isLoading}
-                className={`flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 ${isLoading ? 'bg-[#6097c9] cursor-wait' : 'bg-[#1568c1] hover:bg-[#125aa0]'} text-slate-50 text-base font-bold leading-normal tracking-[0.015em]`}
+                className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 bg-[#1568c1] hover:bg-[#125aa0] text-slate-50 text-base font-bold leading-normal tracking-[0.015em]"
               >
-                <span className="truncate">{isLoading ? 'Đang xử lý...' : 'Bắt đầu làm bài'}</span>
+                <span className="truncate">Bắt đầu làm bài</span>
               </button>
             </div>
           </div>

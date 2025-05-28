@@ -104,7 +104,7 @@ const AppRoutes: React.FC = () => (
 
       <Route path="lectures" element={<CourseLectures />} />
       <Route path="exams" element={<CourseExams />} />
-      <Route path="discussions" element={<CourseTopics />} />
+      <Route path="topics" element={<CourseTopics />} />
       <Route path="reviews" element={<CourseReviews />} />
     </Route>
     <Route

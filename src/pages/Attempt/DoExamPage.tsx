@@ -59,20 +59,49 @@ const DoExamPage: React.FC = () => {
       if (locationAttemptId) {
         setAttemptId(locationAttemptId);
       } else {
-        const savedAttemptId = localStorage.getItem(`exam_attempt_${examId}`);
+        const savedAttemptId = localStorage.getItem(`exam_attempt_${examId}_user_${user?.id}`);
         if (savedAttemptId) {
           setAttemptId(savedAttemptId);
         } else {
-          toast.error('Không tìm thấy phiên làm bài hợp lệ');
-          exam ? navigate(`/courses/${exam?.classId}/exams/instructions`, {
-            state: { examId, courseId: subjectId }
-          }) : navigate(`/courses`, {
-            state: { examId, courseId: subjectId }
-          });
+          const startNewAttempt = async () => {
+            try {
+              const attempt = await startExamAttempt(examId);
+              if (attempt && attempt.status === 'submitted') {
+                toast.error('Bài thi đã kết thúc');
+                navigate(`/attempts/${attempt.id}/congratulation`, {
+                  state: {
+                    examId,
+                    courseId: subjectId,
+                    attemptId: attempt.id
+                  }
+                });
+                return;
+              }
+              if (attempt && attempt.id) {
+                localStorage.setItem(`exam_attempt_${examId}_user_${user?.id}`, attempt.id);
+                setAttemptId(attempt.id);
+              } else {
+                throw new Error('No attempt ID available');
+              }
+
+              if (attempt && attempt.status === 'out_of_attempt') {
+                toast.error('Đã hết số lần làm bài cho phép');
+                navigate(`/courses/${attempt.classId}/exams`, {
+                  state: { subjectId: subjectId }
+                });
+                return;
+              }
+            } catch (error) {
+              console.error('Error starting exam attempt:', error);
+              toast.error('Không thể bắt đầu bài thi. Vui lòng thử lại sau.');
+              navigate(-1);
+            }
+          };
+          startNewAttempt();
         }
       }
     }
-  }, [examId, locationAttemptId, navigate, subjectId]);
+  }, [examId, locationAttemptId, navigate, subjectId, user?.id]);
 
   const groupQuestionsBySharedMedia = useCallback((questionsToGroup: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
@@ -191,45 +220,15 @@ const DoExamPage: React.FC = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        // Prepare for start exam attempt
-        if (!examId) {
+        if (!examId || !attemptId) {
           setQuestions([]);
           setLoadingQuestions(false);
           return;
         }
         setLoadingQuestions(true);
 
-        // Start attempt
-        const attemptResponse = await startExamAttempt(examId);
-        const attempt = attemptResponse;
-        if (attempt && attempt.status === 'submitted') {
-          toast.error('Bài thi đã kết thúc');
-          navigate(`/attempts/${attempt.id}/congratulation`, {
-            state: {
-              examId,
-              courseId: subjectId,
-              attemptId: attempt.id
-            }
-          });
-          return;
-        }
-        if (attempt && attempt.id) {
-          localStorage.setItem(`exam_attempt_${examId}`, attempt.id);
-          setAttemptId(attempt.id);
-        } else {
-          throw new Error('No attempt ID available');
-        }
-
-        if (attempt && attempt.status === 'out_of_attempt') {
-          toast.error('Đã hết số lần làm bài cho phép');
-          navigate(`/courses/${attempt.classId}/exams`, {
-            state: { subjectId: subjectId }
-          });
-          return;
-        }
-
         // Get exam details
-        const examDetailsResponse = await getExamAttemptDetails(attempt.id);
+        const examDetailsResponse = await getExamAttemptDetails(attemptId);
         setExam(examDetailsResponse);
 
         let formattedQuestions: Question[] = examDetailsResponse.questions.map((q: any) => ({
@@ -243,7 +242,7 @@ const DoExamPage: React.FC = () => {
             value: String(choice.value),
             text: choice.text,
           }));
-          if (attempt && 'shuffleChoice' in attempt && attempt.shuffleChoice && choices) {
+          if (examDetailsResponse && 'shuffleChoice' in examDetailsResponse && examDetailsResponse.shuffleChoice && choices) {
             choices = shuffleArray(choices);
           }
           const surveyJson: any = {
@@ -282,42 +281,45 @@ const DoExamPage: React.FC = () => {
 
         setSurveyModels(models);
 
-        if (attempt && attempt.status === 'in_progress' && attempt.startTime && attempt.duration !== undefined) {
-          const startTime = new Date(attempt.startTime);
-          const now = new Date();
-          const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-          const remainingSeconds = Math.max(0, attempt.duration * 60 - elapsedSeconds);
-          setTimeLeft(remainingSeconds);
-          setIsTimerActive(true);
-
-          if (attempt.savedAnswers) {
-            const updatedQuestions = [...formattedQuestions];
-            Object.entries(attempt.savedAnswers).forEach(([questionId, answer]) => {
-              const model = models[questionId];
-              if (model && answer !== "") {
-                model.setValue(`question_${questionId}`, isJsonString(answer) ? JSON.parse(answer) : answer);
-                const questionIndex = updatedQuestions.findIndex(q => q.id === questionId);
-                if (questionIndex !== -1) {
-                  updatedQuestions[questionIndex] = {
-                    ...updatedQuestions[questionIndex],
-                    selectedOptionIndex: 0
-                  };
-                }
-              }
-            });
-            formattedQuestions = updatedQuestions;
+        // Set timer and load saved answers
+        if (examDetailsResponse.duration > 0) {
+          if (examDetailsResponse.status === 'in_progress' && examDetailsResponse.startTime) {
+            const startTime = new Date(examDetailsResponse.startTime);
+            const now = new Date();
+            const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+            const remainingSeconds = Math.max(0, examDetailsResponse.duration * 60 - elapsedSeconds);
+            setTimeLeft(remainingSeconds);
+          } else {
+            setTimeLeft(examDetailsResponse.duration * 60);
           }
-        } else if (examDetailsResponse.duration > 0) {
-          setTimeLeft(examDetailsResponse.duration * 60);
           setIsTimerActive(true);
+        }
+
+        // Load saved answers
+        if (examDetailsResponse.answers) {
+          const updatedQuestions = [...formattedQuestions];
+          Object.entries(examDetailsResponse.answers).forEach(([questionId, answer]) => {
+            const model = models[questionId];
+            if (model && answer !== "") {
+              model.setValue(`question_${questionId}`, isJsonString(answer) ? JSON.parse(answer) : answer);
+              const questionIndex = updatedQuestions.findIndex(q => q.id === questionId);
+              if (questionIndex !== -1) {
+                updatedQuestions[questionIndex] = {
+                  ...updatedQuestions[questionIndex],
+                  selectedOptionIndex: 0
+                };
+              }
+            }
+          });
+          formattedQuestions = updatedQuestions;
         }
 
         setQuestions(formattedQuestions);
       } catch (error) {
-        console.error('Error fetching exam details or starting attempt:', error);
+        console.error('Error fetching exam details:', error);
         setQuestions([]);
         toast.error('Có lỗi xảy ra khi tải dữ liệu bài thi.');
-        exam ? navigate(`/courses/${exam?.classId}/exams/instructions`, { state: { examId, courseId: subjectId } }) : navigate(`/courses`, { state: { examId, courseId: subjectId } });
+        navigate(-1);
       } finally {
         setLoadingQuestions(false);
       }
@@ -371,6 +373,8 @@ const DoExamPage: React.FC = () => {
       }
     }
   };
+
+  console.log(exam?.duration);
 
   // answeredQuestionsCount
   const answeredQuestionsCount = useMemo(

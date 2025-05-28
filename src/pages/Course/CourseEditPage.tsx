@@ -121,9 +121,11 @@ const CourseEditPage: React.FC = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [_, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'general' | 'chapters' | 'members'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'chapters' | 'members' | 'topics'>('general');
   const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
   const [hidden, setHidden] = useState<boolean>(false);
+  const [allowPost, setAllowPost] = useState<boolean>(false);
+  const [approvePost, setApprovePost] = useState<boolean>(false);
   const { user } = useAuth();
 
   // State cho teacher assistants và students
@@ -166,6 +168,9 @@ const CourseEditPage: React.FC = () => {
         setCourseDescription(courseData.description);
 
         setChaptersData(courseData.chapters);
+
+        setAllowPost(courseData.allowStudentPost);
+        setApprovePost(courseData.requirePostApproval);
       } catch (error) {
         console.error('Failed to load course:', error);
         setError('Không thể tải dữ liệu khóa học.');
@@ -274,7 +279,9 @@ const CourseEditPage: React.FC = () => {
         description: courseDescription,
         hidden: hidden,
         teacherAssistantIds: selectedAssistants.map(ta => ta.id),
-        studentIds: selectedStudents.map(student => student.id)
+        studentIds: selectedStudents.map(student => student.id),
+        allowStudentPost: allowPost,
+        requirePostApproval: approvePost
       });
 
       toast.success('Cập nhật khóa học thành công!');
@@ -342,7 +349,6 @@ const CourseEditPage: React.FC = () => {
     setChaptersData(prev => prev.filter(chapter => chapter.id !== chapterId));
   };
 
-
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -387,6 +393,14 @@ const CourseEditPage: React.FC = () => {
                 >
                   <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${activeTab === 'members' ? 'text-[#0e141b]' : 'text-[#4e7397]'
                     }`}>Quản lý thành viên</p>
+                </button>
+                <button
+                  onClick={() => setActiveTab('topics')}
+                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'topics' ? 'border-b-[#1980e6] text-[#0e141b]' : 'border-b-transparent text-[#4e7397]'
+                    }`}
+                >
+                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${activeTab === 'topics' ? 'text-[#0e141b]' : 'text-[#4e7397]'
+                    }`}>Thảo luận</p>
                 </button>
               </div>
             </div>
@@ -459,13 +473,13 @@ const CourseEditPage: React.FC = () => {
 
             {activeTab === 'general' && (
               <>
-                {/* Privacy Section - vẫn ở tab thứ nhất */}
-                <div className="px-4"> {/* Thêm px-4 để căn chỉnh */}
+                {/* Privacy Section */}
+                <div className="px-4">
                   <h3 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em] pb-2 pt-4">Cài đặt</h3>
                   <p className="text-[#0e141b] text-base font-normal leading-normal pb-3 pt-1">
                     Khi khóa học là công khai, nó sẽ có thể tìm thấy bởi mọi học sinh. Khi khóa học bị ẩn, chỉ học sinh đã được thêm vào khóa học mới có thể nhìn thấy.
                   </p>
-                  <div className="flex flex-wrap gap-3 pb-4 pt-1"> {/* Đổi p-4 thành pb-4 pt-1 */}
+                  <div className="flex flex-wrap gap-3 pb-4 pt-1">
                     <label
                       className={`text-sm font-medium leading-normal flex items-center justify-center rounded-xl border px-4 h-11 text-[#0e141b] relative cursor-pointer ${hidden === false ? 'border-[3px] px-3.5 border-[#1980e6]' : 'border-[#d0dbe7]'
                         }`}
@@ -608,6 +622,74 @@ const CourseEditPage: React.FC = () => {
                       onApprove={handleApproveRequest}
                     />
                   ))}
+                </div>
+              </div>
+            )}
+
+
+            {activeTab === 'topics' && (
+              <div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-4 bg-slate-100/50 dark:bg-slate-800/30 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 min-h-[72px]">
+                    <div className="flex flex-col justify-center flex-grow">
+                      <p className="text-[#0d141c] dark:text-slate-100 text-base font-medium leading-normal line-clamp-1">
+                        Cho phép học sinh đăng post
+                      </p>
+                      <p className="text-[#49719c] dark:text-slate-400 text-sm font-normal leading-normal line-clamp-2">
+                        {allowPost ? 'Học sinh sẽ có thể đăng bài viết trong mục thảo luận.' : 'Chỉ giáo viên / trợ giảng được đăng bài viết trong mục thảo luận.'}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <label
+                        htmlFor="allowPost"
+                        className={`relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 ease-in-out 
+                          ${allowPost ? 'bg-[#0d7cf2] justify-end' : 'bg-[#cbd5e1] dark:bg-slate-600 justify-start'}`}
+                      >
+                        <span
+                          className={`block h-[27px] w-[27px] rounded-full bg-white dark:bg-slate-300 transition-transform duration-200 ease-in-out shadow-md`}
+                          style={{ boxShadow: 'rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px' }}
+                        />
+                        <input
+                          type="checkbox"
+                          id="allowPost"
+                          name="allowPost"
+                          checked={!!allowPost}
+                          onChange={() => setAllowPost(!allowPost)}
+                          className="invisible absolute opacity-0 w-0 h-0"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 bg-slate-100/50 dark:bg-slate-800/30 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 min-h-[72px]">
+                    <div className="flex flex-col justify-center flex-grow">
+                      <p className="text-[#0d141c] dark:text-slate-100 text-base font-medium leading-normal line-clamp-1">
+                        Phê duyệt bài viết
+                      </p>
+                      <p className="text-[#49719c] dark:text-slate-400 text-sm font-normal leading-normal line-clamp-2">
+                        {approvePost ? 'Bài viết của học sinh sẽ được phê duyệt bởi giáo viên / trợ giảng trước khi được hiển thị.' : 'Bài viết của học sinh sẽ được hiển thị ngay lập tức.'}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <label
+                        htmlFor="approvePost"
+                        className={`relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 ease-in-out 
+                          ${approvePost ? 'bg-[#0d7cf2] justify-end' : 'bg-[#cbd5e1] dark:bg-slate-600 justify-start'}`}
+                      >
+                        <span
+                          className={`block h-[27px] w-[27px] rounded-full bg-white dark:bg-slate-300 transition-transform duration-200 ease-in-out shadow-md`}
+                          style={{ boxShadow: 'rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px' }}
+                        />
+                        <input
+                          type="checkbox"
+                          id="approvePost"
+                          name="approvePost"
+                          checked={!!approvePost}
+                          onChange={() => setApprovePost(!approvePost)}
+                          className="invisible absolute opacity-0 w-0 h-0"
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

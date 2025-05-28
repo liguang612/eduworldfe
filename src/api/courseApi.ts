@@ -17,6 +17,8 @@ export type Course = {
   reviewIds: string[];
   averageRating: number;
   hidden: boolean;
+  allowStudentPost: boolean;
+  requirePostApproval: boolean;
 }
 
 export interface Chapter {
@@ -194,6 +196,8 @@ export const updateCourse = async (courseId: string, courseData: {
   hidden: boolean;
   teacherAssistantIds: string[];
   studentIds: string[];
+  allowStudentPost: boolean;
+  requirePostApproval: boolean;
 }): Promise<Course> => {
   try {
     const token = localStorage.getItem('token');

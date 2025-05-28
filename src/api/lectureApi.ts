@@ -70,7 +70,7 @@ export const uploadFile = async (file: File, type: string): Promise<string> => {
     },
   });
 
-  return response.data.url; // Giả sử API trả về URL của file đã upload
+  return response.data.url;
 };
 
 export const createLecture = async (lectureData: {

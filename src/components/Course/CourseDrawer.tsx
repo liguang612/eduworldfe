@@ -36,7 +36,7 @@ const CourseDrawer: React.FC = () => {
           <div className="flex flex-col gap-2">
             <DrawerItem to={`/courses/${courseId}/lectures`} label="Bài giảng" />
             <DrawerItem to={`/courses/${courseId}/exams`} label="Đề thi" />
-            {/* <DrawerItem to={`/courses/${courseId}/discussions`} label="Thảo luận" /> */}
+            <DrawerItem to={`/courses/${courseId}/topics`} label="Thảo luận" />
             <DrawerItem to={`/courses/${courseId}/reviews`} label="Đánh giá" />
 
           </div>

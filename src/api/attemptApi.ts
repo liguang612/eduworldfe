@@ -6,39 +6,36 @@ const API_URL = '/api/exam-attempts';
 // Attempt API functions
 export interface ExamAttempt {
   id: string;
-  examId?: string; // examId might be null for some attempts
+  examId?: string;
   classId: string;
-  duration?: number; // duration might be null for completed attempts
+  duration?: number;
   maxScore: number;
   title: string;
-  userId?: string; // userId might not be needed on frontend
+  userId?: string;
   startTime: string;
   endTime?: string;
   status: 'in_progress' | 'started' | 'submitted' | string;
-  score?: number | null; // score can be null for in_progress attempts
+  score?: number | null;
   createdAt: string;
   updatedAt: string;
   savedAnswers?: { [questionId: string]: any };
-  className: string; // Added className based on API response
+  className: string;
 }
 
 export interface ExamAttemptDetails extends ExamAttempt {
-  // Inherits properties from ExamAttempt
-  duration: number; // Override to non-optional if always present in details
-  title: string; // Override to non-optional
+  duration: number;
+  title: string;
   easyScore?: number;
   mediumScore?: number;
   hardScore?: number;
   veryHardScore?: number;
-  classId: string; // Override to non-optional
-  createdAt: string; // Override to non-optional
-  updatedAt: string; // Override to non-optional
-  savedAnswers?: { [questionId: string]: any }; // Override to non-optional
-  // Thêm các trường mới từ API response
+  classId: string;
+  createdAt: string;
+  updatedAt: string;
+  savedAnswers?: { [questionId: string]: any };
   answers: { [key: string]: any };
   questions: Question[];
   correctAnswers: { [key: string]: any };
-  // Thêm thông tin học sinh
   studentName: string;
   studentEmail: string;
   studentAvatar: string;

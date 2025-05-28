@@ -167,7 +167,7 @@ const CourseDetailPage: React.FC = () => {
             {course && (
               <div className="flex flex-wrap justify-between items-center gap-3 pb-4 mb-4 border-b border-slate-200 sticky top-0 bg-slate-50 z-10 px-1">
                 <div className="flex-grow min-w-0">
-                  <h1 className="text-xl md:text-2xl font-bold text-[#0d141c] truncate" title={course.name}>{course.name}</h1>
+                  <p className="text-4xl font-bold text-[#0d141c] truncate" title={course.name}>{course.name}</p>
                   {subject && <p className="text-sm text-gray-500">{`${subject.name} - Lớp ${subject.grade}`}</p>}
                 </div>
                 {userRole === 1 && (

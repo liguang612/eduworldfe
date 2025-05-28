@@ -35,7 +35,7 @@ const QuestionBankPage: React.FC = () => {
     const savedSubjectId = localStorage.getItem('selectedSubjectId');
     return savedSubjectId || '';
   });
-  const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [searchKeyword, _] = useState<string>('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchInput, setSearchInput] = useState<string>('');
 

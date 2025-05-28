@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getExamAttemptsByStatus, type ExamAttempt } from '@/api/attemptApi';
+import { getExamAttemptsByStatus, startExamAttempt, type ExamAttempt } from '@/api/attemptApi';
 
-// Định nghĩa kiểu cho các tab
 interface TabInfo {
   id: string;
   label: string;
 }
 
-// Component Circular Progress Bar
 interface CircularProgressProps {
   percentage: number;
   sqSize?: number;
@@ -91,23 +89,19 @@ const AttemptListPage: React.FC = () => {
           const timeA = a.endTime ? new Date(a.endTime).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0);
           const timeB = b.endTime ? new Date(b.endTime).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0);
 
-          // If both have endTime, compare endTime descending
           if (a.endTime && b.endTime) {
             return timeB - timeA;
           }
-          // If only a has endTime, a comes first
           if (a.endTime && !b.endTime) {
             return -1;
           }
-          // If only b has endTime, b comes first
           if (!a.endTime && b.endTime) {
             return 1;
           }
-          // If neither has endTime, compare startTime descending
           if (a.startTime && b.startTime) {
             return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
           }
-          return 0; // Keep original order if no valid times
+          return 0;
         });
 
         setAttempts(sortedData);
@@ -130,11 +124,15 @@ const AttemptListPage: React.FC = () => {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }).replace(',', ' -'); // Format as HH:mm - DD/MM/YYYY
+    }).replace(',', ' -');
   };
 
-  const handleViewAttemptDetail = (attemptId: string) => {
-    navigate(`/attempt/${attemptId}`);
+  const handleViewAttemptDetail = async (attempt: ExamAttempt) => {
+    if (activeTab === 'in_progress') {
+      navigate(`/courses/${attempt.classId}/exams/${attempt.examId}/do`);
+    } else {
+      navigate(`/attempt/${attempt.id}`);
+    }
   };
 
   return (
@@ -194,7 +192,7 @@ const AttemptListPage: React.FC = () => {
                   return (
                     <div
                       key={item.id}
-                      onClick={() => handleViewAttemptDetail(item.id)}
+                      onClick={() => handleViewAttemptDetail(item)}
                       className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow duration-200 border border-gray-200 cursor-pointer"
                     >
                       <div className="shrink-0">

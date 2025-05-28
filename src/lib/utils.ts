@@ -89,3 +89,20 @@ export function checkAnswerCorrectness(
       return String(userAnswer) === String(correctAnswer);
   }
 }
+
+export function translateMessage(message: string) {
+  switch (message) {
+    case 'An unexpected error occurred: Not authorized to update this post':
+      return 'Bạn không có quyền chỉnh sửa bài viết này';
+    case 'An unexpected error occurred: Not authorized to delete this post':
+      return 'Bạn không có quyền xóa bài viết này';
+    case 'An unexpected error occurred: Not authorized to approve this post':
+      return 'Bạn không có quyền phê duyệt bài viết này';
+    case 'An unexpected error occurred: Not authorized to delete this comment':
+      return 'Bạn không có quyền xóa bình luận này';
+    case 'An unexpected error occurred: Not authorized to edit this comment':
+      return 'Bạn không có quyền chỉnh sửa bình luận này';
+    default:
+      return message;
+  }
+}
