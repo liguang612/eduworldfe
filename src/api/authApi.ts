@@ -29,6 +29,21 @@ export interface RegisterPayload {
   avatar?: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+  role?: number;
+  birthday?: string;
+  school?: string;
+  grade?: number;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isVerified?: boolean;
+}
+
 export const registerUser = async (payload: FormData) => {
   const response = await axios.post(`${API_URL}/register`, payload, {
     headers: {
@@ -39,7 +54,11 @@ export const registerUser = async (payload: FormData) => {
 };
 
 export const getUser = async (userId: string) => {
-  const response = await axios.get(`${API_URL}/users/${userId}`);
+  const response = await axios.get(`${API_URL}/users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  });
   return response.data;
 };
 

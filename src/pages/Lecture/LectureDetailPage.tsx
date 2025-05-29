@@ -7,7 +7,7 @@ import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Duration from '@/assets/duration.svg';
-import User from '@/assets/user.svg';
+import UserIcon from '@/assets/user.svg';
 import RatingStars from '@/components/Common/RatingStars';
 import type { LectureResponse } from '@/api/lectureApi';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,8 @@ import SendIcon from '@/assets/send.svg';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
 import { baseURL } from '@/config/axios';
+import ProfileDialog from '@/components/Auth/UserInformationPopup';
+import type { User } from '@/contexts/AuthContext';
 
 const LectureDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +37,17 @@ const LectureDetailPage: React.FC = () => {
   const [statistics, setStatistics] = useState<ReviewStatistics | null>(null);
   const [expandedComments, setExpandedComments] = useState<{ [key: string]: boolean }>({});
   const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
+
+  // State for user information popup
+  const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const handleTeacherClick = () => {
+    if (lecture?.teacher) {
+      setSelectedUser(lecture.teacher);
+      setIsUserPopupOpen(true);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -229,8 +242,11 @@ const LectureDetailPage: React.FC = () => {
                 <img src={Duration} alt="Duration" />
                 <p className="text-[#4e7397] text-sm font-normal leading-normal px-4">{lecture.duration} min</p>
               </div>
-              <div className="flex flex-row items-center">
-                <img src={User} alt="User" />
+              <div
+                className="flex flex-row items-center cursor-pointer"
+                onClick={handleTeacherClick}
+              >
+                <img src={UserIcon} alt="User" />
                 <p className="text-[#4e7397] text-sm font-normal leading-normal px-4">{lecture.teacher.name}</p>
               </div>
               <div className="flex flex-5" />
@@ -455,6 +471,13 @@ const LectureDetailPage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* User Information Popup (ProfileDialog) */}
+            <ProfileDialog
+              isOpen={isUserPopupOpen}
+              onClose={() => setIsUserPopupOpen(false)}
+              user={selectedUser}
+            />
           </div>
         </div>
       </div>

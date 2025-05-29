@@ -5,115 +5,12 @@ import type { Chapter, Course } from '@/api/courseApi';
 import { SearchableDialog } from '@/components/Common/SearchableDialog';
 import { InputDialog } from '@/components/Common/InputDialog';
 import AddIcon from '@/assets/add.svg';
-import RemoveIcon from '@/assets/remove.svg';
-import ApproveIcon from '@/assets/approve.svg';
-import RejectIcon from '@/assets/reject.svg';
 import { toast, ToastContainer } from 'react-toastify';
 import { baseURL } from '@/config/axios';
 import { ChapterItem } from '@/components/Course/ChapterItem';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface MemberItemProps {
-  id: string;
-  name: string;
-  avatar: string;
-  email: string;
-  onRemove: ((id: string) => void) | undefined;
-  onReject: (id: string) => void;
-  onApprove: (id: string) => void;
-}
-
-const AssistantItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onRemove }) => {
-  return (
-    <div
-      key={id}
-      className="w-full sm:w-[calc((100%_-_16px)_/_2)] lg:w-[calc((100%_-_32px)_/_3)] bg-slate-50 px-4 py-2 min-h-[72px] rounded-lg flex items-center justify-between"
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
-        ></div>
-        <div className="flex flex-col justify-center">
-          <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
-          <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
-        </div>
-      </div>
-      {onRemove && <button
-        type="button"
-        onClick={() => onRemove(id)}
-        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
-        aria-label="Remove member"
-      >
-        <img src={RemoveIcon} alt="Remove" className="size-5" />
-      </button>}
-    </div>
-  );
-};
-
-const StudentItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onRemove }) => {
-  return (
-    <div
-      key={id}
-      className="w-full sm:w-[calc((100%_-_16px)_/_2)] lg:w-[calc((100%_-_32px)_/_3)] bg-slate-50 px-4 py-2 min-h-[72px] rounded-lg flex items-center justify-between"
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
-        ></div>
-        <div className="flex flex-col justify-center">
-          <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
-          <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
-        </div>
-      </div>
-      {onRemove && <button
-        type="button"
-        onClick={() => onRemove(id)}
-        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
-        aria-label="Remove member"
-      >
-        <img src={RemoveIcon} alt="Remove" className="size-5" />
-      </button>}
-    </div>
-  );
-};
-
-const RequestItem: React.FC<MemberItemProps> = ({ id, name, avatar, email, onReject, onApprove }) => {
-  return (
-    <div
-      key={id}
-      className="w-full sm:w-[calc((100%_-_16px)_/_2)] lg:w-[calc((100%_-_32px)_/_3)] bg-slate-50 px-4 py-2 min-h-[72px] rounded-lg flex items-center justify-between"
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
-        ></div>
-        <div className="flex flex-col justify-center">
-          <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
-          <p className="text-[#4e7397] text-sm font-normal leading-normal line-clamp-2">{email}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={() => onReject(id)}
-        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
-        aria-label="Reject request"
-      >
-        <img src={RejectIcon} alt="Reject" className="size-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onApprove(id)}
-        className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
-        aria-label="Approve request"
-      >
-        <img src={ApproveIcon} alt="Approve" className="size-5" />
-      </button>
-    </div>
-  );
-};
+import ProfileDialog from '@/components/Auth/UserInformationPopup';
+import { AssistantItem, StudentItem, RequestItem } from '@/components/Course/CourseMemberItems';
 
 const CourseEditPage: React.FC = () => {
   const { id: courseId } = useParams<{ id: string }>();
@@ -127,6 +24,10 @@ const CourseEditPage: React.FC = () => {
   const [allowPost, setAllowPost] = useState<boolean>(false);
   const [approvePost, setApprovePost] = useState<boolean>(false);
   const { user } = useAuth();
+
+  // State for user information popup
+  const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null);
 
   // State cho teacher assistants và students
   const [isTeacherSearchOpen, setIsTeacherSearchOpen] = useState(false);
@@ -148,6 +49,14 @@ const CourseEditPage: React.FC = () => {
   // New state for course name and description
   const [courseName, setCourseName] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
+
+  const handleUserSelected = (userId: string) => {
+    const user = [...selectedAssistants, ...selectedStudents, ...pendingRequests].find(u => u.id === userId);
+    if (user) {
+      setSelectedUser(user);
+      setIsUserPopupOpen(true);
+    }
+  };
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -572,6 +481,7 @@ const CourseEditPage: React.FC = () => {
                       avatar={assistant.avatar}
                       email={assistant.email}
                       onRemove={course.teacher?.id === user?.id ? (id) => setSelectedAssistants(prev => prev.filter(t => t.id !== id)) : undefined}
+                      onSelect={handleUserSelected}
                       onReject={(_) => { }}
                       onApprove={(_) => { }}
                     />
@@ -599,6 +509,7 @@ const CourseEditPage: React.FC = () => {
                       avatar={student.avatar}
                       email={student.email}
                       onRemove={(id) => setSelectedStudents(prev => prev.filter(s => s.id !== id))}
+                      onSelect={handleUserSelected}
                       onReject={(_) => { }}
                       onApprove={(_) => { }}
                     />
@@ -617,6 +528,7 @@ const CourseEditPage: React.FC = () => {
                       name={request.name}
                       avatar={request.avatar}
                       email={request.email}
+                      onSelect={handleUserSelected}
                       onRemove={(_) => { }}
                       onReject={handleRejectRequest}
                       onApprove={handleApproveRequest}
@@ -738,6 +650,13 @@ const CourseEditPage: React.FC = () => {
         submitButtonText="Tạo"
       />
       <ToastContainer />
+
+      {/* User Information Popup (ProfileDialog) */}
+      <ProfileDialog
+        isOpen={isUserPopupOpen}
+        onClose={() => setIsUserPopupOpen(false)}
+        user={selectedUser}
+      />
     </div>
   );
 };

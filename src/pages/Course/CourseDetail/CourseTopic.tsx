@@ -177,6 +177,8 @@ const CourseTopic: React.FC = () => {
     }
   };
 
+
+
   if (!user) {
     return <div className="text-center py-20 text-gray-600">Please log in to view this content.</div>;
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { CourseDetailContextType } from '../Course/CourseDetailPage';
+import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';
@@ -8,6 +8,8 @@ import SendIcon from '@/assets/send.svg';
 import { baseURL } from '@/config/axios';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
+import type { User } from '@/api/authApi';
+import ProfileDialog from '@/components/Auth/UserInformationPopup';
 
 const CourseReviewsPage: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
@@ -26,6 +28,19 @@ const CourseReviewsPage: React.FC = () => {
   const [statistics, setStatistics] = useState<ReviewStatistics | null>(null);
   const [expandedComments, setExpandedComments] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+    setIsUserPopupOpen(true);
+  };
+
+  const handleCloseUserPopup = () => {
+    setIsUserPopupOpen(false);
+    setSelectedUser(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -225,7 +240,7 @@ const CourseReviewsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-[#0d141c] mb-3">Đánh giá của bạn</h3>
             {submittedReview && !isEditingReview ? (
               <div>
-                <div className="flex items-center mb-1">
+                <div className="flex items-center mb-1 cursor-pointer" onClick={() => handleUserClick(user!)}>
                   <img src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
                   <span className="font-semibold text-[#0d141b] mr-2">{submittedReview.userName}</span>
                   <span className="text-xs text-gray-500">
@@ -305,7 +320,14 @@ const CourseReviewsPage: React.FC = () => {
           <h3 className="text-lg font-semibold text-[#0d141c]">Tất cả đánh giá</h3>
           {reviews.map((review) => (
             <div key={review.id} className="p-4 border border-gray-200 rounded-md bg-white">
-              <div className="flex items-center mb-1 ">
+              <div className="flex items-center mb-1 cursor-pointer" onClick={() => handleUserClick({
+                id: review.userId,
+                name: review.userName,
+                avatar: review.userAvatar,
+                school: review.userSchool,
+                grade: review.userGrade,
+                role: review.userRole,
+              })}>
                 <img src={`${baseURL}${review.userAvatar}`} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
                 <span className="font-semibold text-[#0d141b] mr-2">{review.userName}</span>
                 {renderUserRoleChip(review.userId)}
@@ -340,7 +362,14 @@ const CourseReviewsPage: React.FC = () => {
                   <div className="mt-4 space-y-3">
                     {comments[review.id]?.map((comment) => (
                       <div key={comment.id} className={`pl-4 border-l-2 ${comment.userRole === 1 || comment.userRole === 2 ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
-                        <div className="flex items-center mb-1">
+                        <div className="flex items-center mb-1 cursor-pointer" onClick={() => handleUserClick({
+                          id: comment.userId,
+                          name: comment.userName,
+                          avatar: comment.userAvatar,
+                          school: comment.userSchool,
+                          grade: comment.userGrade,
+                          role: comment.userRole,
+                        })}>
                           <img src={`${baseURL}${comment.userAvatar}`} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
                           <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
                           {renderUserRoleChip(comment.userId)}
@@ -389,6 +418,7 @@ const CourseReviewsPage: React.FC = () => {
         </div>
       </div>
       <ToastContainer />
+      {selectedUser && <ProfileDialog user={selectedUser} isOpen={isUserPopupOpen} onClose={handleCloseUserPopup} />}
     </div>
   );
 };

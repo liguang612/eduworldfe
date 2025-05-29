@@ -2,18 +2,9 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import type { User as ApiUser } from '@/api/authApi';
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role?: number;
-  birthday?: string;
-  school?: string;
-  grade?: number;
-  address?: string;
-}
+export interface User extends ApiUser { }
 
 interface AuthContextType {
   user: User | null;

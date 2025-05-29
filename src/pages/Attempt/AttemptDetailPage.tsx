@@ -14,6 +14,8 @@ import DotFillTrueIcon from '@/assets/dot_fill_true.svg';
 import DotFillFalseIcon from '@/assets/dot_fill_false.svg';
 import DotFillIcon from '@/assets/dot_fill.svg';
 import { checkAnswerCorrectness } from '@/lib/utils';
+import ProfileDialog from '@/components/Auth/UserInformationPopup';
+import type { User } from '@/contexts/AuthContext';
 
 const AttemptDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +29,10 @@ const AttemptDetailPage: React.FC = () => {
   const [sortedQuestions, setSortedQuestions] = useState<Question[]>([]);
   const [currentSharedMedia, setCurrentSharedMedia] = useState<SharedMedia | null>(null);
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
+
+  // State for user information popup
+  const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // Hàm để nhóm các câu hỏi theo sharedMedia
   const groupQuestionsBySharedMedia = useCallback((questions: Question[] | undefined) => {
@@ -275,15 +281,31 @@ const AttemptDetailPage: React.FC = () => {
               <div className="flex flex-col gap-4">
                 {/* User Info & Exam Icon */}
                 <div className="flex gap-3 items-center">
-                  <img
-                    src={`${baseURL}${attemptDetail.studentAvatar}`}
-                    alt="avatar"
-                    className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
-                  />
-                  <div className="flex flex-col">
-                    <h2 className="text-[#0e141b] text-sm text-[18px] font-medium leading-normal">{attemptDetail.studentName}</h2>
-                    <p className="text-[#49719c] text-sm font-normal leading-normal">{attemptDetail.studentEmail}</p>
-                    <p className="text-[#49719c] text-xs font-normal leading-normal">{attemptDetail.studentSchool}</p>
+                  <div
+                    className="flex gap-3 items-center cursor-pointer"
+                    onClick={() => {
+                      if (attemptDetail?.userId && attemptDetail.studentName && attemptDetail.studentAvatar && attemptDetail.studentEmail) {
+                        const studentUser = {
+                          id: attemptDetail.userId,
+                          name: attemptDetail.studentName,
+                          avatar: attemptDetail.studentAvatar,
+                          email: attemptDetail.studentEmail,
+                        };
+                        setSelectedUser(studentUser as User);
+                        setIsUserPopupOpen(true);
+                      }
+                    }}
+                  >
+                    <img
+                      src={`${baseURL}${attemptDetail.studentAvatar}`}
+                      alt="avatar"
+                      className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
+                    />
+                    <div className="flex flex-col">
+                      <h2 className="text-[#0e141b] text-sm text-[18px] font-medium leading-normal">{attemptDetail.studentName}</h2>
+                      <p className="text-[#49719c] text-sm font-normal leading-normal">{attemptDetail.studentEmail}</p>
+                      <p className="text-[#49719c] text-xs font-normal leading-normal">{attemptDetail.studentSchool}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -472,6 +494,13 @@ const AttemptDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* User Information Popup (ProfileDialog) */}
+      <ProfileDialog
+        isOpen={isUserPopupOpen}
+        onClose={() => setIsUserPopupOpen(false)}
+        user={selectedUser}
+      />
     </div>
   );
 };

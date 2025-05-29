@@ -145,6 +145,7 @@ const SolutionPage: React.FC = () => {
   }
 
   const selectedSolution = solutions.find(s => s.id === selectedSolutionId) || null;
+  const finalSelectedSolution = selectedSolution || pendingSolutions.find(s => s.id === selectedSolutionId) || null;
 
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden">
@@ -233,7 +234,7 @@ const SolutionPage: React.FC = () => {
 
         {/* Right Column - Preview Pane */}
         <div className="flex-[50%] sticky top-0 h-screen">
-          <SolutionPreviewPane solution={selectedSolution} onDelete={handleDeleteSolution} questionAuthorId={question?.createdBy} />
+          <SolutionPreviewPane solution={finalSelectedSolution} onDelete={handleDeleteSolution} questionAuthorId={question?.createdBy} />
         </div>
       </div>
       <Outlet />
