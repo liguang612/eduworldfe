@@ -6,7 +6,6 @@ import { uploadFile, getLectureById, updateLecture, searchQuestions } from '@/ap
 import { getQuestionsDetails, type Question } from '@/api/questionApi';
 import type { LectureResponse } from '@/api/lectureApi';
 import { toast, ToastContainer } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 import AddIcon from '@/assets/add.svg';
 import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti';
 import { useAuth } from '@/contexts/AuthContext';
@@ -104,7 +103,7 @@ const LectureEditPage: React.FC = () => {
         setStatusMessage(`Đang tải ${metadata[0] === 'image' ? 'hình ảnh' : metadata[0] === 'video' ? 'video' : metadata[0] === 'audio' ? 'âm thanh' : 'file'}`);
         const fileUrl = await uploadFile(file, metadata[0]);
 
-        content.url = `${baseURL}${fileUrl}`;
+        content.url = `${fileUrl}`;
         delete content.placeholderId;
       }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import axios, { baseURL } from "@/config/axios";
+import axios from "@/config/axios";
 import { toast } from "react-toastify";
 import { updateUserAvatar } from "@/api/authApi";
 
@@ -50,7 +50,7 @@ export default function AccountPage() {
     };
 
     fetchUserData();
-    if (user?.avatar) setSelectedAvatarPreview(`${baseURL}${user?.avatar}`);
+    if (user?.avatar) setSelectedAvatarPreview(`${user?.avatar}`);
   }, [user?.id]);
 
   const handleAvatarClick = () => {

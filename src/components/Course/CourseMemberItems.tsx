@@ -2,7 +2,6 @@ import React from 'react';
 import RemoveIcon from '@/assets/remove.svg';
 import ApproveIcon from '@/assets/approve.svg';
 import RejectIcon from '@/assets/reject.svg';
-import { baseURL } from '@/config/axios';
 
 interface MemberItemProps {
   id: string;
@@ -25,7 +24,7 @@ export const AssistantItem: React.FC<MemberItemProps> = ({ id, name, avatar, ema
       <div className="flex items-center gap-4">
         <div
           className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
+          style={{ backgroundImage: `url("${avatar ? `${avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'U')}")` }}
         ></div>
         <div className="flex flex-col justify-center">
           <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
@@ -54,7 +53,7 @@ export const StudentItem: React.FC<MemberItemProps> = ({ id, name, avatar, email
       <div className="flex items-center gap-4">
         <div
           className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
+          style={{ backgroundImage: `url("${avatar ? `${avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'U')}")` }}
         ></div>
         <div className="flex flex-col justify-center">
           <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>
@@ -83,7 +82,7 @@ export const RequestItem: React.FC<MemberItemProps> = ({ id, name, avatar, email
       <div className="flex items-center gap-4">
         <div
           className="bg-center bg-no-repeat bg-cover aspect-square h-14 w-14 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${avatar}")` }}
+          style={{ backgroundImage: `url("${avatar ? `${avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'U')}")` }}
         ></div>
         <div className="flex flex-col justify-center">
           <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{name}</p>

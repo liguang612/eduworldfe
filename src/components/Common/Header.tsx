@@ -85,7 +85,7 @@ const Header: React.FC<HeaderProps> = () => {
               onClick={() => setMenuOpen((open) => !open)}
             >
               <img
-                src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
+                src={user?.avatar ? `${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
                 alt="avatar"
                 className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
               />

@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Solution } from '@/api/solutionApi';
-import { baseURL } from '@/config/axios';
 
 interface SolutionListItemProps {
   solution: Solution;
@@ -17,7 +16,7 @@ const SolutionListItem: React.FC<SolutionListItemProps> = ({ solution, isSelecte
     >
       <div className="flex items-center gap-4 flex-grow">
         {solution.creatorAvatar ? (
-          <img src={`${baseURL}${solution.creatorAvatar}`} alt={solution.creatorName} className="h-14 w-14 rounded-full object-cover" />
+          <img src={`${solution.creatorAvatar}`} alt={solution.creatorName} className="h-14 w-14 rounded-full object-cover" />
         ) : (
           <div className="flex items-center justify-center bg-blue-200 text-blue-700 rounded-full h-14 w-14 shrink-0 text-xl font-bold">
             {solution.creatorName.charAt(0).toUpperCase()}

@@ -51,7 +51,7 @@ const SolutionPreviewPane: React.FC<SolutionPreviewPaneProps> = ({ solution, onD
             }}
           >
             {solution.creatorAvatar ? (
-              <img src={`${baseURL}${solution.creatorAvatar}`} alt={solution.creatorName} className="h-12 w-12 rounded-full object-cover" />
+              <img src={`${solution.creatorAvatar}`} alt={solution.creatorName} className="h-12 w-12 rounded-full object-cover" />
             ) : (
               <div className="flex items-center justify-center rounded-full h-12 w-12 text-xl font-bold bg-blue-200 text-blue-700">
                 {solution.creatorName.charAt(0).toUpperCase()}

@@ -6,7 +6,6 @@ import { SearchableDialog } from '@/components/Common/SearchableDialog';
 import { InputDialog } from '@/components/Common/InputDialog';
 import AddIcon from '@/assets/add.svg';
 import { toast, ToastContainer } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 import { ChapterItem } from '@/components/Course/ChapterItem';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
@@ -67,7 +66,7 @@ const CourseEditPage: React.FC = () => {
       try {
         const courseData = await getCourseById(courseId);
         setCourse(courseData);
-        setSelectedAvatarPreview(courseData.avatar ? `${baseURL}${courseData.avatar}` : '');
+        setSelectedAvatarPreview(courseData.avatar ? `${courseData.avatar}` : '');
         setHidden(courseData.hidden);
         setSelectedAssistants(courseData.teacherAssistants);
         setSelectedStudents(courseData.students);
@@ -143,7 +142,7 @@ const CourseEditPage: React.FC = () => {
       <div className="flex items-center gap-4">
         <div
           className="bg-center bg-no-repeat bg-cover aspect-square h-12 w-12 rounded-full"
-          style={{ backgroundImage: `url("${baseURL}${user.avatar}")` }}
+          style={{ backgroundImage: `url("${user.avatar}")` }}
         ></div>
         <div className="flex flex-col justify-center">
           <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{user.name}</p>

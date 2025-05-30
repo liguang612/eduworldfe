@@ -56,50 +56,44 @@ const DoExamPage: React.FC = () => {
 
   useEffect(() => {
     if (examId) {
-      if (locationAttemptId) {
-        setAttemptId(locationAttemptId);
-      } else {
-        const savedAttemptId = localStorage.getItem(`exam_attempt_${examId}_user_${user?.id}`);
-        if (savedAttemptId) {
-          setAttemptId(savedAttemptId);
-        } else {
-          const startNewAttempt = async () => {
-            try {
-              const attempt = await startExamAttempt(examId);
-              if (attempt && attempt.status === 'submitted') {
-                toast.error('Bài thi đã kết thúc');
-                navigate(`/attempts/${attempt.id}/congratulation`, {
-                  state: {
-                    examId,
-                    courseId: subjectId,
-                    attemptId: attempt.id
-                  }
-                });
-                return;
+      const startNewAttempt = async () => {
+        try {
+          const attempt = await startExamAttempt(examId);
+          if (attempt && attempt.status === 'submitted') {
+            toast.error('Bài thi đã kết thúc');
+            localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
+            navigate(`/attempts/${attempt.id}/congratulation`, {
+              state: {
+                examId,
+                courseId: subjectId,
+                attemptId: attempt.id
               }
-              if (attempt && attempt.id) {
-                localStorage.setItem(`exam_attempt_${examId}_user_${user?.id}`, attempt.id);
-                setAttemptId(attempt.id);
-              } else {
-                throw new Error('No attempt ID available');
-              }
+            });
+            return;
+          }
+          if (attempt && attempt.id) {
+            localStorage.setItem(`exam_attempt_${examId}_user_${user?.id}`, attempt.id);
+            setAttemptId(attempt.id);
+          } else {
+            throw new Error('No attempt ID available');
+          }
 
-              if (attempt && attempt.status === 'out_of_attempt') {
-                toast.error('Đã hết số lần làm bài cho phép');
-                navigate(`/courses/${attempt.classId}/exams`, {
-                  state: { subjectId: subjectId }
-                });
-                return;
-              }
-            } catch (error) {
-              console.error('Error starting exam attempt:', error);
-              toast.error('Không thể bắt đầu bài thi. Vui lòng thử lại sau.');
-              navigate(-1);
-            }
-          };
-          startNewAttempt();
+          if (attempt && attempt.status === 'out_of_attempt') {
+            toast.error('Đã hết số lần làm bài cho phép');
+            localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
+            navigate(`/courses/${attempt.classId}/exams`, {
+              state: { subjectId: subjectId }
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('Error starting exam attempt:', error);
+          toast.error('Không thể bắt đầu bài thi. Vui lòng thử lại sau.');
+          localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
+          navigate(-1);
         }
-      }
+      };
+      startNewAttempt();
     }
   }, [examId, locationAttemptId, navigate, subjectId, user?.id]);
 
@@ -374,8 +368,6 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  console.log(exam?.duration);
-
   // answeredQuestionsCount
   const answeredQuestionsCount = useMemo(
     () => {
@@ -401,8 +393,6 @@ const DoExamPage: React.FC = () => {
       if (!attemptId || !questionId) return;
       setSaveStatus('saving');
       try {
-        console.log(attemptId, questionId, answer);
-        // return;
         await saveExamAnswer(attemptId, questionId, answer);
         setSaveStatus('saved');
         setLastSavedTime(new Date());
@@ -649,20 +639,20 @@ const DoExamPage: React.FC = () => {
                 )}
                 {currentSharedMedia.mediaType === 1 && currentSharedMedia.mediaUrl && (
                   <img
-                    src={`${baseURL}${currentSharedMedia.mediaUrl}`}
+                    src={`${currentSharedMedia.mediaUrl}`}
                     alt="Question media"
                     className="max-w-full h-auto rounded-md"
                   />
                 )}
                 {currentSharedMedia.mediaType === 2 && currentSharedMedia.mediaUrl && (
                   <audio controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
+                    <source src={`${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
                     Định dạng file không được hỗ trợ
                   </audio>
                 )}
                 {currentSharedMedia.mediaType === 3 && currentSharedMedia.mediaUrl && (
                   <video controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="video/mp4" />
+                    <source src={`${currentSharedMedia.mediaUrl}`} type="video/mp4" />
                     Định dạng file không được hỗ trợ
                   </video>
                 )}

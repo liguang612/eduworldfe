@@ -1,7 +1,6 @@
 import React from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import type { Chapter } from '@/api/courseApi';
-import { baseURL } from '@/config/axios';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 
 const CourseLectures: React.FC = () => {
@@ -23,7 +22,7 @@ const CourseLectures: React.FC = () => {
         <div
           className="bg-center bg-no-repeat aspect-video md:aspect-square bg-cover rounded-xl h-40 w-full md:h-32 md:w-32 shrink-0"
           style={{
-            backgroundImage: course.avatar ? `url("${baseURL}${course.avatar}")` : 'none',
+            backgroundImage: course.avatar ? `url("${course.avatar}")` : 'none',
             backgroundColor: course.avatar ? 'transparent' : '#e7edf3'
           }}
         ></div>
@@ -37,13 +36,13 @@ const CourseLectures: React.FC = () => {
           <div className="text-[#4e7397] text-base font-normal leading-normal">
             Môn học: {subject ? `${subject.name} - Lớp ${subject.grade}` : 'N/A'}
           </div>
-          {role === 0 && (
+          {/* {role === 0 && (
             <div className="mt-3">
               <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
                 <span className="truncate">Thêm vào danh sách yêu thích</span>
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

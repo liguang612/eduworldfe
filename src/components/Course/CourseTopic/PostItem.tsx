@@ -3,7 +3,6 @@ import type { Post as PostType, Comment as CommentType } from '@/api/topicApi';
 import { updateComment, deleteComment, createComment, getPostComments } from '@/api/topicApi';
 import { uploadFile } from '@/api/lectureApi';
 import type { User } from '@/contexts/AuthContext';
-import { baseURL } from '@/config/axios';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import DotsThreeIcon from '@/assets/dot_three.svg';
@@ -54,7 +53,9 @@ const PostItem: React.FC<PostItemProps> = ({
   const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const avatarSrc = post.user?.userAvatar ? baseURL + post.user.userAvatar : "https://via.placeholder.com/150";
+  const [isSaving, setIsSaving] = useState(false);
+
+  const avatarSrc = post.user?.userAvatar ? post.user.userAvatar : "https://via.placeholder.com/150";
   const userName = post.user?.userName || "Unknown User";
   const userSchool = post.user?.userSchool;
 
@@ -164,6 +165,8 @@ const PostItem: React.FC<PostItemProps> = ({
 
   const handleSavePostEdit = async () => {
     try {
+      setIsSaving(true);
+
       // Upload new images first
       const uploadPromises = editedImageUrls
         .filter(url => url.startsWith('blob:'))
@@ -203,6 +206,8 @@ const PostItem: React.FC<PostItemProps> = ({
       console.error('Error saving post:', error);
       toast.error('Lỗi khi lưu bài viết');
     }
+
+    setIsSaving(false);
   };
 
   const handleCancelPostEdit = () => {
@@ -264,7 +269,7 @@ const PostItem: React.FC<PostItemProps> = ({
           {imageUrls.map((imgUrl, index) => (
             <div key={index} className="relative flex-shrink-0 group">
               <img
-                src={imgUrl.startsWith('blob:') ? imgUrl : baseURL + imgUrl}
+                src={imgUrl.startsWith('blob:') ? imgUrl : imgUrl}
                 alt={`Post image ${index + 1}`}
                 className="h-48 w-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => handlePreviewImage(imgUrl, index)}
@@ -361,14 +366,16 @@ const PostItem: React.FC<PostItemProps> = ({
               <button
                 onClick={handleCancelPostEdit}
                 className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300 transition"
+                disabled={isSaving}
               >
                 Huỷ
               </button>
               <button
                 onClick={handleSavePostEdit}
                 className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition"
+                disabled={isSaving}
               >
-                Lưu
+                {isSaving ? 'Đang lưu...' : 'Lưu'}
               </button>
             </div>
           </div>

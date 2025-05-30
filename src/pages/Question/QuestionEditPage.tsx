@@ -7,7 +7,6 @@ import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
 import { type LocationState, type SurveyValue, getQuestionsBySharedMedia } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
-import { baseURL } from '@/config/axios';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 
 const QuestionEditPage: React.FC = () => {
@@ -149,8 +148,8 @@ const QuestionEditPage: React.FC = () => {
             }
           } else if (question.sharedMedia.mediaUrl) {
             setSharedMedia({
-              type: question.sharedMedia.mediaType === 1 ? 'audio' : 'video',
-              url: `${baseURL}${question.sharedMedia.mediaUrl}`,
+              type: question.sharedMedia.mediaType === 1 ? 'image' : question.sharedMedia.mediaType === 2 ? 'audio' : 'video',
+              url: `${question.sharedMedia.mediaUrl}`,
               fileName: question.sharedMedia.title
             });
             // Check if shared media is used by other questions
@@ -415,7 +414,7 @@ const QuestionEditPage: React.FC = () => {
             const response = await questionApi.updateSharedMedia(sharedMediaId, {
               file: sharedMedia.file,
               title: sharedMedia.fileName || 'Untitled Media',
-              mediaType: sharedMedia.type === 'image' ? 0 : sharedMedia.type === 'audio' ? 1 : 2,
+              mediaType: sharedMedia.type === 'image' ? 1 : sharedMedia.type === 'audio' ? 2 : 3,
             });
             currentSharedMediaId = response.id;
           } else {
@@ -423,7 +422,7 @@ const QuestionEditPage: React.FC = () => {
             const response = await questionApi.uploadSharedMedia({
               file: sharedMedia.file,
               title: sharedMedia.fileName || 'Untitled Media',
-              mediaType: sharedMedia.type === 'image' ? 0 : sharedMedia.type === 'audio' ? 1 : 2,
+              mediaType: sharedMedia.type === 'image' ? 1 : sharedMedia.type === 'audio' ? 2 : 3,
             });
             currentSharedMediaId = response.id;
           }

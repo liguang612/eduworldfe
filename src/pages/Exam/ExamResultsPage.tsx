@@ -147,7 +147,7 @@ const ExamResultsPage: React.FC = () => {
                     >
                       <div className="shrink-0">
                         <img
-                          src={`${baseURL}${item.studentAvatar}`}
+                          src={`${item.studentAvatar}`}
                           alt={item.studentName}
                           className="w-12 h-12 rounded-full object-cover border-2 border-slate-200"
                         />

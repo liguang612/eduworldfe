@@ -6,7 +6,6 @@ import type { Course, Subject } from '@/api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { toast, ToastContainer } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 
 const CoursesPage: React.FC = () => {
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
@@ -219,7 +218,7 @@ const CoursesPage: React.FC = () => {
                   >
                     <div
                       className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                      style={{ backgroundImage: `url("${baseURL}${course.avatar}")` }}
+                      style={{ backgroundImage: `url("${course.avatar}")` }}
                     ></div>
                     <div>
                       <p className="text-[#0e141b] text-base font-medium leading-normal">{course.name}</p>

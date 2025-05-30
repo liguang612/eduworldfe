@@ -8,7 +8,6 @@ import DotFillFalseIcon from '@/assets/dot_fill_false.svg';
 import FlagIcon from '@/assets/flag.svg';
 import FlagFillIcon from '@/assets/flag_fill.svg';
 import { useAuth } from '@/contexts/AuthContext';
-import { baseURL } from '@/config/axios';
 import { useLocation } from 'react-router-dom';
 import { getSubjectById, type Subject } from '@/api/courseApi';
 import { getQuestionsDetails, type Question } from '@/api/questionApi';
@@ -347,7 +346,7 @@ const DoEndQuestion: React.FC = () => {
                 {/* User Info & Exam Icon */}
                 <div className="flex gap-3 items-center">
                   <img
-                    src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
+                    src={user?.avatar ? `${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
                     alt="avatar"
                     className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
                   />
@@ -443,20 +442,20 @@ const DoEndQuestion: React.FC = () => {
                 )}
                 {currentSharedMedia.mediaType === 1 && currentSharedMedia.mediaUrl && (
                   <img
-                    src={`${baseURL}${currentSharedMedia.mediaUrl}`}
+                    src={`${currentSharedMedia.mediaUrl}`}
                     alt="Question media"
                     className="max-w-full h-auto rounded-md"
                   />
                 )}
                 {currentSharedMedia.mediaType === 2 && currentSharedMedia.mediaUrl && (
                   <audio controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
+                    <source src={`${currentSharedMedia.mediaUrl}`} type="audio/mpeg" />
                     Định dạng file không được hỗ trợ
                   </audio>
                 )}
                 {currentSharedMedia.mediaType === 3 && currentSharedMedia.mediaUrl && (
                   <video controls className="w-full">
-                    <source src={`${baseURL}${currentSharedMedia.mediaUrl}`} type="video/mp4" />
+                    <source src={`${currentSharedMedia.mediaUrl}`} type="video/mp4" />
                     Định dạng file không được hỗ trợ
                   </video>
                 )}

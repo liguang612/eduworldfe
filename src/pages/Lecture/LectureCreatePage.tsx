@@ -5,7 +5,6 @@ import { getSubjectsByGrade } from '@/api/courseApi';
 import { uploadFile, createLecture } from '@/api/lectureApi';
 import type { Subject } from '@/api/courseApi';
 import { toast } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 import { useNavigate } from 'react-router-dom';
 
 const LectureEditPage: React.FC = () => {
@@ -88,7 +87,7 @@ const LectureEditPage: React.FC = () => {
           const fileUrl = await uploadFile(file, metadata[0]);
 
           const writableContent = { ...content };
-          writableContent.url = `${baseURL}${fileUrl}`;
+          writableContent.url = `${fileUrl}`;
 
           delete writableContent.placeholderId;
 

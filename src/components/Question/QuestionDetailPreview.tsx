@@ -6,7 +6,6 @@ import 'survey-core/survey-core.css';
 import "./survey-custom.css";
 import type { Question } from '@/api/questionApi';
 import { getLevelText } from '@/api/questionApi';
-import { baseURL } from '@/config/axios';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmationDialog } from '../Common/ConfirmationDialog';
 import { deleteQuestion } from '@/api/questionApi';
@@ -157,18 +156,18 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
             )}
             {question.sharedMedia.mediaType === 1 && question.sharedMedia.mediaUrl && (
               <div className="rounded-lg items-center justify-center flex-row">
-                <img src={`${baseURL}${question.sharedMedia.mediaUrl}`} alt="Shared Media" className="max-w-full h-auto rounded-lg" />
+                <img src={`${question.sharedMedia.mediaUrl}`} alt="Shared Media" className="max-w-full h-auto rounded-lg" />
               </div>
             )}
             {question.sharedMedia.mediaType === 2 && (
               <audio controls className="w-full">
-                <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="audio/mpeg" />
+                <source src={`${question.sharedMedia.mediaUrl}`} type="audio/mpeg" />
                 Định dạng file không được hỗ trợ
               </audio>
             )}
             {question.sharedMedia.mediaType === 3 && question.sharedMedia.mediaUrl && (
               <video controls className="w-full">
-                <source src={`${baseURL}${question.sharedMedia.mediaUrl}`} type="video/mp4" />
+                <source src={`${question.sharedMedia.mediaUrl}`} type="video/mp4" />
                 Định dạng file không được hỗ trợ
               </video>
             )}
