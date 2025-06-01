@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;

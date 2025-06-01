@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import MyEditor from '../Lecture/MyEditor';
 import type { Solution } from '@/api/solutionApi';
-import { baseURL } from '@/config/axios';
 import DeleteIcon from '@/assets/delete_white.svg';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';

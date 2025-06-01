@@ -1,18 +1,11 @@
-import * as React from 'react';
-
-import type { SlateElementProps } from '@udecode/plate';
+import { type SlateElementProps, SlateElement } from '@udecode/plate';
 
 import { cn } from '@udecode/cn';
-import { SlateElement } from '@udecode/plate';
 
-export function CalloutElementStatic({
-  children,
-  className,
-  ...props
-}: SlateElementProps) {
+export function CalloutElementStatic(props: SlateElementProps) {
   return (
     <SlateElement
-      className={cn('my-1 flex rounded-sm bg-muted p-4 pl-3', className)}
+      className={cn('my-1 flex rounded-sm bg-muted p-4 pl-3', props.className)}
       style={{
         backgroundColor: props.element.backgroundColor as any,
       }}
@@ -30,7 +23,7 @@ export function CalloutElementStatic({
             {(props.element.icon as any) || '💡'}
           </span>
         </div>
-        <div className="w-full">{children}</div>
+        <div className="w-full">{props.children}</div>
       </div>
     </SlateElement>
   );

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import Logo from '../../assets/logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { baseURL } from '../../config/axios';
 
 interface HeaderProps { } // Hiện tại Header không nhận props, bạn có thể thêm nếu cần
 

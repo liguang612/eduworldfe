@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getExamAttemptsByExamId, type ExamAttemptResult } from '@/api/examApi';
-import { baseURL } from '@/config/axios';
 
 interface CircularProgressProps {
   percentage: number;
@@ -62,7 +61,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 };
 
 const ExamResultsPage: React.FC = () => {
-  const { courseId, examId } = useParams<{ courseId: string; examId: string }>();
+  const { examId } = useParams<{ courseId: string; examId: string }>();
   const navigate = useNavigate();
   const [attempts, setAttempts] = useState<ExamAttemptResult[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -201,4 +200,5 @@ const ExamResultsPage: React.FC = () => {
   );
 };
 
-export default ExamResultsPage; 
+export default ExamResultsPage;
+

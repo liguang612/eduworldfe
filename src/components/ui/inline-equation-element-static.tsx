@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import type { SlateElementProps } from '@udecode/plate';
 import type { TEquationElement } from '@udecode/plate-math';
-
 import { SlateElement } from '@udecode/plate';
 import { getEquationHtml } from '@udecode/plate-math';
 
@@ -36,7 +35,7 @@ export function InlineEquationElementStatic(
           'after:absolute after:inset-0 after:-top-0.5 after:-left-1 after:z-1 after:h-[calc(100%)+4px] after:w-[calc(100%+8px)] after:rounded-sm after:content-[""]',
           'h-6',
           props.element.texExpression.length === 0 &&
-            'text-muted-foreground after:bg-neutral-500/10'
+          'text-muted-foreground after:bg-neutral-500/10'
         )}
       >
         <span

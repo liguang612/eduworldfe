@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import type { User } from '@/contexts/AuthContext';
 import { uploadFile } from '@/api/topicApi';
 import { toast } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 import ImageIcon from '@/assets/image.svg';
 
 interface NewPostFormProps {

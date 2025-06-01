@@ -55,7 +55,7 @@ const FormatCorrectAnswer: React.FC<{ correctAnswerData: any; question: Question
     case 'itemConnector': {
       if (Array.isArray(correctAnswerData)) {
         if (correctAnswerData.length > 0) {
-          const matches = correctAnswerData.map((pair: { from: string; to: string }, index: number) => {
+          const matches = correctAnswerData.map((pair: { from: string; to: string }, _index: number) => {
             const leftItem = question.matchingColumns?.find(c => String(c.id) === String(pair.from) && c.side === 'left');
             const rightItem = question.matchingColumns?.find(c => String(c.id) === String(pair.to) && c.side === 'right');
             return `${leftItem ? leftItem.label : `ID cột trái: ${pair.from}`} → ${rightItem ? rightItem.label : `ID cột phải: ${pair.to}`}`;

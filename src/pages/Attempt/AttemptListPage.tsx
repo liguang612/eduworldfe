@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getExamAttemptsByStatus, startExamAttempt, type ExamAttempt } from '@/api/attemptApi';
+import { getExamAttemptsByStatus, type ExamAttempt } from '@/api/attemptApi';
 
 interface TabInfo {
   id: string;

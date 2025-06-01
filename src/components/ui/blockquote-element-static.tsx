@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import { type SlateElementProps, SlateElement } from '@udecode/plate';
 
 export function BlockquoteElementStatic(props: SlateElementProps) {

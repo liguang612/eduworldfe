@@ -10,7 +10,7 @@ const CourseLectures: React.FC = () => {
     return <div className="p-4 text-center">Không thể tải nội dung bài giảng. Vui lòng thử lại.</div>;
   }
 
-  const { course, openChapterIds, handleToggleChapter, chapterLectures, subject, role } = context;
+  const { course, openChapterIds, handleToggleChapter, chapterLectures, subject } = context;
 
   if (!course) {
     return <div className="p-4">Đang tải thông tin bài giảng hoặc không tìm thấy khóa học...</div>;
