@@ -1,17 +1,16 @@
 'use client';
 
-import * as React from 'react';
-
 import type { PlateElementProps } from '@udecode/plate/react';
+
+import { PlateElement } from '@udecode/plate/react';
+import { cva } from 'class-variance-authority';
+
+import { Button } from '@/components/ui/button';
 
 import {
   useTocElement,
   useTocElementState,
 } from '@udecode/plate-heading/react';
-import { PlateElement } from '@udecode/plate/react';
-import { cva } from 'class-variance-authority';
-
-import { Button } from '@/components/ui/button';
 
 const headingItemVariants = cva(
   'block h-auto w-full cursor-pointer truncate rounded-none px-0.5 py-1.5 text-left font-medium text-muted-foreground underline decoration-[0.5px] underline-offset-4 hover:bg-accent hover:text-muted-foreground',

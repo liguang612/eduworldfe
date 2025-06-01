@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { PlateElement } from '@udecode/plate/react';
 
 import type { TTodoListItemElement } from '@udecode/plate-list';
 import type { PlateElementProps } from '@udecode/plate/react';
@@ -9,7 +9,6 @@ import {
   useTodoListElement,
   useTodoListElementState,
 } from '@udecode/plate-list/react';
-import { PlateElement } from '@udecode/plate/react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 

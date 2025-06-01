@@ -1,8 +1,5 @@
-import * as React from 'react';
+import { type SlateEditor, type SlateElementProps, type TElement, SlateElement, NodeApi } from '@udecode/plate';
 
-import type { SlateEditor, SlateElementProps, TElement } from '@udecode/plate';
-
-import { NodeApi, SlateElement } from '@udecode/plate';
 import {
   type Heading,
   BaseTocPlugin,

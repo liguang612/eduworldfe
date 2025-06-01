@@ -1,9 +1,6 @@
-import * as React from 'react';
+import { type SlateElementProps, SlateElement } from '@udecode/plate';
 
-import type { SlateElementProps } from '@udecode/plate';
 import type { TDateElement } from '@udecode/plate-date';
-
-import { SlateElement } from '@udecode/plate';
 
 export function DateElementStatic(props: SlateElementProps<TDateElement>) {
   const { element } = props;

@@ -1,7 +1,5 @@
 'use client';
 
-import * as React from 'react';
-
 import type { SlateRenderElementProps } from '@udecode/plate';
 
 import {
@@ -37,7 +35,7 @@ export function TodoLi(props: SlateRenderElementProps) {
       className={cn(
         'list-none',
         (props.element.checked as boolean) &&
-          'text-muted-foreground line-through'
+        'text-muted-foreground line-through'
       )}
     >
       {props.children}

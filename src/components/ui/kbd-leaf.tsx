@@ -1,10 +1,8 @@
 'use client';
 
-import * as React from 'react';
+import { PlateLeaf } from '@udecode/plate/react';
 
 import type { PlateLeafProps } from '@udecode/plate/react';
-
-import { PlateLeaf } from '@udecode/plate/react';
 
 export function KbdLeaf(props: PlateLeafProps) {
   return (

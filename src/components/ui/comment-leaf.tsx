@@ -1,13 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { PlateLeaf } from '@udecode/plate/react';
 
 import type { TCommentText } from '@udecode/plate-comments';
 import type { PlateLeafProps } from '@udecode/plate/react';
 
 import { getCommentCount } from '@udecode/plate-comments';
 import {
-  PlateLeaf,
   useEditorPlugin,
   usePluginOption,
 } from '@udecode/plate/react';
@@ -35,8 +34,8 @@ export function CommentLeaf(props: PlateLeafProps<TCommentText>) {
         (isHover || isActive) && 'border-b-highlight bg-highlight/25',
         isOverlapping && 'border-b-2 border-b-highlight/[.7] bg-highlight/25',
         (isHover || isActive) &&
-          isOverlapping &&
-          'border-b-highlight bg-highlight/45'
+        isOverlapping &&
+        'border-b-highlight bg-highlight/45'
       )}
       attributes={{
         ...props.attributes,

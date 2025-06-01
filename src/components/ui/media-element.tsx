@@ -1,5 +1,4 @@
 import React from 'react';
-import { PlateElement } from '@udecode/plate/react';
 import ReactPlayer from 'react-player';
 
 export const MediaElement = React.forwardRef<

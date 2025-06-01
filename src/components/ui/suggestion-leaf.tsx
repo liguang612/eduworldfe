@@ -1,12 +1,11 @@
 'use client';
 
-import * as React from 'react';
+import { PlateLeaf } from '@udecode/plate/react';
 
 import type { TSuggestionText } from '@udecode/plate-suggestion';
 import type { PlateLeafProps } from '@udecode/plate/react';
 
 import {
-  PlateLeaf,
   useEditorPlugin,
   usePluginOption,
 } from '@udecode/plate/react';

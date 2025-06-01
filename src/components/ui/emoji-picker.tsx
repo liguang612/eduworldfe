@@ -1,7 +1,5 @@
 'use client';
 
-import * as React from 'react';
-
 import type { UseEmojiPickerType } from '@udecode/plate-emoji/react';
 
 import { EmojiSettings } from '@udecode/plate-emoji';

@@ -1,11 +1,10 @@
 'use client';
 
-import * as React from 'react';
+import { PlateElement } from '@udecode/plate/react';
 
 import type { PlateElementProps } from '@udecode/plate/react';
 
 import {
-  PlateElement,
   useFocused,
   useReadOnly,
   useSelected,

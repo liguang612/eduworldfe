@@ -1,13 +1,13 @@
 'use client';
 
-import * as React from 'react';
+import { PlateElement } from '@udecode/plate/react';
 
 import type { TAudioElement } from '@udecode/plate-media';
 import type { PlateElementProps } from '@udecode/plate/react';
 
 import { useMediaState } from '@udecode/plate-media/react';
 import { ResizableProvider } from '@udecode/plate-resizable';
-import { PlateElement, withHOC } from '@udecode/plate/react';
+import { withHOC } from '@udecode/plate/react';
 
 import { Caption, CaptionTextarea } from './caption';
 

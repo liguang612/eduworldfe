@@ -21,7 +21,7 @@ const SolutionPage: React.FC = () => {
   const [pendingSolutions, setPendingSolutions] = useState<Solution[]>([]);
   const [selectedSolutionId, setSelectedSolutionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [_statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [solutionToDeleteId, setSolutionToDeleteId] = useState<string | null>(null);
 

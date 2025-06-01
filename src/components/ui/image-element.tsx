@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { PlateElement } from '@udecode/plate/react';
 
 import type { TImageElement } from '@udecode/plate-media';
 import type { PlateElementProps } from '@udecode/plate/react';
@@ -8,7 +8,7 @@ import type { PlateElementProps } from '@udecode/plate/react';
 import { useDraggable } from '@udecode/plate-dnd';
 import { Image, ImagePlugin, useMediaState } from '@udecode/plate-media/react';
 import { ResizableProvider, useResizableValue } from '@udecode/plate-resizable';
-import { PlateElement, withHOC } from '@udecode/plate/react';
+import { withHOC } from '@udecode/plate/react';
 
 import { cn } from '@/lib/utils';
 

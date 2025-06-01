@@ -34,8 +34,8 @@ const CourseEditPage: React.FC = () => {
   const [selectedAssistants, setSelectedAssistants] = useState<SearchUser[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<SearchUser[]>([]);
   const [pendingRequests, setPendingRequests] = useState<SearchUser[]>([]);
-  const [isRejecting, setIsRejecting] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
+  const [_isRejecting, setIsRejecting] = useState(false);
+  const [_isApproving, setIsApproving] = useState(false);
 
   // State cho chapters
   const [chaptersData, setChaptersData] = useState<Chapter[]>([]);

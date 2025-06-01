@@ -1,10 +1,9 @@
-import * as React from 'react';
+import { type SlateElementProps, SlateElement } from '@udecode/plate';
 
-import type { SlateElementProps } from '@udecode/plate';
 import type { TCaptionElement } from '@udecode/plate-caption';
 import type { TVideoElement } from '@udecode/plate-media';
 
-import { NodeApi, SlateElement } from '@udecode/plate';
+import { NodeApi } from '@udecode/plate';
 
 export function MediaVideoElementStatic(
   props: SlateElementProps<TVideoElement & TCaptionElement & { width: number }>
