@@ -1,7 +1,5 @@
 'use client';
 
-import * as React from 'react';
-
 import { RangeApi } from '@udecode/plate';
 import { AIChatPlugin } from '@udecode/plate-ai/react';
 import {
