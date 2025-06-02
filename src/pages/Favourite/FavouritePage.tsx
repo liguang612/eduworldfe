@@ -49,7 +49,7 @@ const CourseCard: React.FC<Course> = ({ name, description, avatar, teacher, allC
   );
 };
 
-const LectureCard: React.FC<LectureResponse> = ({ name, description, duration, teacher }) => {
+const LectureCard: React.FC<LectureResponse> = ({ name, duration, teacher }) => {
   return (
     <div className="p-4">
       <div className="flex items-start gap-4 rounded-xl p-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">

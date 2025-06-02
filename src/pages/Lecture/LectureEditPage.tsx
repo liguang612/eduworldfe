@@ -63,7 +63,7 @@ const LectureEditPage: React.FC = () => {
       // setIsLoading(true);
 
       try {
-        const data = await getLectureById(id);
+        const data = await getLectureById(id, undefined);
         setLecture(data);
 
         // Set form values

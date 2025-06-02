@@ -15,7 +15,6 @@ export interface ExamCardProps {
   onEdit?: (examId: string) => void;
   onDelete?: (examId: string) => void;
   onViewResults?: (examId: string) => void;
-  isFavorited: boolean;
 }
 
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, onViewResults }) => {
