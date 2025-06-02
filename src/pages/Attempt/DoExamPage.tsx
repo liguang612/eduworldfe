@@ -6,7 +6,6 @@ import DotFillFlagIcon from '@/assets/dot_fill_flag.svg';
 import FlagIcon from '@/assets/flag.svg';
 import FlagFillIcon from '@/assets/flag_fill.svg';
 import { useAuth } from '@/contexts/AuthContext';
-import { baseURL } from '@/config/axios';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { getSubjectById, type Subject } from '../../api/courseApi';
 import { type Question } from '../../api/questionApi';
@@ -531,7 +530,7 @@ const DoExamPage: React.FC = () => {
                 {/* User Info */}
                 <div className="flex gap-3 items-center">
                   <img
-                    src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
+                    src={user?.avatar ? user?.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')}
                     alt="avatar"
                     className="w-10 h-10 rounded-full object-cover border border-[#d0dbe7]"
                   />

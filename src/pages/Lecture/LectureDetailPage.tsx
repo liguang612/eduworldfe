@@ -14,9 +14,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import SendIcon from '@/assets/send.svg';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
-import { baseURL } from '@/config/axios';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
 import type { User } from '@/contexts/AuthContext';
+import LoveIcon from '@/assets/love.svg';
+import LoveFillIcon from '@/assets/love_fill.svg';
+import { addFavorite, removeFavorite } from '@/api/favouriteApi';
+import { deleteFile } from '@/api/fileApi';
 
 const LectureDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ const LectureDetailPage: React.FC = () => {
   const [statistics, setStatistics] = useState<ReviewStatistics | null>(null);
   const [expandedComments, setExpandedComments] = useState<{ [key: string]: boolean }>({});
   const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   // State for user information popup
   const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
@@ -58,6 +62,7 @@ const LectureDetailPage: React.FC = () => {
           const data = await getLectureById(id);
           setLecture(data);
           document.title = data.name;
+          setIsFavorited(data.favourite);
 
           // Fetch statistics
           const stats = await getReviewStatistics(2, id);
@@ -139,8 +144,23 @@ const LectureDetailPage: React.FC = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!id) return;
+    if (!id || !lecture) return;
+
     try {
+      // Collect media URLs from lecture content
+      const mediaUrls = collectMediaUrls(JSON.parse(lecture.contents));
+
+      // Delete each media file
+      for (const url of mediaUrls) {
+        try {
+          deleteFile(url);
+          console.log(`Deleted file: ${url}`);
+        } catch (error) {
+          console.error(`Failed to delete file ${url}:`, error);
+        }
+      }
+
+      // Delete the lecture
       await deleteLecture(id);
       toast.success('Xóa bài giảng thành công!');
       navigate('/lectures');
@@ -226,6 +246,41 @@ const LectureDetailPage: React.FC = () => {
     return null;
   };
 
+  const changeFavorited = async () => {
+    try {
+      if (!id) {
+        console.error('Lecture ID is missing.');
+        toast.error('Có lỗi xảy ra. Vui lòng thử lại!');
+        return;
+      }
+
+      await (isFavorited ? removeFavorite : addFavorite)(id, 2);
+
+      setIsFavorited(!isFavorited);
+      toast.success(isFavorited ? 'Đã bỏ yêu thích bài giảng' : 'Đã thêm vào danh sách yêu thích bài giảng');
+    } catch (error) {
+      console.error('Error adding/removing favorite:', error);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại!');
+    }
+  };
+
+  const collectMediaUrls = (contents: any[]) => {
+    const urls: string[] = [];
+
+    const processContent = (content: any) => {
+      if (content.isUpload && content.url && content.url.startsWith("https://storage.googleapis.com")) {
+        urls.push(content.url);
+      }
+
+      if (content.children && content.children.length > 0) {
+        content.children.forEach(processContent);
+      }
+    };
+
+    contents.forEach(processContent);
+    return urls;
+  };
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -264,6 +319,20 @@ const LectureDetailPage: React.FC = () => {
                   <span className="truncate">Xoá</span>
                 </button>
               </div>}
+              {user?.role === 0 && (
+                <div className="flex py-3 justify-start">
+                  <div
+                    className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-white border border-[#d0dbe7]"
+                    onClick={changeFavorited}
+                  >
+                    {isFavorited ? (
+                      <img src={LoveFillIcon} alt="Favorited" className="w-5 h-5 text-red-500" />
+                    ) : (
+                      <img src={LoveIcon} alt="Not Favorited" className="w-5 h-5" />
+                    )}
+                  </div>
+                </div>
+              )}
               {user?.role == 0 && <div className="flex py-3 gap-4 justify-start">
                 <button
                   className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-[#ffffff] gap-2 pl-4 text-sm font-bold leading-normal tracking-[0.015em]"
@@ -320,7 +389,7 @@ const LectureDetailPage: React.FC = () => {
                 {submittedReview && !isEditingReview ? (
                   <div>
                     <div className="flex items-center mb-1">
-                      <img src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
+                      <img src={user?.avatar ? user?.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
                       <span className="font-semibold text-[#0d141b] mr-2">{submittedReview.userName}</span>
                       <span className="text-xs text-gray-500">
                         {new Date(submittedReview.createdAt).toLocaleDateString('vi-VN')}
@@ -394,7 +463,7 @@ const LectureDetailPage: React.FC = () => {
               {reviews.map((review) => (
                 <div key={review.id} className="p-4 border border-gray-200 rounded-md bg-white">
                   <div className="flex items-center mb-1">
-                    <img src={`${baseURL}${review.userAvatar}`} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
+                    <img src={`${review.userAvatar}`} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
                     <span className="font-semibold text-[#0d141b] mr-2">{review.userName}</span>
                     {renderUserRoleChip(review.userRole)}
                     <span className="text-xs text-gray-500">
@@ -425,7 +494,7 @@ const LectureDetailPage: React.FC = () => {
                         {comments[review.id]?.map((comment) => (
                           <div key={comment.id} className={`pl-4 border-l-2 ${comment.userRole === 1 || comment.userRole === 2 ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
                             <div className="flex items-center mb-1">
-                              <img src={`${baseURL}${comment.userAvatar}`} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
+                              <img src={comment.userAvatar ? comment.userAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(comment.userName || 'U')} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
                               <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
                               {renderUserRoleChip(comment.userRole)}
                               <span className="text-xs text-gray-500">

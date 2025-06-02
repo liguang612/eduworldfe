@@ -1,5 +1,4 @@
 import React from 'react';
-import { baseURL } from '@/config/axios';
 
 interface ImagePreviewProps {
   isOpen: boolean;
@@ -20,10 +19,10 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const fullImageUrl = imageUrl.startsWith('blob:') ? imageUrl : baseURL + imageUrl;
+  const fullImageUrl = imageUrl;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.75)]" onClick={onClose}>
       <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
         <img
           src={fullImageUrl}

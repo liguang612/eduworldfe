@@ -35,6 +35,7 @@ import AttemptCongratulationPage from '@/pages/Attempt/AttemptCongratulationPage
 import AttemptDetailPage from '@/pages/Attempt/AttemptDetailPage';
 import ExamPages from '@/pages/Exam/ExamPages';
 import ExamResultsPage from '@/pages/Exam/ExamResultsPage';
+import FavouritePage from '@/pages/Favourite/FavouritePage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -328,6 +329,19 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+
+    {/* Favorite */}
+    <Route
+      path="/favourite"
+      element={
+        <ProtectedRoute allowedRoles={[0]}>
+          <Layout>
+            <FavouritePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+
   </Routes>
 );
 

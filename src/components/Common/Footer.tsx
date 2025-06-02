@@ -3,7 +3,7 @@ import React from 'react';
 const Footer: React.FC = () => {
   return (
     <footer className="flex justify-center flex-col gap-6 px-5 py-10 text-center @container">
-      <div className="flex gap-6 justify-center @[480px]:flex-row ">
+      {/* <div className="flex gap-6 justify-center @[480px]:flex-row ">
         <a className="text-[#4e7397] text-base font-normal leading-normal min-w-40" href="#">
           Terms
         </a>
@@ -25,7 +25,7 @@ const Footer: React.FC = () => {
         <a className="text-[#4e7397] text-base font-normal leading-normal min-w-40" href="#">
           Help Center
         </a>
-      </div>
+      </div> */}
       <p className="text-[#4e7397] text-base font-normal leading-normal">© 2025 EduWorld</p>
     </footer>
   );

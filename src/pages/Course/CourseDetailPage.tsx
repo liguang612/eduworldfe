@@ -24,6 +24,7 @@ export interface CourseDetailContextType {
   openChapterIds: string[];
   handleToggleChapter: (chapterId: string) => Promise<void>;
   chapterLectures: { [key: string]: LectureResponse[] };
+  favorite: boolean;
 }
 
 const CourseDetailPage: React.FC = () => {
@@ -156,6 +157,7 @@ const CourseDetailPage: React.FC = () => {
     courseId,
     isCourseLoading,
     subjectId: course?.subjectId,
+    favorite: course?.favourite || false,
   };
 
   return (
@@ -206,7 +208,7 @@ const CourseDetailPage: React.FC = () => {
         onConfirm={handleConfirmDelete}
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </>
   );
 };

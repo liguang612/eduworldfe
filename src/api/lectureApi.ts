@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8080/api';
+import axios from '@/config/axios';
 
 export interface LectureResponse {
   id: string;
@@ -20,12 +18,13 @@ export interface LectureResponse {
     avatar: string;
   };
   duration: number;
+  favourite: boolean;
 }
 
 export const getLectures = async (subjectId: string, keyword: string): Promise<LectureResponse[]> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/lectures`, {
+    const response = await axios.get(`api/lectures`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -44,7 +43,7 @@ export const getLectures = async (subjectId: string, keyword: string): Promise<L
 export const getLectureById = async (lectureId: string): Promise<LectureResponse> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/lectures/${lectureId}`, {
+    const response = await axios.get(`api/lectures/${lectureId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -63,7 +62,7 @@ export const uploadFile = async (file: File, type: string): Promise<string> => {
   formData.append('file', file);
   formData.append('type', type);
 
-  const response = await axios.post(`${API_URL}/files/upload`, formData, {
+  const response = await axios.post(`api/files/upload`, formData, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'multipart/form-data',
@@ -83,7 +82,7 @@ export const createLecture = async (lectureData: {
 }) => {
   const token = localStorage.getItem('token');
 
-  const response = await axios.post(`${API_URL}/lectures`, lectureData, {
+  const response = await axios.post(`api/lectures`, lectureData, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -94,7 +93,7 @@ export const createLecture = async (lectureData: {
 export const deleteLecture = async (lectureId: string): Promise<void> => {
   try {
     const token = localStorage.getItem('token');
-    await axios.delete(`${API_URL}/lectures/${lectureId}`, {
+    await axios.delete(`api/lectures/${lectureId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -114,7 +113,7 @@ export const updateLecture = async (lectureId: string, lectureData: {
 }) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.put(`${API_URL}/lectures/${lectureId}`, lectureData, {
+    const response = await axios.put(`api/lectures/${lectureId}`, lectureData, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -129,7 +128,7 @@ export const updateLecture = async (lectureId: string, lectureData: {
 export const getLecturesByIds = async (lectureIds: string[]): Promise<LectureResponse[]> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/lectures/by-ids`, lectureIds, {
+    const response = await axios.post(`api/lectures/by-ids`, lectureIds, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -144,7 +143,7 @@ export const getLecturesByIds = async (lectureIds: string[]): Promise<LectureRes
 export const searchQuestions = async (keyword: string, subjectId: string, userId: string): Promise<any[]> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/questions/search`, {
+    const response = await axios.get(`api/questions/search`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -160,3 +159,33 @@ export const searchQuestions = async (keyword: string, subjectId: string, userId
     throw error;
   }
 };
+
+// FAVORITE
+export const addFavorite = async (id: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.post(`api/favourites/LECTURE/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to add favorite:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const removeFavorite = async (id: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`api/favourites/LECTURE/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to remove favorite:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+

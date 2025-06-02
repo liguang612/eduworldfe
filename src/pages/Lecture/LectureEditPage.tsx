@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import MyEditor from '@/components/Lecture/MyEditor';
 import type { MyEditorRef } from '@/components/Lecture/MyEditor';
 import { uploadFile, getLectureById, updateLecture, searchQuestions } from '@/api/lectureApi';
+import { deleteFile } from '@/api/fileApi';
 import { getQuestionsDetails, type Question } from '@/api/questionApi';
 import type { LectureResponse } from '@/api/lectureApi';
 import { toast, ToastContainer } from 'react-toastify';
@@ -36,10 +37,31 @@ const LectureEditPage: React.FC = () => {
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = Array.from({ length: 12 }, (_, i) => i * 5);
 
+  const [mediaUsageMap, setMediaUsageMap] = useState<Map<string, boolean>>(new Map());
+
+  // Function to collect media URLs from contents
+  const collectMediaUrls = (contents: any[]) => {
+    const urls = new Map<string, boolean>();
+
+    const processContent = (content: any) => {
+      if (content.isUpload && content.url && content.url.startsWith("https://storage.googleapis.com")) {
+        urls.set(content.url, false);
+      }
+
+      if (content.children && content.children.length > 0) {
+        content.children.forEach(processContent);
+      }
+    };
+
+    contents.forEach(processContent);
+    return urls;
+  };
+
   useEffect(() => {
     const fetchLecture = async () => {
       if (!id) return;
-      setIsLoading(true);
+      // setIsLoading(true);
+
       try {
         const data = await getLectureById(id);
         setLecture(data);
@@ -48,6 +70,12 @@ const LectureEditPage: React.FC = () => {
         setLectureName(data.name);
         setLectureDescription(data.description);
         if (editorRef.current) editorRef.current = (data.contents ? JSON.parse(data.contents) : undefined);
+
+        // Collect initial media URLs
+        if (data.contents) {
+          const contents = JSON.parse(data.contents);
+          setMediaUsageMap(collectMediaUrls(contents));
+        }
 
         // Set duration
         const totalMinutes = data.duration;
@@ -87,10 +115,10 @@ const LectureEditPage: React.FC = () => {
   };
 
   const handleMedia = async (contents: any[]) => {
-    const newContents = [...contents]; // Create a new array copy
+    const newContents = [...contents];
 
     for (let i = 0; i < newContents.length; i++) {
-      let content = { ...newContents[i] }; // Create a new object copy
+      let content = { ...newContents[i] };
 
       if (content.isUpload && content.url.startsWith('blob:')) {
         const response = await fetch(content.url);
@@ -105,6 +133,9 @@ const LectureEditPage: React.FC = () => {
 
         content.url = `${fileUrl}`;
         delete content.placeholderId;
+      } else if (content.isUpload && content.url && content.url.startsWith("https://storage.googleapis.com")) {
+        console.log(content.url);
+        mediaUsageMap.set(content.url, true);
       }
 
       if (content.children && content.children.length > 0) {
@@ -129,6 +160,19 @@ const LectureEditPage: React.FC = () => {
       const contents = [...editorValue];
       const processedContents = await handleMedia(contents);
 
+      // Delete unused media files
+      for (const [url, isUsed] of mediaUsageMap.entries()) {
+        if (!isUsed) {
+          try {
+            // Không cần await, xoá lỗi thì thôi
+            deleteFile(url);
+            console.log(`Deleted unused file: ${url}`);
+          } catch (error) {
+            console.error(`Failed to delete file ${url}:`, error);
+          }
+        }
+      }
+
       setStatusMessage('Đang cập nhật bài giảng');
       const lectureData = {
         name: lectureName,
@@ -139,12 +183,14 @@ const LectureEditPage: React.FC = () => {
       };
 
       await updateLecture(id!, lectureData);
+
       toast.success('Sửa bài giảng thành công');
       setLoading(false);
       setStatusMessage(null);
       navigate(`/lectures/${id}`);
     } catch (error) {
       console.error('Error saving lecture:', error);
+
       setLoading(false);
       setStatusMessage(null);
       toast.error('Có lỗi xảy ra, vui lòng thử lại sau.');

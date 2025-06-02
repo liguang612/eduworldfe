@@ -5,7 +5,6 @@ import { createReview, getReviews, getComments, createComment, getReviewStatisti
 import { useAuth } from '@/contexts/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';
 import SendIcon from '@/assets/send.svg';
-import { baseURL } from '@/config/axios';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
 import type { User } from '@/api/authApi';
@@ -124,9 +123,6 @@ const CourseReviewsPage: React.FC = () => {
       return;
     }
     try {
-      console.log(userReviewText);
-      return;
-
       const newReview = await createReview(1, course!.id, userRating, userReviewText);
       const reviewWithUserInfo = {
         ...newReview,
@@ -241,7 +237,7 @@ const CourseReviewsPage: React.FC = () => {
             {submittedReview && !isEditingReview ? (
               <div>
                 <div className="flex items-center mb-1 cursor-pointer" onClick={() => handleUserClick(user!)}>
-                  <img src={user?.avatar ? `${baseURL}${user?.avatar}` : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
+                  <img src={user?.avatar ? user?.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.name || 'U')} alt={submittedReview.userName} className="w-8 h-8 rounded-full mr-2" />
                   <span className="font-semibold text-[#0d141b] mr-2">{submittedReview.userName}</span>
                   <span className="text-xs text-gray-500">
                     {new Date(submittedReview.createdAt).toLocaleDateString('vi-VN')}
@@ -328,7 +324,7 @@ const CourseReviewsPage: React.FC = () => {
                 grade: review.userGrade,
                 role: review.userRole,
               })}>
-                <img src={`${baseURL}${review.userAvatar}`} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
+                <img src={review.userAvatar ? review.userAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(review.userName || 'U')} alt={review.userName} className="w-8 h-8 rounded-full mr-2" />
                 <span className="font-semibold text-[#0d141b] mr-2">{review.userName}</span>
                 {renderUserRoleChip(review.userId)}
                 <span className="text-xs text-gray-500">
@@ -370,7 +366,7 @@ const CourseReviewsPage: React.FC = () => {
                           grade: comment.userGrade,
                           role: comment.userRole,
                         })}>
-                          <img src={`${baseURL}${comment.userAvatar}`} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
+                          <img src={comment.userAvatar} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
                           <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
                           {renderUserRoleChip(comment.userId)}
                           <span className="text-xs text-gray-500">

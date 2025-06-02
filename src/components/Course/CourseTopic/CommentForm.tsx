@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import type { User } from '@/contexts/AuthContext';
-import { baseURL } from '@/config/axios';
 import SendIcon from '@/assets/send.svg';
 
 interface CommentFormProps {
@@ -29,7 +28,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, currentUser, onAddCom
     }
   };
 
-  const avatarSrc = currentUser?.avatar ? baseURL + currentUser.avatar : "https://via.placeholder.com/150/007bff/FFFFFF?Text=CU";
+  const avatarSrc = currentUser?.avatar ? currentUser.avatar : "https://via.placeholder.com/150/007bff/FFFFFF?Text=CU";
   const userName = currentUser?.name || "Current User";
 
   return (

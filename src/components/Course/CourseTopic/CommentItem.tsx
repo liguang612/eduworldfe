@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { Comment as CommentType } from '@/api/topicApi';
 import DotsThreeIcon from '@/assets/dot_three.svg';
 import ContextMenu from './ContextMenu';
-import { baseURL } from '@/config/axios';
 import type { User } from '@/contexts/AuthContext';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
@@ -94,7 +93,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
     <>
       <div className="flex items-start space-x-3 py-2 pr-1">
         <img
-          src={comment.user.userAvatar ? baseURL + comment.user.userAvatar : "https://via.placeholder.com/100"}
+          src={comment.user.userAvatar ? comment.user.userAvatar : "https://via.placeholder.com/100"}
           alt={comment.user.userName}
           className="h-8 w-8 rounded-full flex-shrink-0 object-cover cursor-pointer"
           onClick={() => {

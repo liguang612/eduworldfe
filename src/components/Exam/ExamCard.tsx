@@ -3,7 +3,11 @@ import ClockIcon from "@/assets/clock.svg";
 import EditIcon from "@/assets/edit.svg";
 import TrashIcon from "@/assets/delete.svg";
 import ResultIcon from "@/assets/result.svg";
+import LoveIcon from '@/assets/love.svg';
+import LoveFillIcon from '@/assets/love_fill.svg';
 import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
+import { useState } from "react";
+import { addFavorite, removeFavorite } from "@/api/favouriteApi";
 
 export interface ExamCardProps {
   exam: Exam;
@@ -11,9 +15,12 @@ export interface ExamCardProps {
   onEdit?: (examId: string) => void;
   onDelete?: (examId: string) => void;
   onViewResults?: (examId: string) => void;
+  isFavorited: boolean;
 }
 
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, onViewResults }) => {
+  const [isFavorited, setIsFavorited] = useState(exam.favourite);
+
   const formatTimeRange = (openTime: string | null, closeTime: string | null): string => {
     const now = new Date();
 
@@ -59,6 +66,16 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, on
 
   const timeRangeText = formatTimeRange(exam.openTime, exam.closeTime);
 
+  const onToggleFavorite = async () => {
+    if (isFavorited) {
+      await removeFavorite(exam.id, 4);
+      setIsFavorited(false);
+    } else {
+      await addFavorite(exam.id, 4);
+      setIsFavorited(true);
+    }
+  };
+
   return (
     <div className="flex items-center gap-4 bg-white hover:bg-slate-50 px-4 min-h-[72px] py-3 my-1.5 rounded-lg border border-slate-200 transition-colors duration-150">
       <div className="flex items-center gap-4 flex-grow cursor-pointer" onClick={() => onClick?.(exam.id)}>
@@ -71,6 +88,17 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, on
         </div>
       </div>
       <div className="shrink-0 flex items-center gap-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite();
+          }}
+          className="flex size-8 items-center justify-center rounded-full hover:bg-slate-200 transition-colors"
+          aria-label={isFavorited ? 'Bỏ yêu thích đề thi' : 'Yêu thích đề thi'}
+          title={isFavorited ? 'Bỏ yêu thích' : 'Yêu thích'}
+        >
+          <img src={isFavorited ? LoveFillIcon : LoveIcon} alt="Favorite" className={`w-4 h-4 ${isFavorited ? 'text-red-500' : ''}`} />
+        </button>
         {onViewResults && (
           <button
             onClick={(e) => { e.stopPropagation(); onViewResults(exam.id); }}

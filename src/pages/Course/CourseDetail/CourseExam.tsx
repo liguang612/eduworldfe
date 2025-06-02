@@ -183,6 +183,7 @@ const CourseExams: React.FC = () => {
                 onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
                 onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
                 onViewResults={() => handleViewResults(exam.id)}
+                isFavorited={exam.favourite}
               />
             ))}
           </div>
@@ -203,6 +204,7 @@ const CourseExams: React.FC = () => {
                 onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
                 onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
                 onViewResults={() => handleViewResults(exam.id)}
+                isFavorited={exam.favourite}
               />
             ))}
           </div>
@@ -223,6 +225,7 @@ const CourseExams: React.FC = () => {
                 onEdit={user?.role === 1 ? () => handleEditExam(exam.id) : undefined}
                 onDelete={user?.role === 1 ? () => handleDeleteExam(exam.id) : undefined}
                 onViewResults={() => handleViewResults(exam.id)}
+                isFavorited={exam.favourite}
               />
             ))}
           </div>

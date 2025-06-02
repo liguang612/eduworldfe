@@ -13,7 +13,7 @@ export default function ExamPages() {
   useEffect(() => {
     const fetchExams = async () => {
       try {
-        const data = await getUpcomingExams(1000); // Lấy tối đa 1000 kỳ thi
+        const data = await getUpcomingExams(100);
         setExams(data);
       } catch (error) {
         console.error('Error fetching exams:', error);

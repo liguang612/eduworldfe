@@ -101,7 +101,7 @@ const LectureListPage: React.FC = () => {
                     </svg>
                   </div>
                   <input
-                    placeholder="Search by lecture name"
+                    placeholder="Tìm kiếm bài giảng"
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border-none bg-[#e7edf3] focus:border-none h-full placeholder:text-[#4e7397] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     defaultValue=""
                     onKeyDown={handleSearch}
@@ -173,7 +173,7 @@ const LectureListPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="shrink-0">
-                    <p className="text-[#0e141b] text-base font-normal leading-normal">{lecture.endQuestions.length} Questions</p>
+                    <p className="text-[#0e141b] text-base font-normal leading-normal">{lecture.endQuestions.length} câu hỏi</p>
                   </div>
                 </div>
               ))

@@ -4,7 +4,6 @@ import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti
 import { useAuth } from '@/contexts/AuthContext';
 import { searchQuestions } from '@/api/lectureApi';
 import { type Question } from '@/api/questionApi';
-import AddIcon from '@/assets/add.svg';
 import { getCourseById, type Course } from '@/api/courseApi';
 import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '@/api/examApi';
 import { toast } from 'react-toastify';
@@ -12,6 +11,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import QuestionDetailPreview from "@/components/Question/QuestionDetailPreview";
+import AddIcon from '@/assets/add.svg';
+import PreviewIcon from '@/assets/preview.svg';
 
 interface ExamFormData {
   examName: string;
@@ -921,7 +922,7 @@ const ExamEditPage: React.FC = () => {
                                       }}
                                       className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 active:bg-gray-200 transition"
                                     >
-                                      <span className="text-gray-500">👁️</span>
+                                      <img src={PreviewIcon} alt="Preview" className="w-6 h-6" />
                                     </button>
                                   </td>
                                 </tr>

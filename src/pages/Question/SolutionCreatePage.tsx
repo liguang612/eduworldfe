@@ -7,7 +7,6 @@ import { getQuestionDetail } from '@/api/questionApi';
 import { uploadFile } from '@/api/lectureApi';
 import { createSolution } from '@/api/solutionApi';
 import { toast } from 'react-toastify';
-import { baseURL } from '@/config/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const SolutionCreatePage: React.FC = () => {
@@ -78,7 +77,7 @@ const SolutionCreatePage: React.FC = () => {
               const fileUrl = await uploadFile(file, 'solutions');
 
               const writableContentItem = { ...contentItem };
-              writableContentItem.url = `${baseURL}${fileUrl}`;
+              writableContentItem.url = fileUrl;
 
               delete writableContentItem.placeholderId;
               processedContents.push(writableContentItem);

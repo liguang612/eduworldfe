@@ -15,4 +15,18 @@ export const uploadFile = async (file: File, folder: string) => {
   });
 
   return response.data.url;
-}; 
+};
+
+export const deleteFile = async (url: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`api/files/delete?url=${url}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+    });
+  } catch (error: any) {
+    console.error('Failed to delete file:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

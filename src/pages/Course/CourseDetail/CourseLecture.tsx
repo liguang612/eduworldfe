@@ -1,16 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
-import type { Chapter } from '@/api/courseApi';
+import { type Chapter } from '@/api/courseApi';
+import { addFavorite, removeFavorite } from '@/api/favouriteApi';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
+import { useAuth } from '@/contexts/AuthContext';
+import LoveIcon from '@/assets/love.svg';
+import LoveFillIcon from '@/assets/love_fill.svg';
+import { toast } from 'react-toastify';
 
 const CourseLectures: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
+  const { course, openChapterIds, handleToggleChapter, chapterLectures, subject, favorite } = context;
+
+  const { user } = useAuth();
+  const [isFavorited, setIsFavorited] = useState(favorite);
+
   const navigate = useNavigate();
   if (!context) {
     return <div className="p-4 text-center">Không thể tải nội dung bài giảng. Vui lòng thử lại.</div>;
   }
 
-  const { course, openChapterIds, handleToggleChapter, chapterLectures, subject } = context;
+  const changeFavorited = async () => {
+    try {
+      const courseId = course?.id;
+
+      if (!courseId) {
+        console.error('Course ID or User ID is missing.');
+        toast.error('Có lỗi xảy ra. Vui lòng thử lại!');
+
+        return;
+      }
+      await (isFavorited ? removeFavorite : addFavorite)(courseId, 1);
+
+      setIsFavorited(!isFavorited);
+      toast.success(isFavorited ? 'Đã bỏ yêu thích khóa học' : 'Đã thêm vào danh sách yêu thích');
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại!');
+    }
+  };
 
   if (!course) {
     return <div className="p-4">Đang tải thông tin bài giảng hoặc không tìm thấy khóa học...</div>;
@@ -26,7 +54,7 @@ const CourseLectures: React.FC = () => {
             backgroundColor: course.avatar ? 'transparent' : '#e7edf3'
           }}
         ></div>
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1">
           <p className="text-[#0e141b] text-xl md:text-[22px] font-bold leading-tight tracking-[-0.015em]">
             Thông tin chi tiết
           </p>
@@ -36,14 +64,21 @@ const CourseLectures: React.FC = () => {
           <div className="text-[#4e7397] text-base font-normal leading-normal">
             Môn học: {subject ? `${subject.name} - Lớp ${subject.grade}` : 'N/A'}
           </div>
-          {/* {role === 0 && (
-            <div className="mt-3">
-              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto">
-                <span className="truncate">Thêm vào danh sách yêu thích</span>
-              </button>
-            </div>
-          )} */}
         </div>
+        {user?.role === 0 && (
+          <div className="mt-3">
+            <div
+              className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-3 bg-white border border-[#d0dbe7] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] flex-1 @[480px]:flex-auto"
+              onClick={changeFavorited}
+            >
+              {isFavorited ? (
+                <img src={LoveFillIcon} alt="Favorited" className="w-5 h-5 text-red-500" />
+              ) : (
+                <img src={LoveIcon} alt="Not Favorited" className="w-5 h-5 text-white" />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 rounded-lg mb-6">
@@ -150,12 +185,6 @@ const CourseLectures: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* The existing review summary section can be added here for quick view
-          or moved entirely to the CourseReviewsPage accessed via the drawer.
-          For now, I'll keep it out of CourseLectures to make this component focused.
-          If you want the review summary here, copy the relevant JSX from your original CourseDetailPage.
-      */}
     </div>
   );
 };

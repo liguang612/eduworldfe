@@ -3,9 +3,7 @@ import Logo from '../../assets/logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-interface HeaderProps { } // Hiện tại Header không nhận props, bạn có thể thêm nếu cần
-
-const Header: React.FC<HeaderProps> = () => {
+const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -93,7 +91,6 @@ const Header: React.FC<HeaderProps> = () => {
             </div>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#e7edf3] z-50 flex flex-col gap-0">
-
                 <button
                   className="w-full text-left px-4 py-3 hover:bg-slate-100 text-[#0e141b] text-base font-medium rounded-t-xl"
                   onClick={() => { setMenuOpen(false); navigate('/account'); }}
@@ -101,11 +98,21 @@ const Header: React.FC<HeaderProps> = () => {
                   Thông tin cá nhân
                 </button>
                 <button
-                  className="w-full text-left px-4 py-3 hover:bg-slate-100 text-[#0e141b] text-base font-medium rounded-b-xl"
+                  className="w-full text-left px-4 py-3 hover:bg-slate-100 text-[#0e141b] text-base font-medium"
                   onClick={() => { setMenuOpen(false); navigate('/change-password'); }}
                 >
                   Đổi mật khẩu
                 </button>
+                {user?.role === 0 && <>
+                  <hr />
+                  <button
+                    className="w-full text-left px-4 py-3 hover:bg-slate-100 text-[#0e141b] text-base font-medium"
+                    onClick={() => { setMenuOpen(false); navigate('/favourite'); }}
+                  >
+                    Danh sách yêu thích
+                  </button>
+                </>}
+                <hr />
                 <button
                   className="w-full text-left px-4 py-3 hover:bg-slate-100 text-red-600 text-base font-medium rounded-b-xl"
                   onClick={() => { setMenuOpen(false); logout(); }}

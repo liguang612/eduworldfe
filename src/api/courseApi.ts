@@ -19,6 +19,7 @@ export type Course = {
   hidden: boolean;
   allowStudentPost: boolean;
   requirePostApproval: boolean;
+  favourite: boolean;
 }
 
 export interface Chapter {
@@ -176,6 +177,7 @@ export const updateCoruseAvatar = async (courseId: string, avatar: File): Promis
   }
 };
 
+// DELETE
 export const deleteCourse = async (courseId: string): Promise<void> => {
   try {
     const token = localStorage.getItem('token');
@@ -230,20 +232,7 @@ export const updateChapter = async (chapterId: string, chapterData: {
   }
 };
 
-export const deleteChapter = async (chapterId: string): Promise<void> => {
-  try {
-    const token = localStorage.getItem('token');
-    await axios.delete(`${API_URL}/chapters/${chapterId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  } catch (error: any) {
-    console.error('Failed to delete chapter:', error.response ? error.response.data : error.message);
-    throw error;
-  }
-};
-
+// JOIN REQUEST
 export const requestJoinCourse = async (courseId: string): Promise<number> => {
   try {
     const token = localStorage.getItem('token');
@@ -289,6 +278,7 @@ export const approveJoinRequest = async (courseId: string, studentId: string): P
   }
 };
 
+// CHAPTER
 export const addLectureToChapter = async (chapterId: string, lectureId: string): Promise<Chapter> => {
   try {
     const token = localStorage.getItem('token');
@@ -319,6 +309,20 @@ export const removeLectureFromChapter = async (chapterId: string, lectureId: str
     return response.data;
   } catch (error: any) {
     console.error('Failed to remove lecture from chapter:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const deleteChapter = async (chapterId: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/chapters/${chapterId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed to delete chapter:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

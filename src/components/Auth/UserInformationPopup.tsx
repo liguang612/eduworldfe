@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { getUser } from '@/api/authApi';
 import type { User } from '@/contexts/AuthContext';
-import { baseURL } from '@/config/axios';
-
 
 interface ProfileDialogProps {
   isOpen: boolean;
@@ -141,7 +139,7 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
                 <div className="flex gap-4 flex-col items-center">
                   <div
                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-24 w-28"
-                    style={{ backgroundImage: `url('${baseURL + fetchedUser.avatar}')` }}
+                    style={{ backgroundImage: `url('${fetchedUser.avatar}')` }}
                   ></div>
                   <div className="flex flex-col items-center justify-center">
                     <p className="text-[#0e141b] text-xl font-bold leading-tight tracking-[-0.015em] text-center">{fetchedUser.name}</p>
