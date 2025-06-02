@@ -8,6 +8,7 @@ import LoveFillIcon from '@/assets/love_fill.svg';
 import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
 import { useState } from "react";
 import { addFavorite, removeFavorite } from "@/api/favouriteApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface ExamCardProps {
   exam: Exam;
@@ -19,6 +20,7 @@ export interface ExamCardProps {
 
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, onViewResults }) => {
   const [isFavorited, setIsFavorited] = useState(exam.favourite);
+  const { user } = useAuth();
 
   const formatTimeRange = (openTime: string | null, closeTime: string | null): string => {
     const now = new Date();
@@ -87,7 +89,7 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, on
         </div>
       </div>
       <div className="shrink-0 flex items-center gap-2">
-        <button
+        {user?.role === 0 && <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite();
@@ -97,7 +99,7 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onClick, onEdit, onDelete, on
           title={isFavorited ? 'Bỏ yêu thích' : 'Yêu thích'}
         >
           <img src={isFavorited ? LoveFillIcon : LoveIcon} alt="Favorite" className={`w-4 h-4 ${isFavorited ? 'text-red-500' : ''}`} />
-        </button>
+        </button>}
         {onViewResults && (
           <button
             onClick={(e) => { e.stopPropagation(); onViewResults(exam.id); }}

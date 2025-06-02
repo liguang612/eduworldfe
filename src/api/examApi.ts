@@ -35,7 +35,7 @@ export interface Exam {
   className: string;
   subjectName: string;
   grade: number;
-  favourite: boolean | null | undefined;
+  favourite: boolean;
 }
 
 export interface CreateExamRequest {

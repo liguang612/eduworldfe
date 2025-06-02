@@ -3,146 +3,30 @@ import { getSubjectsByGrade } from '@/api/courseApi';
 import type { Subject } from '@/api/courseApi';
 import { getFavouriteCourses, getFavouriteLectures, getFavouriteExams, addFavorite, removeFavorite } from '@/api/favouriteApi';
 import type { FavouriteCourseResponse, FavouriteLectureResponse, FavouriteExamResponse } from '@/api/favouriteApi';
-import type { Course } from '@/api/courseApi';
-import type { LectureResponse } from '@/api/lectureApi';
-import type { Exam } from '@/api/examApi';
-import RatingStars from '@/components/Common/RatingStars';
 import { toast } from 'react-toastify';
-import ExamIcon from '@/assets/exam.svg';
-import LectureIcon from '@/assets/lecture.svg';
-
-// Item Card Components
-const CourseCard: React.FC<Course> = ({ name, description, avatar, teacher, allCategories, averageRating }) => {
-  return (
-    <div className="p-4">
-      <div className="flex flex-col md:flex-row items-stretch justify-between gap-4 rounded-xl bg-white shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div className="flex flex-[2_2_0px] flex-col gap-3 p-5">
-          <div className="flex flex-col gap-1">
-            <p className="text-[#0e141b] text-xl font-bold leading-tight">{name}</p>
-            <p className="text-[#4e7297] text-sm font-normal leading-normal">{description}</p>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <img src={teacher.avatar} alt={teacher.name} className="size-9 rounded-full border border-slate-200" />
-            <span className="text-[#0e141b] text-sm font-semibold">{teacher.name}</span>
-          </div>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {allCategories.map(tag => (
-              <span key={tag} className="px-2.5 py-1 bg-sky-100 text-sky-700 text-xs font-bold rounded-full">{tag}</span>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <RatingStars rating={averageRating} />
-            <span className="text-[#0e141b] text-sm font-bold">{averageRating.toFixed(1)}</span>
-          </div>
-          <button
-            className="mt-auto flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-[#1980e6] text-white text-sm font-medium leading-normal w-fit hover:bg-[#1367b8] transition-colors duration-200"
-          >
-            <span className="truncate">Continue</span>
-          </button>
-        </div>
-        <div
-          className="w-full md:w-1/3 bg-center bg-no-repeat aspect-video md:aspect-auto bg-cover rounded-r-xl min-h-[200px] md:min-h-full"
-          style={{ backgroundImage: `url("${avatar || 'https://via.placeholder.com/300x200'}")` }}
-        ></div>
-      </div>
-    </div>
-  );
-};
-
-const LectureCard: React.FC<LectureResponse> = ({ name, duration, teacher }) => {
-  return (
-    <div className="p-4">
-      <div className="flex items-start gap-4 rounded-xl p-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <img src={LectureIcon} alt="Lecture" className="w-8 h-8" />
-        <div className="flex flex-col flex-grow gap-1">
-          <p className="text-[#0e141b] text-xl font-bold leading-tight">{name}</p>
-          <p className="text-[#4e7297] text-sm font-normal leading-normal mt-1">
-            <span className="font-medium text-slate-600">Thời gian:</span> {Math.floor(duration / 60) === 0 ? '' : Math.floor(duration / 60) + 'giờ '} {duration % 60} phút
-          </p>
-          <div className="flex items-center gap-2 mt-2">
-            <img src={teacher.avatar} alt={teacher.name} className="w-10 h-10 rounded-full" />
-            <span className="text-[#0e141b] text-sm font-semibold">Giáo viên: {teacher.name}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ExamCard: React.FC<Exam & {
-  isFavorited: boolean;
-  onToggleFavorite: (id: string, isFavorited: boolean) => void
-}> = ({ title, durationMinutes, easyCount, mediumCount, hardCount, veryHardCount, easyScore, mediumScore, hardScore, veryHardScore, openTime, closeTime }) => {
-  let status = "";
-  let statusColor = "text-slate-600";
-  let statusBgColor = "bg-slate-100";
-
-  const totalQuestions = easyCount + mediumCount + hardCount + veryHardCount;
-  const totalScore = easyCount * easyScore + mediumCount * mediumScore + hardCount * hardScore + veryHardCount * veryHardScore;
-
-  if (closeTime) {
-    const now = new Date();
-    const close = new Date(closeTime);
-    if (now > close) {
-      status = "Đã kết thúc: " + close.toLocaleString();
-      statusColor = "text-red-700";
-      statusBgColor = "bg-red-100";
-    } else {
-      const timeLeft = Math.floor((close.getTime() - now.getTime()) / (1000 * 60));
-      status = `Đang diễn ra, kết thúc trong ${timeLeft / 60 === 0 ? '' : Math.floor(timeLeft / 60) + ' giờ '} ${timeLeft % 60} phút`;
-      statusColor = "text-green-700";
-      statusBgColor = "bg-green-100";
-    }
-  } else if (openTime) {
-    const now = new Date();
-    const open = new Date(openTime);
-    if (now < open) {
-      status = "Thời gian mở đề: " + open.toLocaleString();
-      statusColor = "text-slate-600";
-      statusBgColor = "bg-slate-100";
-    } else {
-      status = "Đang diễn ra";
-      statusColor = "text-green-700";
-      statusBgColor = "bg-green-100";
-    }
-  } else {
-    status = "Đang diễn ra";
-    statusColor = "text-green-700";
-    statusBgColor = "bg-green-100";
-  }
-
-  return (
-    <div className="p-4">
-      <div className="flex items-start gap-4 rounded-xl p-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <img src={ExamIcon} alt="Exam" className="w-8 h-8" />
-        <div className="flex flex-col flex-grow gap-1">
-          <p className="text-[#0e141b] text-xl font-bold leading-tight">{title}</p>
-          <p className="text-[#4e7297] text-sm font-normal leading-normal mt-1">
-            <span className="font-medium text-slate-600">Tổng số câu hỏi:</span> {totalQuestions}
-          </p>
-          <p className="text-[#4e7297] text-sm font-normal leading-normal">
-            <span className="font-medium text-slate-600">Tổng điểm:</span> {totalScore} • <span className="font-medium text-slate-600">Thời gian:</span> {durationMinutes} phút
-          </p>
-          <p className={`text-sm font-bold leading-normal mt-2 inline-block px-2 py-0.5 rounded ${statusBgColor} ${statusColor}`}>
-            {status}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import CourseCard from '../../components/Favourite/CourseCard';
+import LectureCard from '../../components/Favourite/LectureCard';
+import ExamCard from '../../components/Favourite/ExamCard';
+import ProfileDialog from '@/components/Auth/UserInformationPopup';
+import type { User } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const FavouritesPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<'courses' | 'lectures' | 'exams'>('courses');
   const grades = ['Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedGrade, setSelectedGrade] = useState(1);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
-  const [_, setSearchKeyword] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [loading, setLoading] = useState(false);
   const [favouriteCourses, setFavouriteCourses] = useState<FavouriteCourseResponse[]>([]);
   const [favouriteLectures, setFavouriteLectures] = useState<FavouriteLectureResponse[]>([]);
   const [favouriteExams, setFavouriteExams] = useState<FavouriteExamResponse[]>([]);
+
+  const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -152,7 +36,6 @@ const FavouritesPage: React.FC = () => {
           .slice()
           .sort((a, b) => a.name.localeCompare(b.name));
         setSubjects(sortData);
-
         if (sortData.length > 0) {
           setSelectedSubjectId(sortData[0].id);
         }
@@ -170,15 +53,20 @@ const FavouritesPage: React.FC = () => {
 
       setLoading(true);
       try {
-        const [courses, lectures, exams] = await Promise.all([
-          getFavouriteCourses(selectedSubjectId),
-          getFavouriteLectures(selectedSubjectId),
-          getFavouriteExams(selectedSubjectId)
-        ]);
-
-        setFavouriteCourses(courses);
-        setFavouriteLectures(lectures);
-        setFavouriteExams(exams);
+        switch (activeTab) {
+          case 'courses':
+            const courses = await getFavouriteCourses(selectedSubjectId, searchKeyword);
+            setFavouriteCourses(courses);
+            break;
+          case 'lectures':
+            const lectures = await getFavouriteLectures(selectedSubjectId, searchKeyword);
+            setFavouriteLectures(lectures);
+            break;
+          case 'exams':
+            const exams = await getFavouriteExams(selectedSubjectId, searchKeyword);
+            setFavouriteExams(exams);
+            break;
+        }
       } catch (error) {
         console.error('Error fetching favourites:', error);
       } finally {
@@ -187,7 +75,7 @@ const FavouritesPage: React.FC = () => {
     };
 
     fetchFavourites();
-  }, [selectedSubjectId]);
+  }, [selectedSubjectId, activeTab, searchKeyword]);
 
   const handleGradeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const gradeNumber = parseInt(event.target.value.replace('Lớp ', ''));
@@ -204,16 +92,22 @@ const FavouritesPage: React.FC = () => {
     }
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.value === '') {
+      setSearchKeyword('');
+    }
+  };
+
   const handleToggleFavoriteExam = async (examId: string, isCurrentlyFavorited: boolean) => {
     try {
       if (isCurrentlyFavorited) {
-        await removeFavorite(examId, 4); // 4 for Exam
+        await removeFavorite(examId, 4);
         toast.success('Đã bỏ yêu thích đề thi');
       } else {
-        await addFavorite(examId, 4); // 4 for Exam
+        await addFavorite(examId, 4);
         toast.success('Đã thêm vào danh sách yêu thích đề thi');
       }
-      // Optimistically update UI or refetch exams
+
       setFavouriteExams(prevExams =>
         prevExams.filter(favourite => favourite.targetId !== examId)
       );
@@ -222,6 +116,11 @@ const FavouritesPage: React.FC = () => {
       console.error('Error toggling exam favorite status:', error);
       toast.error('Có lỗi xảy ra khi cập nhật yêu thích.');
     }
+  };
+
+  const handleSelectUser = (user: User) => {
+    setSelectedUser(user);
+    setIsUserPopupOpen(true);
   };
 
   return (
@@ -244,6 +143,7 @@ const FavouritesPage: React.FC = () => {
                   placeholder="Tìm kiếm ..."
                   className="flex-6 form-input md:col-span-1 rounded-lg border-slate-300 focus:border-[#1980e6] focus:ring focus:ring-[#1980e6]/30 p-2.5 h-11 text-sm bg-white rounded-xl border-none shadow-sm"
                   onKeyDown={handleSearch}
+                  onChange={handleInputChange}
                 />
                 <div className="flex items-center">
                   <label htmlFor="grade-select" className="sr-only">Chọn khối lớp</label>
@@ -292,8 +192,8 @@ const FavouritesPage: React.FC = () => {
                       : 'border-b-transparent text-[#4e7297] hover:text-[#0e141b] hover:border-b-slate-300'
                       }`}
                   >
-                    <p className={`text-sm font-bold leading-normal tracking-[0.015em] capitalize`}>
-                      {tab}
+                    <p className={`text-sm font-bold leading-normal tracking-[0.015em]`}>
+                      {tab === 'courses' ? 'Lớp học' : tab === 'lectures' ? 'Bài giảng' : 'Đề thi'}
                     </p>
                   </button>
                 ))}
@@ -314,10 +214,12 @@ const FavouritesPage: React.FC = () => {
                           <CourseCard
                             key={favourite.id}
                             {...favourite.details}
+                            onClick={() => navigate(`/courses/${favourite.details.id}/lectures`)}
+                            onSelectUser={handleSelectUser}
                           />
                         ))
                       ) : (
-                        <p className="p-10 text-center text-slate-500">No favorite courses yet.</p>
+                        <p className="p-10 text-center text-slate-500">Bạn chưa thêm lớp học nào vào danh sách yêu thích</p>
                       )}
                     </div>
                   )}
@@ -328,10 +230,12 @@ const FavouritesPage: React.FC = () => {
                           <LectureCard
                             key={favourite.id}
                             {...favourite.details}
+                            onClick={() => navigate(`/lectures/${favourite.details.id}`)}
+                            onSelectUser={handleSelectUser}
                           />
                         ))
                       ) : (
-                        <p className="p-10 text-center text-slate-500">No favorite lectures yet.</p>
+                        <p className="p-10 text-center text-slate-500">Bạn chưa thêm bài giảng nào vào danh sách yêu thích</p>
                       )}
                     </div>
                   )}
@@ -342,12 +246,23 @@ const FavouritesPage: React.FC = () => {
                           <ExamCard
                             key={favourite.id}
                             {...favourite.details}
-                            isFavorited={favourite.details.favourite}
+                            onClick={() => navigate(`/courses/${favourite.details.classId}/exams/${favourite.details.id}/instructions`, {
+                              state: {
+                                examId: favourite.details.id,
+                                courseId: favourite.details.classId,
+                                examTitle: favourite.details.title,
+                                courseName: favourite.details.className,
+                                subjectName: favourite.details.subjectName,
+                                subjectGrade: favourite.details.grade,
+                                duration: favourite.details.durationMinutes,
+                                numQuestions: favourite.details.totalQuestions,
+                              }
+                            })}
                             onToggleFavorite={handleToggleFavoriteExam}
                           />
                         ))
                       ) : (
-                        <p className="p-10 text-center text-slate-500">No favorite exams yet.</p>
+                        <p className="p-10 text-center text-slate-500">Bạn chưa thêm đề thi nào vào danh sách yêu thích</p>
                       )}
                     </div>
                   )}
@@ -356,6 +271,11 @@ const FavouritesPage: React.FC = () => {
             </div>
           </div>
         </main>
+        <ProfileDialog
+          isOpen={isUserPopupOpen}
+          onClose={() => setIsUserPopupOpen(false)}
+          user={selectedUser}
+        />
       </div>
     </div>
   );

@@ -24,9 +24,13 @@ export interface FavouriteExamResponse extends FavouriteResponse<Exam> {
   type: 4;
 }
 
-export const getFavouriteCourses = async (subjectId: string): Promise<FavouriteCourseResponse[]> => {
+export const getFavouriteCourses = async (subjectId: string, keyword?: string): Promise<FavouriteCourseResponse[]> => {
   const token = localStorage.getItem('token');
-  const response = await axios.get(`/api/favourites/detailed/1/subject/${subjectId}`, {
+  let url = `/api/favourites/detailed/1/subject/${subjectId}`;
+  if (keyword) {
+    url += `?keyword=${encodeURIComponent(keyword)}`;
+  }
+  const response = await axios.get(url, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -34,9 +38,13 @@ export const getFavouriteCourses = async (subjectId: string): Promise<FavouriteC
   return response.data;
 };
 
-export const getFavouriteLectures = async (subjectId: string): Promise<FavouriteLectureResponse[]> => {
+export const getFavouriteLectures = async (subjectId: string, keyword?: string): Promise<FavouriteLectureResponse[]> => {
   const token = localStorage.getItem('token');
-  const response = await axios.get(`/api/favourites/detailed/2/subject/${subjectId}`, {
+  let url = `/api/favourites/detailed/2/subject/${subjectId}`;
+  if (keyword) {
+    url += `?keyword=${encodeURIComponent(keyword)}`;
+  }
+  const response = await axios.get(url, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -44,9 +52,13 @@ export const getFavouriteLectures = async (subjectId: string): Promise<Favourite
   return response.data;
 };
 
-export const getFavouriteExams = async (subjectId: string): Promise<FavouriteExamResponse[]> => {
+export const getFavouriteExams = async (subjectId: string, keyword?: string): Promise<FavouriteExamResponse[]> => {
   const token = localStorage.getItem('token');
-  const response = await axios.get(`/api/favourites/detailed/4/subject/${subjectId}`, {
+  let url = `/api/favourites/detailed/4/subject/${subjectId}`;
+  if (keyword) {
+    url += `?keyword=${encodeURIComponent(keyword)}`;
+  }
+  const response = await axios.get(url, {
     headers: {
       Authorization: `Bearer ${token}`
     }
