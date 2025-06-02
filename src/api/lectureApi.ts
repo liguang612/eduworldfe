@@ -40,14 +40,18 @@ export const getLectures = async (subjectId: string, keyword: string): Promise<L
   }
 };
 
-export const getLectureById = async (lectureId: string): Promise<LectureResponse> => {
+export const getLectureById = async (lectureId: string, courseId: string | undefined): Promise<LectureResponse> => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.get(`api/lectures/${lectureId}`, {
       headers: {
         Authorization: `Bearer ${token}`
-      }
+      },
+      params: {
+        courseId,
+      },
     });
+    console.log(response.data);
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch lecture:', error.response ? error.response.data : error.message);

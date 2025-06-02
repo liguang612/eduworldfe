@@ -3,7 +3,7 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 import MagnifyingGlassIcon from '@/assets/magnify_glass.svg';
 import { getExamsByClassId, type Exam, deleteExam } from '@/api/examApi';
-import { isAfter, isBefore, isWithinInterval, parseISO } from 'date-fns';
+import { isAfter, isBefore, parseISO } from 'date-fns';
 import ExamCard from '@/components/Exam/ExamCard';
 import { toast, ToastContainer } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
@@ -71,25 +71,27 @@ const CourseExams: React.FC = () => {
 
   const now = new Date();
 
-  const upcomingExams = filteredExams.filter(exam => {
-    const openTime = exam.openTime ? parseISO(exam.openTime) : null;
-    const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
-
-    if (closeTime && isAfter(now, closeTime)) return false;
-
-    if (openTime && closeTime && isWithinInterval(now, { start: openTime, end: closeTime })) return false;
-    if (openTime && !closeTime && isAfter(now, openTime)) return false;
-    if (openTime && isBefore(now, openTime)) return true;
-    if (!openTime && !closeTime) return false;
-
-    return true;
-  });
-
+  // Đề thi đã kết thúc: có closeTime và hiện tại > closeTime
   const pastExams = filteredExams.filter(exam => {
     const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
     return closeTime && isAfter(now, closeTime);
   });
 
+  // Đề thi sắp diễn ra: có openTime và hiện tại < openTime (và chưa kết thúc)
+  const upcomingExams = filteredExams.filter(exam => {
+    const openTime = exam.openTime ? parseISO(exam.openTime) : null;
+    const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
+
+    // Nếu đã kết thúc thì không phải sắp mở
+    if (closeTime && isAfter(now, closeTime)) return false;
+
+    // Nếu có openTime và hiện tại < openTime thì sắp mở
+    if (openTime && isBefore(now, openTime)) return true;
+
+    return false;
+  });
+
+  // Đề thi đang diễn ra: không phải sắp mở và không phải đã kết thúc
   const ongoingExams = filteredExams.filter(exam => {
     const isUpcoming = upcomingExams.some(u => u.id === exam.id);
     const isPast = pastExams.some(p => p.id === exam.id);

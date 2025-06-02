@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getLectureById, deleteLecture } from '@/api/lectureApi';
 import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
 import MyEditor from '@/components/Lecture/MyEditor';
@@ -22,8 +22,12 @@ import { addFavorite, removeFavorite } from '@/api/favouriteApi';
 import { deleteFile } from '@/api/fileApi';
 
 const LectureDetailPage: React.FC = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+  const courseId = location.state?.courseId;
   const { id } = useParams<{ id: string }>();
+
+  const navigate = useNavigate();
+
   const [lecture, setLecture] = useState<LectureResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,7 +63,7 @@ const LectureDetailPage: React.FC = () => {
         if (id) {
           setLoading(true);
 
-          const data = await getLectureById(id);
+          const data = await getLectureById(id, courseId);
           setLecture(data);
           document.title = data.name;
           setIsFavorited(data.favourite);

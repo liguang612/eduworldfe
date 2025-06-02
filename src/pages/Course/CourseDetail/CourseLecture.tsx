@@ -149,7 +149,7 @@ const CourseLectures: React.FC = () => {
                       <div
                         key={lecture.id}
                         className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-3 my-1 justify-between border border-transparent hover:border-slate-200 rounded-md cursor-pointer transition-all"
-                        onClick={() => navigate(`/lectures/${lecture.id}`)}
+                        onClick={() => navigate(`/lectures/${lecture.id}`, { state: { courseId: course.id } })}
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-[#1980e6] flex items-center justify-center rounded-full bg-[#e7edf3] shrink-0 size-10" data-icon="Play" data-size="20px" data-weight="fill">

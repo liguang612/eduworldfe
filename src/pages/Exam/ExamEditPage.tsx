@@ -359,10 +359,10 @@ const ExamEditPage: React.FC = () => {
         maxScore: totalPoints + selectedQuestions.reduce((sum, q) => sum + (q.points || 0), 0),
         durationMinutes: parseInt(formData.duration) || 0,
         shuffleQuestion: formData.shuffleQuestions,
-        shuffleChoice: formData.shuffleQuestions, // Giả sử bạn muốn đồng bộ cài đặt này
-        categories: [], // Bạn có thể cần cập nhật logic này nếu có categories
+        shuffleChoice: formData.shuffleQuestions,
+        categories: [],
         allowReview: formData.allowReviewAfterSubmit,
-        allowViewAnswer: formData.revealAnswers, // Đã sửa: allowViewAnswer nên map với revealAnswers
+        allowViewAnswer: formData.revealAnswers,
         maxAttempts: formData.allowRetake ? parseInt(formData.maxRetakeAttempts) : 1
       };
 

@@ -89,7 +89,7 @@ const ExamCard: React.FC<Exam & {
       statusBgColor = "bg-red-100";
     } else {
       const timeLeft = Math.floor((close.getTime() - now.getTime()) / (1000 * 60));
-      status = `Đang diễn ra, kết thúc trong ${timeLeft / 60 === 0 ? '' : timeLeft / 60 + 'giờ '} ${timeLeft % 60} phút`;
+      status = `Đang diễn ra, kết thúc trong ${timeLeft / 60 === 0 ? '' : Math.floor(timeLeft / 60) + ' giờ '} ${timeLeft % 60} phút`;
       statusColor = "text-green-700";
       statusBgColor = "bg-green-100";
     }
