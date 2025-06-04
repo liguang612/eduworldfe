@@ -12,6 +12,7 @@ export const uploadFile = async (file: File, folder: string) => {
       'Content-Type': 'multipart/form-data',
       'Authorization': `Bearer ${token}`,
     },
+    timeout: 10000,
   });
 
   return response.data.url;

@@ -74,13 +74,13 @@ const SolutionPage: React.FC = () => {
       setStatusMessage('Đang xóa lời giải...');
       await deleteSolution(solutionToDeleteId);
       toast.success('Lời giải đã được xóa thành công!');
-      // Refetch solutions after deletion
+
       const solutionsData = await getSolutionsByQuestionId(questionId);
       const newApprovedSolutions = solutionsData.filter(s => s.status === 1);
       const newPendingSolutions = solutionsData.filter(s => s.status === 0);
       setSolutions(newApprovedSolutions);
       setPendingSolutions(newPendingSolutions);
-      // Select the first solution or set to null if none left
+
       if (newApprovedSolutions.length > 0) {
         setSelectedSolutionId(newApprovedSolutions[0].id);
       } else {

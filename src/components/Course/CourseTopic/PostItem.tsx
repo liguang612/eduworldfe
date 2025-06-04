@@ -55,7 +55,7 @@ const PostItem: React.FC<PostItemProps> = ({
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const avatarSrc = post.user?.userAvatar ? post.user.userAvatar : "https://via.placeholder.com/150";
+  const avatarSrc = post.user?.userAvatar ? post.user.userAvatar : "https://ui-avatars.com/api/?name=" + encodeURIComponent(post.user?.userName || 'U');
   const userName = post.user?.userName || "Unknown User";
   const userSchool = post.user?.userSchool;
 

@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Logo from '../../assets/logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import BellIcon from '@/assets/bell.svg';
+import NotificationPopup from '../Notification/NotificationPopup';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +12,12 @@ const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Đóng menu khi click ra ngoài
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  const notificationPopupRef = useRef<HTMLDivElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -27,6 +34,35 @@ const Header: React.FC = () => {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        notificationPopupRef.current &&
+        !notificationPopupRef.current.contains(event.target as Node) &&
+        notificationButtonRef.current &&
+        !notificationButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  const handleToggleNotifications = () => {
+    setShowNotifications(prev => !prev);
+  };
+
+  const handleHasUnreadChange = (hasUnreadNotifications: boolean) => {
+    setHasUnread(hasUnreadNotifications);
+  };
+
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf3] px-10 py-3 bg-white font-['Lexend']">
       <div className="flex items-center gap-4 text-[#0e141b] cursor-pointer" onClick={() => navigate('/')}>
@@ -35,8 +71,8 @@ const Header: React.FC = () => {
         </div>
         <h2 className="text-[#0e141b] text-lg font-bold leading-tight tracking-[-0.015em]">EduWorld</h2>
       </div>
-      <div className="flex flex-1 justify-end gap-8">
-        <div className="flex items-center gap-9">
+      <div className="flex flex-1 justify-end gap-8 ml-8">
+        <div className="flex items-center gap-9 flex-1">
           {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/')}>
             Trang chủ
           </a>}
@@ -55,9 +91,28 @@ const Header: React.FC = () => {
           {user?.role === 0 && <a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts')}>
             Kết quả
           </a>}
-          {/* {<a className="text-[#0e141b] text-sm font-medium leading-normal" href="#" onClick={() => navigate('/attempts/1/congratulation')}>
-            Temp
-          </a>} */}
+        </div>
+        <div className="flex justify-end gap-4">
+          <div className="relative flex gap-2 items-center">
+            <button
+              ref={notificationButtonRef}
+              onClick={handleToggleNotifications}
+              className="relative flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 w-10 bg-[#e7edf3] text-[#0e141b] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 p-2.5"
+            >
+              <img src={BellIcon} alt="Bell" className="w-4 h-4" />
+              {hasUnread && (
+                <span className="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+              )}
+            </button>
+            {showNotifications && (
+              <div ref={notificationPopupRef} className="absolute right-0 top-full mt-2 z-50">
+                <NotificationPopup
+                  onClose={() => setShowNotifications(false)}
+                  onHasUnreadChange={handleHasUnreadChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
         {!user ? (
           location.pathname === '/register' ? (
