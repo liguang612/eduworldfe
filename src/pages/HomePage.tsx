@@ -22,17 +22,6 @@ const ViewAllButton: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
   </button>
 );
 
-const formatDateTime = (dateString: string | null) => {
-  if (!dateString) return 'Chưa có thời gian';
-  return new Date(dateString).toLocaleString('vi-VN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
 const HomePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
