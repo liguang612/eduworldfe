@@ -83,6 +83,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ data, onClick }) =>
     if (data.type === 'NEW_POST_FOR_TEACHER_APPROVAL') {
       navigate(`/courses/${data.courseId}/topics`);
     }
+
+    console.log(data);
   };
 
   const getIconComponent = (data: NotificationData) => {

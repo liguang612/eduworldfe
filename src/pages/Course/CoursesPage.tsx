@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import StarRatingDisplay from '@/components/Course/StarRatingDisplay';
+// import StarRatingDisplay from '@/components/Course/StarRatingDisplay'; // No longer needed
+import CourseItem from '@/components/Course/CourseItem';
 
 import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '@/api/courseApi';
 import type { Course, Subject } from '@/api/courseApi';
@@ -211,27 +212,11 @@ const CoursesPage: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
                 {courses.map((course) => (
-                  <div
+                  <CourseItem
                     key={course.id}
-                    className="flex flex-col gap-3 pb-3 max-w-[300px] cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => handleCourseClick(course)}
-                  >
-                    <div
-                      className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                      style={{ backgroundImage: `url("${course.avatar}")` }}
-                    ></div>
-                    <div>
-                      <p className="text-[#0e141b] text-base font-medium leading-normal">{course.name}</p>
-                      <div className="text-[#4e7397] text-sm font-normal leading-normal mt-1">
-                        <p>Teacher: {course.teacher.name}</p>
-                        <p>Students: {course.students.length}</p>
-                        <div className="flex items-center mt-0.5">
-                          <StarRatingDisplay rating={course.averageRating} />
-                          <span className="ml-1.5">({course.averageRating.toFixed(1)})</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    course={course}
+                    onClick={handleCourseClick}
+                  />
                 ))}
               </div>
             )}
