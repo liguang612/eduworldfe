@@ -116,7 +116,7 @@ const CourseEditPage: React.FC = () => {
   };
 
   const handleTeacherSelected = (teacher: SearchUser) => {
-    if (!selectedAssistants.find(t => t.id === teacher.id)) {
+    if (teacher.id != course?.teacher?.id && !selectedAssistants.find(t => t.id === teacher.id)) {
       setSelectedAssistants(prev => [...prev, teacher]);
     }
   };
