@@ -188,7 +188,7 @@ export const uploadFile = async (file: File, type: string): Promise<string> => {
   const response = await axios.post(`${FILE_API_URL}/upload`, formData, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
+      'Content-Type': undefined,
     },
   });
 

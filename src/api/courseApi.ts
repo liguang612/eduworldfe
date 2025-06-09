@@ -45,6 +45,15 @@ export type SearchUser = {
   grade: number;
 }
 
+export interface CreateCourseRequestPayload {
+  name: string;
+  description: string;
+  subjectId: string;
+  teacherAssistantIds: string[];
+  studentIds: string[];
+  hidden: boolean;
+}
+
 // GET
 export const getSubjectsByGrade = async (grade: number): Promise<Subject[]> => {
   try {
@@ -122,7 +131,7 @@ export const getCourseById = async (courseId: string): Promise<Course> => {
 };
 
 // CREATE
-export const createCourse = async (courseData: Course): Promise<Course> => {
+export const createCourse = async (courseData: CreateCourseRequestPayload): Promise<Course> => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.post(`${API_URL}/courses`, courseData, {

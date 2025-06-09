@@ -58,6 +58,7 @@ const DoExamPage: React.FC = () => {
       const startNewAttempt = async () => {
         try {
           const attempt = await startExamAttempt(examId);
+
           if (attempt && attempt.status === 'submitted') {
             toast.error('Bài thi đã kết thúc');
             localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
@@ -70,6 +71,7 @@ const DoExamPage: React.FC = () => {
             });
             return;
           }
+
           if (attempt && attempt.id) {
             localStorage.setItem(`exam_attempt_${examId}_user_${user?.id}`, attempt.id);
             setAttemptId(attempt.id);
@@ -719,7 +721,7 @@ const DoExamPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Confirmation Dialog và ToastContainer (GIỮ NGUYÊN TỪ FILE GỐC) */}
+      {/* Confirmation Dialog và ToastContainer */}
       <ConfirmationDialog
         isOpen={showSubmitConfirm}
         onClose={() => setShowSubmitConfirm(false)}

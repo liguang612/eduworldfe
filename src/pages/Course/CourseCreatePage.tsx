@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSubjectsByGrade, updateCoruseAvatar, type Subject } from '@/api/courseApi';
+import { getSubjectsByGrade, updateCoruseAvatar, type Subject, createCourse, type CreateCourseRequestPayload } from '@/api/courseApi';
 import AddIcon from '@/assets/add.svg';
 import RemoveIcon from '@/assets/remove.svg';
 import { SearchableDialog } from '@/components/Common/SearchableDialog';
@@ -131,27 +131,14 @@ const CreateCoursePage: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Tạo lớp học
-      const response = await fetch('http://localhost:8080/api/courses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          name: className,
-          description: description,
-          subjectId: selectedSubjectId,
-          teacherAssistantIds: selectedAssistants.map(ta => ta.id),
-          studentIds: selectedStudents.map(student => student.id),
-          hidden: !isPublic,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create course');
-      }
-
-      const courseData = await response.json();
+      const courseData = await createCourse({
+        name: className,
+        description: description,
+        subjectId: selectedSubjectId,
+        teacherAssistantIds: selectedAssistants.map(ta => ta.id),
+        studentIds: selectedStudents.map(student => student.id),
+        hidden: !isPublic,
+      } as CreateCourseRequestPayload);
 
       // Nếu có file avatar, cập nhật avatar
       if (selectedFile) {
