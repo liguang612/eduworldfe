@@ -1,7 +1,7 @@
 import axios from '@/config/axios';
 
 const API_URL = '/api/notifications';
-const NOTIFICATIONS_PAGE_SIZE = 5; // Default page size, can be overridden
+const NOTIFICATIONS_PAGE_SIZE = 5;
 
 interface NotificationsApiResponse {
   notifications: NotificationData[];

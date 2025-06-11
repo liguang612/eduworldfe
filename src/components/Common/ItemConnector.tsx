@@ -1,7 +1,6 @@
-// src/components/ItemConnector.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import Xarrow, { Xwrapper, useXarrow } from 'react-xarrows';
-import './ItemConnector.css'; // Chúng ta sẽ tạo file CSS này sau
+import './ItemConnector.css';
 
 interface Item {
   id: string;
@@ -18,7 +17,7 @@ interface ItemConnectorProps {
   rightItems: Item[];
   initialConnections?: Connection[];
   onChange: (connections: Connection[]) => void;
-  readOnly?: boolean; // Để xử lý chế độ chỉ đọc của SurveyJS
+  readOnly?: boolean;
 }
 
 const ItemConnector: React.FC<ItemConnectorProps> = ({
@@ -30,16 +29,16 @@ const ItemConnector: React.FC<ItemConnectorProps> = ({
 }) => {
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
   const [connections, setConnections] = useState<Connection[]>(initialConnections);
-  const updateXarrow = useXarrow(); // Hook để cập nhật lại các đường nối khi cần
+  const updateXarrow = useXarrow();
 
   useEffect(() => {
-    setConnections(initialConnections); // Đồng bộ với initialConnections nếu nó thay đổi từ bên ngoài
+    setConnections(initialConnections);
   }, [initialConnections]);
 
   const handleLeftItemClick = useCallback((itemId: string) => {
     if (readOnly) return;
-    setSelectedLeftItem(prev => (prev === itemId ? null : itemId)); // Click để chọn, click lại để bỏ chọn
-    setTimeout(updateXarrow, 0); // Đảm bảo các thay đổi DOM được áp dụng trước khi xarrow cập nhật
+    setSelectedLeftItem(prev => (prev === itemId ? null : itemId));
+    setTimeout(updateXarrow, 0);
   }, [readOnly, updateXarrow]);
 
   const handleRightItemClick = useCallback((rightItemId: string) => {
@@ -53,19 +52,15 @@ const ItemConnector: React.FC<ItemConnectorProps> = ({
     );
 
     if (existingConnectionIndex > -1) {
-      // Nếu kết nối đã tồn tại, xóa nó (toggle)
       newConnections = connections.filter((_, index) => index !== existingConnectionIndex);
     } else {
-      // Nếu chưa tồn tại, thêm kết nối mới
       newConnections = [...connections, newConnection];
     }
     setConnections(newConnections);
     onChange(newConnections);
-    // Không bỏ chọn selectedLeftItem để cho phép nối nhiều item từ một nguồn
     setTimeout(updateXarrow, 0);
   }, [readOnly, selectedLeftItem, connections, onChange, updateXarrow]);
 
-  // Hàm giúp tạo ID an toàn cho các phần tử HTML
   const getSafeId = (prefix: string, id: string) =>
     `${prefix}-${id.replace(/[^a-zA-Z0-9-_]/g, '')}`;
 
@@ -121,14 +116,12 @@ const ItemConnector: React.FC<ItemConnectorProps> = ({
             end={getSafeId('right', conn.to)}
             strokeWidth={2}
             color={readOnly ? "#aaa" : "cornflowerblue"}
-            path="smooth" // "grid", "straight"
+            path="smooth"
             headSize={6}
-            curveness={0.8} // Điều chỉnh độ cong của đường nối
+            curveness={0.8}
             showHead={!readOnly}
             passProps={{
               className: readOnly ? 'xarrow-readonly' : 'xarrow-editable',
-              // Nếu muốn có thể bắt sự kiện trên đường nối (phức tạp hơn)
-              // onClick: () => !readOnly && handleArrowClick(conn),
             }}
           />
         ))}

@@ -12,15 +12,9 @@ import ExamCard from '@/components/Exam/ExamCard';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-const ViewAllButton: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="text-sm font-medium text-[#1980e6] hover:text-[#1367b8] transition-colors"
-  >
-    Xem tất cả
-  </button>
-);
+import ViewAllButton from '@/components/Homepage/ViewAllButton';
+import SlideToLeftIcon from '@/assets/slide_to_left.svg';
+import SlideToRightIcon from '@/assets/slide_to_right.svg';
 
 const HomePage: React.FC = () => {
   const { user } = useAuth();
@@ -83,7 +77,9 @@ const HomePage: React.FC = () => {
           arrows: false,
         }
       }
-    ]
+    ],
+    prevArrow: <img src={SlideToLeftIcon} alt="prev" />,
+    nextArrow: <img src={SlideToRightIcon} alt="next" />,
   };
 
   const handleViewAllCourses = () => {
@@ -142,6 +138,13 @@ const HomePage: React.FC = () => {
     });
   };
 
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroSearchValue.trim()) {
+      navigate('/search', { state: { initialQuery: heroSearchValue } });
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -189,9 +192,18 @@ const HomePage: React.FC = () => {
                           className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border border-[#d0dbe7] bg-slate-50 focus:border-[#d0dbe7] h-full placeholder:text-[#4e7397] px-3 sm:px-[15px] rounded-r-none border-r-0 pr-2 rounded-l-none border-l-0 pl-2 text-xs sm:text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal"
                           value={heroSearchValue}
                           onChange={(e) => setHeroSearchValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleHeroSearch(e);
+                            }
+                          }}
                         />
                         <div className="flex items-center justify-center rounded-r-xl border-l-0 border border-[#d0dbe7] bg-slate-50 pr-1 sm:pr-[7px]">
-                          <button className="flex min-w-[70px] sm:min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-9 sm:h-10 px-3 sm:px-4 @[480px]:h-12 @[480px]:px-5 bg-[#1980e6] text-slate-50 text-xs sm:text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em]">
+                          <button
+                            type="submit"
+                            onClick={handleHeroSearch}
+                            className="flex min-w-[70px] sm:min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-9 sm:h-10 px-3 sm:px-4 @[480px]:h-12 @[480px]:px-5 bg-[#1980e6] text-slate-50 text-xs sm:text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em]"
+                          >
                             <span className="truncate">Tìm kiếm</span>
                           </button>
                         </div>
@@ -202,7 +214,7 @@ const HomePage: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center px-4 pt-5 pb-3">
-                <h2 className="text-[#0e141b] text-xl sm:text-[22px] font-bold leading-tight tracking-[-0.015em]">Khóa học nổi bật</h2>
+                <h2 className="text-[#0e141b] text-xl sm:text-[22px] font-bold leading-tight tracking-[-0.015em]">Khoá học nổi bật</h2>
                 <ViewAllButton onClick={handleViewAllCourses} />
               </div>
               <div className="p-4 pt-0">

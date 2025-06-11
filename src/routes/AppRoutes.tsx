@@ -1,6 +1,6 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import HomePage from '../pages/HomePage';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import HomePage from '../pages/Homepage/HomePage';
 import CoursesPage from '../pages/Course/CoursesPage';
 import CourseDetailPage from '../pages/Course/CourseDetailPage';
 import CourseEditPage from '../pages/Course/CourseEditPage';
@@ -36,6 +36,7 @@ import AttemptDetailPage from '@/pages/Attempt/AttemptDetailPage';
 import ExamPages from '@/pages/Exam/ExamPages';
 import ExamResultsPage from '@/pages/Exam/ExamResultsPage';
 import FavouritePage from '@/pages/Favourite/FavouritePage';
+import SearchResultsPage from '@/pages/Homepage/SearchPage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -46,6 +47,16 @@ const AppRoutes: React.FC = () => (
         <ProtectedRoute>
           <Layout>
             <HomePage />
+          </Layout>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/search"
+      element={
+        <ProtectedRoute>
+          <Layout>
+            <SearchResultsPage initialQuery={useLocation().state?.initialQuery || ''} />
           </Layout>
         </ProtectedRoute>
       }

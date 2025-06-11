@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import RatingStars from '@/components/Common/RatingStars';
 import { useNavigate } from 'react-router-dom';
 import { getSubjectsByGrade } from '@/api/courseApi';
 import type { Subject } from '@/api/courseApi';
 import { getLectures, type LectureResponse } from '@/api/lectureApi';
 import { ToastContainer } from 'react-toastify';
+import LectureItem from '@/components/Lecture/LectureItem';
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -153,29 +153,15 @@ const LectureListPage: React.FC = () => {
               </div>
             ) : (
               lectures.map((lecture) => (
-                <div key={lecture.id} className="flex items-center gap-4 bg-slate-50 px-4 min-h-[72px] py-2 justify-between cursor-pointer"
+                <LectureItem
+                  key={lecture.id}
+                  id={lecture.id}
+                  title={lecture.name}
+                  duration={lecture.duration}
+                  rating={lecture.averageRating}
+                  questionCount={lecture.endQuestions.length}
                   onClick={() => navigate(`/lectures/${lecture.id}`)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-[#0e141b] flex items-center justify-center rounded-lg bg-[#e7edf3] shrink-0 size-12" data-icon="Play" data-size="24px" data-weight="regular">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"></path>
-                      </svg>
-                    </div>
-                    <div className="flex flex-col justify-center">
-                      <p className="text-[#0e141b] text-base font-medium leading-normal line-clamp-1">{lecture.name}</p>
-                      <div className="flex items-center gap-1 text-[#4e7397] text-sm font-normal leading-normal">
-                        <span>{`${lecture.duration}m`}</span>
-                        <span className="mx-1">•</span>
-                        <RatingStars rating={4.5} />
-                        <span>(4.5)</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    <p className="text-[#0e141b] text-base font-normal leading-normal">{lecture.endQuestions.length} câu hỏi</p>
-                  </div>
-                </div>
+                />
               ))
             )}
           </div>

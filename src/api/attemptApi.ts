@@ -3,7 +3,6 @@ import { type Question } from '../api/questionApi';
 
 const API_URL = '/api/exam-attempts';
 
-// Attempt API functions
 export interface ExamAttempt {
   id: string;
   examId?: string;

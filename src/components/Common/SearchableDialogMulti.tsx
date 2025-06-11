@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 interface SearchResultItem {
   id: string;
-  [key: string]: any; // Cho phép các thuộc tính khác
+  [key: string]: any;
 }
 
 interface SearchableDialogMultiProps<T extends SearchResultItem> {
@@ -75,7 +75,6 @@ export function SearchableDialogMulti<T extends SearchResultItem>({
     };
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
-      // Reset state khi mở dialog
       setSearchTerm('');
       setSearchResults([]);
       setIsLoading(false);

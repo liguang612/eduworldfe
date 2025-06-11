@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 interface SearchResultItem {
   id: string;
-  [key: string]: any; // Cho phép các thuộc tính khác
+  [key: string]: any;
 }
 
 interface SearchableDialogProps<T extends SearchResultItem> {
@@ -26,7 +26,7 @@ export function SearchableDialog<T extends SearchResultItem>({
   onSearch,
   renderItem,
   onItemSelected,
-  itemContainerClassName = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto max-h-[60vh]", // Default item container style
+  itemContainerClassName = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto max-h-[60vh]",
   loadingText = "Đang tìm kiếm...",
   noResultsText = "Không tìm thấy kết quả nào."
 }: SearchableDialogProps<T>) {
@@ -71,7 +71,6 @@ export function SearchableDialog<T extends SearchResultItem>({
     };
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
-      // Reset state khi mở dialog
       setSearchTerm('');
       setSearchResults([]);
       setIsLoading(false);
@@ -122,7 +121,7 @@ export function SearchableDialog<T extends SearchResultItem>({
               </svg>
             </div>
             <input
-              type="search" // type="search" để có nút clear (tuỳ trình duyệt)
+              type="search"
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={handleInputChange}

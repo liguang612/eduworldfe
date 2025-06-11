@@ -68,7 +68,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 const AttemptListPage: React.FC = () => {
   const navigate = useNavigate();
   const tabs: TabInfo[] = [
-    { id: 'in_progress', label: 'Đang diễn ra' },
+    { id: 'in_progress', label: 'Đang hoàn thành' },
     { id: 'submitted', label: 'Đã hoàn thành' }
   ];
 

@@ -116,7 +116,7 @@ interface UploadSharedMediaRequest {
   file?: File;
   title: string;
   mediaType: number;
-  text?: string; // Optional text for some media types if needed
+  text?: string;
 }
 
 export interface SurveyValue {
@@ -325,7 +325,7 @@ export const updateSharedMedia = async (mediaId: string, data: UploadSharedMedia
   return response.data;
 };
 
-// Helper function to convert question type to API type
+// Hàm chuyển đổi loại câu hỏi sang định dạng API
 export const convertQuestionTypeToApiType = (type: string): string => {
   const mapping: { [key: string]: string } = {
     'Multiple Choice': 'radio',

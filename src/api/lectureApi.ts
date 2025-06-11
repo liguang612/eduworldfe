@@ -9,6 +9,8 @@ export interface LectureResponse {
   categories: string[];
   pdfUrl: string | null;
   subjectId: string;
+  subjectName: string;
+  grade: number;
   teacher: {
     id: string;
     email: string;
@@ -19,6 +21,7 @@ export interface LectureResponse {
   };
   duration: number;
   favourite: boolean;
+  averageRating: number;
 }
 
 export const getLectures = async (subjectId: string, keyword: string): Promise<LectureResponse[]> => {
@@ -51,7 +54,6 @@ export const getLectureById = async (lectureId: string, courseId: string | undef
         courseId,
       },
     });
-    console.log(response.data);
     return response.data;
   } catch (error: any) {
     console.error('Failed to fetch lecture:', error.response ? error.response.data : error.message);

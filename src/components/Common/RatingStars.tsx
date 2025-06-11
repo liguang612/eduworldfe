@@ -1,4 +1,3 @@
-// RatingStars.tsx (Phiên bản cập nhật hỗ trợ điểm lẻ)
 import React from 'react';
 
 interface RatingStarsProps {

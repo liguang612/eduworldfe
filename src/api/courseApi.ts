@@ -20,6 +20,8 @@ export type Course = {
   allowStudentPost: boolean;
   requirePostApproval: boolean;
   favourite: boolean;
+  grade: number;
+  subjectName: string;
 }
 
 export interface Chapter {
@@ -100,7 +102,7 @@ export const searchUserByEmail = async (email: string, role: number): Promise<Se
       `${API_URL}/auth/users/search?email=${encodeURIComponent(email)}&role=${role}`
     );
     const data = response.data;
-    // Map API response về đúng định dạng Teacher
+
     return data.map((user: any) => ({
       id: user.id,
       name: user.name,

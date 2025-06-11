@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form'; // Removed Controller as it's not strictly needed for native date input
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { Resolver } from 'react-hook-form';
 import * as yup from 'yup';
@@ -59,7 +59,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
       grade: '',
       school: '',
       address: '',
-      birthday: '', // Hoặc null nếu bạn đã transform '' thành null trong schema và muốn default là null
+      birthday: '',
     },
   });
 
@@ -251,8 +251,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Ngày sinh (Tùy chọn)</p>
                   <input
                     {...register('birthday')}
-                    type="date" // Thay đổi type thành "date"
-                    // Không cần placeholder cho type="date"
+                    type="date"
                     className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${errors.birthday ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal`}
                   />
                   {errors.birthday && <p className="text-red-500 text-sm mt-1">{errors.birthday.message}</p>}

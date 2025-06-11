@@ -116,7 +116,6 @@ export const deleteExam = async (examId: string): Promise<void> => {
   });
 };
 
-// Attempt API functions
 export interface ExamAttempt {
   id: string;
   examId: string;
