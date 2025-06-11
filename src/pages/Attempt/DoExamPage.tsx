@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ClearIcon from '@/assets/clear.svg';
 import DotRegularIcon from '@/assets/dot_regular.svg';
 import DotFillIcon from '@/assets/dot_fill.svg';
@@ -31,12 +31,13 @@ const DoExamPage: React.FC = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const hasStartedAttempt = useRef(false);
 
   const { user } = useAuth();
   const { examId } = useParams<{ examId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { subjectId: locationSubjectId, attemptId: locationAttemptId } = location.state || {};
+  const { subjectId: locationSubjectId } = location.state || {};
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const subjectId = locationSubjectId;
@@ -54,7 +55,8 @@ const DoExamPage: React.FC = () => {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
   useEffect(() => {
-    if (examId) {
+    if (examId && !hasStartedAttempt.current) {
+      hasStartedAttempt.current = true;
       const startNewAttempt = async () => {
         try {
           const attempt = await startExamAttempt(examId);
@@ -94,9 +96,10 @@ const DoExamPage: React.FC = () => {
           navigate(-1);
         }
       };
+
       startNewAttempt();
     }
-  }, [examId, locationAttemptId, navigate, subjectId, user?.id]);
+  }, []);
 
   const groupQuestionsBySharedMedia = useCallback((questionsToGroup: Question[]) => {
     const groups: { [key: string]: Question[] } = {};
@@ -732,7 +735,7 @@ const DoExamPage: React.FC = () => {
         cancelButtonText="Tiếp tục làm"
         confirmButtonColorClass="bg-[#0d7cf2] hover:bg-[#0b68c3]"
       />
-      <ToastContainer />
+      <ToastContainer position="top-center" />
     </div>
   );
 };
