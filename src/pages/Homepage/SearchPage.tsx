@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, BookOpen, Presentation, FileQuestion, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LectureItem from '@/components/Lecture/LectureItem';
 import { getSubjectsByGrade } from '@/api/courseApi';
@@ -8,11 +8,13 @@ import type { SearchExam, SortBy, SortOrder } from '@/api/searchApi';
 import type { Subject, Course } from '@/api/courseApi';
 import type { LectureResponse } from '@/api/lectureApi';
 import CourseResultItem from '@/components/Homepage/CourseResultItem';
+import ExamResultItem from '@/components/Homepage/ExamResultItem';
+import Sidebar from '@/components/Homepage/Sidebar';
 
 // --- TYPES & DATA ---
 
-type StudyMode = 'Course' | 'Lecture' | 'Exam';
-type SortOption = 'name-asc' | 'name-desc' | 'rating-desc' | 'rating-asc' | 'time-asc' | 'time-desc' | 'none';
+export type StudyMode = 'Course' | 'Lecture' | 'Exam';
+export type SortOption = 'name-asc' | 'name-desc' | 'rating-desc' | 'rating-asc' | 'time-asc' | 'time-desc' | 'none';
 
 const grades = ['Tất cả', 'Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
 
@@ -292,6 +294,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
           sortOption={sortOption}
           onSortChange={(e) => setSortOption(e.target.value as SortOption)}
           subjects={subjects}
+          grades={grades}
         />
         <main className="flex-1 p-6 sm:p-8 lg:p-10 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
@@ -329,166 +332,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
         </main>
       </div>
     </div>
-  );
-};
-
-const getExamStatus = (openTimeStr: string, closeTimeStr: string): { text: string; color: string; } => {
-  const now = new Date();
-  const openTime = new Date(openTimeStr);
-  const closeTime = new Date(closeTimeStr);
-
-  if (now > closeTime) return { text: 'Đã kết thúc', color: 'text-slate-500 bg-slate-100' };
-  if (now < openTime) return { text: 'Sắp diễn ra', color: 'text-blue-600 bg-blue-100' };
-  return { text: 'Đang diễn ra', color: 'text-green-600 bg-green-100' };
-};
-
-const ExamResultItem: React.FC<{ item: SearchExam; onClick: () => void }> = ({ item, onClick }) => {
-  const status = getExamStatus(item.openTime, item.closeTime);
-  return (
-    <div className="flex items-center gap-4 p-3 bg-white border border-slate-200 rounded-lg w-full cursor-pointer hover:bg-slate-50 transition-colors" onClick={onClick}>
-      <div className="text-red-600 flex items-center justify-center rounded-lg bg-red-50 shrink-0 size-16">
-        <FileQuestion className="w-8 h-8" />
-      </div>
-      <div className="flex-grow">
-        <h3 className="font-semibold text-slate-800 text-base">{item.title}</h3>
-        <p className="text-sm text-slate-500 mt-1">
-          Thời gian: {item.durationMinutes} phút | {item.totalQuestions} câu hỏi
-        </p>
-        <p className="text-sm text-slate-500">
-          Môn: {item.subjectName} - Lớp {item.grade}
-        </p>
-      </div>
-      <div className="ml-auto text-right flex-shrink-0 space-y-1">
-        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${status.color}`}>
-          {status.text}
-        </span>
-        <button className="block w-full text-sm font-semibold text-blue-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-          Xem chi tiết
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const Sidebar: React.FC<{
-  activeMode: StudyMode;
-  onModeChange: (mode: StudyMode) => void;
-  selectedGrade: string;
-  onGradeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  selectedSubject: string;
-  onSubjectChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  sortOption: SortOption;
-  onSortChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  subjects: Subject[];
-}> = ({ activeMode, onModeChange, selectedGrade, onGradeChange, selectedSubject, onSubjectChange, sortOption, onSortChange, subjects }) => {
-  const modes: { name: StudyMode; icon: React.ElementType }[] = [
-    { name: 'Course', icon: BookOpen },
-    { name: 'Lecture', icon: Presentation },
-    { name: 'Exam', icon: FileQuestion }
-  ];
-
-  return (
-    <aside className="w-72 p-4 bg-white border-r border-slate-200 flex-shrink-0 overflow-y-auto">
-      <div className="space-y-6">
-        <div>
-          <h3 className="px-3 mb-2 text-sm font-semibold text-slate-500">Loại</h3>
-          <div className="space-y-1">
-            {modes.map(mode => (
-              <button
-                key={mode.name}
-                onClick={() => onModeChange(mode.name)}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeMode === mode.name ? 'bg-blue-50 text-blue-600' : 'text-slate-700 hover:bg-slate-100'}`}
-              >
-                <mode.icon className="w-5 h-5" />
-                <span>{mode.name}s</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="px-3 mb-2 text-sm font-semibold text-slate-500">Lọc</h3>
-          <div className="px-3 space-y-3">
-            <div className="flex items-center">
-              <label htmlFor="grade-select" className="sr-only">Chọn khối lớp</label>
-              <select
-                id="grade-select"
-                name="grade"
-                value={selectedGrade}
-                onChange={onGradeChange}
-                className="w-full appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-              >
-                {grades.map(grade => (
-                  <option key={grade} value={grade}>{grade}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center">
-              <label htmlFor="subject-select" className="sr-only">Chọn môn học</label>
-              <select
-                id="subject-select"
-                name="subject"
-                value={selectedSubject}
-                onChange={onSubjectChange}
-                className="w-full appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
-              >
-                <option value="All subjects">Tất cả môn học</option>
-                {subjects.map(subject => (
-                  <option key={subject.id} value={subject.name}>{subject.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="px-3 mb-2 text-sm font-semibold text-slate-500">Sắp xếp</h3>
-          <div className="px-3 space-y-3 text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="sort" value="none" checked={sortOption === 'none'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-              Mặc định
-            </label>
-            <p className="font-medium text-slate-600">Tên</p>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="sort" value="name-asc" checked={sortOption === 'name-asc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-              A -&gt; Z
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="sort" value="name-desc" checked={sortOption === 'name-desc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-              Z -&gt; A
-            </label>
-
-            <hr className="my-2" />
-
-            {activeMode === 'Exam' ? (
-              <>
-                <p className="font-medium text-slate-600">Thời gian</p>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="sort" value="time-asc" checked={sortOption === 'time-asc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-                  Cũ nhất
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="sort" value="time-desc" checked={sortOption === 'time-desc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-                  Mới nhất
-                </label>
-              </>
-            ) : (
-              <>
-                <p className="font-medium text-slate-600">Đánh giá</p>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="sort" value="rating-desc" checked={sortOption === 'rating-desc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-                  Cao -&gt; Thấp
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="sort" value="rating-asc" checked={sortOption === 'rating-asc'} onChange={onSortChange} className="w-4 h-4 text-blue-600 focus:ring-blue-500" />
-                  Thấp -&gt; Cao
-                </label>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </aside>
   );
 };
 
