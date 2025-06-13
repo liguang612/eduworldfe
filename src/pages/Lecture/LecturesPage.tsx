@@ -161,6 +161,8 @@ const LectureListPage: React.FC = () => {
                   rating={lecture.averageRating}
                   questionCount={lecture.endQuestions.length}
                   onClick={() => navigate(`/lectures/${lecture.id}`)}
+                  subjectName={lecture.subjectName}
+                  grade={lecture.grade}
                 />
               ))
             )}
