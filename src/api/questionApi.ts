@@ -66,13 +66,13 @@ interface CreateQuestionRequest {
   categories: string[];
 }
 
-interface CreateChoiceRequest {
-  text: string | null;
-  value: string;
-  questionId: string;
-  orderIndex: number | null;
-  isCorrect: boolean | null;
-}
+// interface CreateChoiceRequest {
+//   text: string | null;
+//   value: string;
+//   questionId: string;
+//   orderIndex: number | null;
+//   isCorrect: boolean | null;
+// }
 
 interface MatchingQuestionRequest {
   questionId: string;
@@ -206,24 +206,24 @@ export const updateMatchingQuestion = async (questionId: string, data: {
   }
 };
 
-export const updateChoicesBatch = async (questionId: string, choices: {
-  text: string | null;
-  value: string;
-  orderIndex: number | null;
-  isCorrect: boolean | null;
-}[]): Promise<void> => {
-  try {
-    const token = localStorage.getItem('token');
-    await axios.put(`${API_URL}/questions/${questionId}/choices`, choices, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  } catch (error: any) {
-    console.error('Failed to update choices:', error.response ? error.response.data : error.message);
-    throw error;
-  }
-};
+// export const updateChoicesBatch = async (questionId: string, choices: {
+//   text: string | null;
+//   value: string;
+//   orderIndex: number | null;
+//   isCorrect: boolean | null;
+// }[]): Promise<void> => {
+//   try {
+//     const token = localStorage.getItem('token');
+//     await axios.put(`${API_URL}/questions/${questionId}/choices`, choices, {
+//       headers: {
+//         Authorization: `Bearer ${token}`
+//       }
+//     });
+//   } catch (error: any) {
+//     console.error('Failed to update choices:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// };
 
 export const createQuestion = async (request: CreateQuestionRequest) => {
   const token = localStorage.getItem('token');
@@ -235,15 +235,15 @@ export const createQuestion = async (request: CreateQuestionRequest) => {
   return response.data;
 };
 
-export const createChoice = async (request: CreateChoiceRequest) => {
-  const token = localStorage.getItem('token');
-  const response = await axios.post(`${API_URL}/choices`, request, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-  return response.data;
-};
+// export const createChoice = async (request: CreateChoiceRequest) => {
+//   const token = localStorage.getItem('token');
+//   const response = await axios.post(`${API_URL}/choices`, request, {
+//     headers: {
+//       'Authorization': `Bearer ${token}`,
+//     },
+//   });
+//   return response.data;
+// };
 
 export const createMatchingQuestion = async (request: MatchingQuestionRequest) => {
   const token = localStorage.getItem('token');
