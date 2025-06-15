@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
 import { login } from '../../api/authApi';
+import GoogleLoginButton from './GoogleLoginButton';
 
 const schema = yup.object().shape({
   email: yup.string().email('Email không hợp lệ').required('Email là bắt buộc'),
@@ -123,6 +124,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               >
                 <span className="truncate">Đăng ký</span>
               </button>
+            </div>
+            <div className="flex px-4 py-3 flex-col" style={{ marginTop: '20px' }}>
+              <p className='text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 text-center max-w-[480px]'>Hoặc đăng nhập với</p>
+              <GoogleLoginButton onLoginSuccess={onLoginSuccess} />
             </div>
           </div>
         </div>

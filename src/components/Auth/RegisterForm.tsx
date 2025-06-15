@@ -10,6 +10,16 @@ import { ToastContainer, toast } from 'react-toastify';
 
 interface RegisterFormProps {
   onRegisterSuccess: () => void;
+  googleData?: {
+    fullName?: string;
+    email?: string;
+    role?: 'student' | 'teacher';
+    grade?: string;
+    school?: string;
+    address?: string;
+    birthday?: string;
+    avatar?: string;
+  };
 }
 
 const schema = yup.object().shape({
@@ -36,11 +46,11 @@ const schema = yup.object().shape({
 
 type FormData = yup.InferType<typeof schema>;
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
 
-  const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>('');
+  const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string>(googleData?.avatar || '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const {
@@ -52,14 +62,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
   } = useForm<FormData>({
     resolver: yupResolver(schema) as Resolver<FormData>,
     defaultValues: {
-      role: 'student',
-      name: '',
-      email: '',
+      role: googleData?.role || 'student',
+      name: googleData?.fullName || '',
+      email: googleData?.email || '',
       password: '',
-      grade: '',
-      school: '',
-      address: '',
-      birthday: '',
+      grade: googleData?.grade || '',
+      school: googleData?.school || '',
+      address: googleData?.address || '',
+      birthday: googleData?.birthday || '',
     },
   });
 
@@ -70,6 +80,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
       setValue('grade', '', { shouldValidate: true });
     }
   }, [currentRole, setValue]);
+
+  useEffect(() => {
+    if (googleData) {
+      if (googleData.fullName) setValue('name', googleData.fullName);
+      if (googleData.email) setValue('email', googleData.email);
+      if (googleData.role) setValue('role', googleData.role);
+      if (googleData.grade) setValue('grade', googleData.grade);
+      if (googleData.school) setValue('school', googleData.school);
+      if (googleData.address) setValue('address', googleData.address);
+      if (googleData.birthday) setValue('birthday', googleData.birthday);
+    }
+  }, [googleData, setValue]);
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
@@ -123,6 +145,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
     '--checkbox-tick-svg': "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
     fontFamily: 'Inter, "Noto Sans", sans-serif',
   };
+
+  console.log(selectedAvatarPreview);
 
   return (
     <div
