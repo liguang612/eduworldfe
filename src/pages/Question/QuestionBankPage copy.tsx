@@ -18,9 +18,6 @@ const levelColorClasses: { [key: string]: string } = {
   'Vận dụng cao': 'bg-red-100 text-red-800',
 };
 
-
-
-
 const QuestionBankPage: React.FC = () => {
   const navigate = useNavigate();
   const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
@@ -235,8 +232,12 @@ const QuestionBankPage: React.FC = () => {
     }
   };
 
-  // START: Added for DOCX processing
-
+  const handleConfirmUpload = (file: File) => {
+    // Logic to handle file upload will be implemented here.
+    // For now, we'll just show a toast message.
+    toast.success(`File "${file.name}" đã được tải lên thành công.`);
+    setIsUploadDialogOpen(false);
+  };
 
   return (
     <div

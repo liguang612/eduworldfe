@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption } from '@/components/Question/types';
+import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption, SortingOption, FillInBlankOption } from '@/components/Question/types';
 import FullPreview from '@/components/Question/FullPreview';
 import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
@@ -13,13 +13,76 @@ import RemoveIcon from '@/assets/remove.svg';
 const QuestionCreatePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { subjectId } = location.state as LocationState || {};
+  const { subjectId, importedQuestions } = location.state as (LocationState & { importedQuestions?: IndividualQuestion[] }) || {};
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [sharedMedia, setSharedMedia] = useState<SharedMediaData | undefined>(undefined);
-  const [questions, setQuestions] = useState<IndividualQuestion[]>([]);
+  const [questions, setQuestions] = useState<IndividualQuestion[]>(importedQuestions || []);
   const [isSaving, setIsSaving] = useState(false);
   const [surveyValues, setSurveyValues] = useState<{ [key: string]: SurveyValue }>({});
+
+  // Hiển thị thông báo khi có dữ liệu được import
+  React.useEffect(() => {
+    if (importedQuestions && importedQuestions.length > 0) {
+      toast.success(`Đã import thành công ${importedQuestions.length} câu hỏi từ file!`);
+    }
+  }, [importedQuestions]);
+
+  // Khởi tạo surveyValues cho các câu hỏi được import
+  React.useEffect(() => {
+    if (importedQuestions && importedQuestions.length > 0) {
+      const initialSurveyValues: { [key: string]: SurveyValue } = {};
+
+      importedQuestions.forEach(question => {
+        let value: any = null;
+
+        switch (question.type) {
+          case 'radio':
+            const radioChoices = question.choices as MultipleChoiceOption[];
+            const correctRadioChoice = radioChoices.find(choice => choice.isCorrect);
+            if (correctRadioChoice) {
+              value = correctRadioChoice.value || correctRadioChoice.id;
+            }
+            break;
+
+          case 'checkbox':
+            const checkboxChoices = question.choices as MultipleChoiceOption[];
+            const correctCheckboxChoices = checkboxChoices.filter(choice => choice.isCorrect);
+            value = correctCheckboxChoices.map(choice => choice.value || choice.id);
+            break;
+
+          case 'ranking':
+            const rankingChoices = question.choices as SortingOption[];
+            // Sắp xếp theo orderIndex và lấy value (thứ tự từ file docx)
+            const sortedChoices = rankingChoices
+              .sort((a, b) => a.orderIndex - b.orderIndex);
+            value = sortedChoices.map(choice => choice.value || choice.id);
+            break;
+
+          case 'shortAnswer':
+            const shortAnswerChoices = question.choices as FillInBlankOption[];
+            if (shortAnswerChoices && shortAnswerChoices.length > 0) {
+              value = shortAnswerChoices[0].value;
+            }
+            break;
+        }
+
+        if (value !== null) {
+          initialSurveyValues[question.id] = {
+            type: question.type === 'radio' ? 'radiogroup' : question.type === 'checkbox' ? 'checkbox' : question.type === 'ranking' ? 'ranking' : 'text',
+            name: `question_${question.id}`,
+            question: {
+              name: `question_${question.id}`,
+              title: question.questionText,
+            },
+            value: value
+          };
+        }
+      });
+
+      setSurveyValues(initialSurveyValues);
+    }
+  }, [importedQuestions]);
 
   const levelOptions = [
     { label: 'Nhận biết', value: 1 },

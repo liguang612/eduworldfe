@@ -47,19 +47,25 @@ const HomePage: React.FC = () => {
 
   const sliderSettings = {
     dots: true,
-    infinite: true,
+    infinite: highlightCourses.length > 5,
     speed: 500,
     slidesToShow: 5,
     slidesToScroll: 5,
-    autoplay: true,
+    autoplay: highlightCourses.length > 5,
     autoplaySpeed: 3000,
-    arrows: true,
+    arrows: highlightCourses.length > 5,
+    centerMode: false,
+    centerPadding: '0px',
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 3,
           slidesToScroll: 3,
+          infinite: highlightCourses.length > 3,
+          arrows: highlightCourses.length > 3,
+          centerMode: false,
+          centerPadding: '0px',
         }
       },
       {
@@ -67,6 +73,10 @@ const HomePage: React.FC = () => {
         settings: {
           slidesToShow: 2,
           slidesToScroll: 2,
+          infinite: highlightCourses.length > 2,
+          arrows: highlightCourses.length > 2,
+          centerMode: false,
+          centerPadding: '0px',
         }
       },
       {
@@ -74,7 +84,10 @@ const HomePage: React.FC = () => {
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
+          infinite: highlightCourses.length > 1,
           arrows: false,
+          centerMode: false,
+          centerPadding: '0px',
         }
       }
     ],
@@ -218,16 +231,18 @@ const HomePage: React.FC = () => {
                 <ViewAllButton onClick={handleViewAllCourses} />
               </div>
               <div className="p-4 pt-0">
-                <Slider {...sliderSettings}>
-                  {highlightCourses.map((course) => (
-                    <div key={course.id} className="px-2">
-                      <CourseItem
-                        course={course}
-                        onClick={handleHighlightCourseClick}
-                      />
-                    </div>
-                  ))}
-                </Slider>
+                <div className="slider-container" style={{ textAlign: 'left' }}>
+                  <Slider {...sliderSettings}>
+                    {highlightCourses.map((course) => (
+                      <div key={course.id} className="px-2" style={{ float: 'left' }}>
+                        <CourseItem
+                          course={course}
+                          onClick={handleHighlightCourseClick}
+                        />
+                      </div>
+                    ))}
+                  </Slider>
+                </div>
               </div>
 
               <div className="flex justify-between items-center px-4 pt-5 pb-3">

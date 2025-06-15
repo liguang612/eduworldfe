@@ -208,6 +208,14 @@ button {
   --highlight: oklch(0.852 0.199 91.936);
 }
 
+.slick-list {
+  text-align: left;
+}
+
+.slick-slide {
+  display: inline-block;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

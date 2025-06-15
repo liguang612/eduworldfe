@@ -311,7 +311,11 @@ const PostItem: React.FC<PostItemProps> = ({
               >{userName}</p>
               <p className="text-xs text-gray-500">
                 {userSchool ? `${userSchool} · ` : ''}
-                {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(post.createdAt).toLocaleTimeString('vi-VN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'Asia/Ho_Chi_Minh'
+                })}
               </p>
             </div>
           </div>
@@ -381,7 +385,7 @@ const PostItem: React.FC<PostItemProps> = ({
           </div>
         ) : (
           <>
-            <p className="text-gray-800 mb-3 whitespace-pre-wrap text-sm leading-relaxed">{post.content}</p>
+            <p className="text-gray-800 mb-3 whitespace-pre-wrap text-sm leading-relaxed" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{post.content}</p>
             {renderImages(post.imageUrls)}
           </>
         )}

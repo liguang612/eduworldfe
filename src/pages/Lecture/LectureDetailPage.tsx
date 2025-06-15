@@ -346,7 +346,7 @@ const LectureDetailPage: React.FC = () => {
                 </button>
               </div>}
             </div>
-            <p className="text-[#0e141b] text-base font-normal leading-normal pb-3 pt-6 px-4">
+            <p className="text-[#0e141b] text-base font-normal leading-normal pb-3 pt-6 px-4" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
               {lecture.description}
             </p>
             <MyEditor initValue={JSON.parse(lecture.contents)} editable={false} />

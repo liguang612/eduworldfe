@@ -135,7 +135,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   }
                 }}
               >{comment.user.userName}</p>
-              <p className="text-xs text-gray-500">{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="text-xs text-gray-500">
+                {new Date(comment.createdAt).toLocaleTimeString('vi-VN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'Asia/Ho_Chi_Minh'
+                })}
+              </p>
             </div>
             {isAuthor && (
               <div className="relative">
