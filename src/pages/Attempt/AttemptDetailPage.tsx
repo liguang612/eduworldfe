@@ -15,6 +15,7 @@ import DotFillIcon from '@/assets/dot_fill.svg';
 import { checkAnswerCorrectness } from '@/lib/utils';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
 import type { User } from '@/contexts/AuthContext';
+import { NotificationDialog } from "../../components/Common/NotificationDialog";
 
 const AttemptDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,9 +30,11 @@ const AttemptDetailPage: React.FC = () => {
   const [currentSharedMedia, setCurrentSharedMedia] = useState<SharedMedia | null>(null);
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
 
-  // State for user information popup
   const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+
+  const [showNotification, setShowNotification] = useState(false);
 
   // Hàm để nhóm các câu hỏi theo sharedMedia
   const groupQuestionsBySharedMedia = useCallback((questions: Question[] | undefined) => {
@@ -102,15 +105,21 @@ const AttemptDetailPage: React.FC = () => {
 
   // Lấy dữ liệu chi tiết bài thi từ API 
   useEffect(() => {
-    const fetchAttemptDetails = async () => {
+    const fetchAttemptDetail = async () => {
       if (!id) {
         setError('Không tìm thấy ID bài thi');
         setLoading(false);
         return;
       }
+
       try {
         setLoading(true);
         const data = await getExamAttemptDetails(id);
+
+        if (data.id === "-1") {
+          setShowNotification(true);
+        }
+
         setAttemptDetail(data);
         if (data.questions && data.questions.length > 0) {
           const models: { [key: string]: Model } = {};
@@ -123,7 +132,7 @@ const AttemptDetailPage: React.FC = () => {
                   question.type === 'checkbox' ? 'checkbox' :
                     question.type === 'itemConnector' ? 'itemConnector' :
                       question.type === 'ranking' ? 'ranking' : 'text',
-                choices: question.choices?.map((choice: any) => ({ // choice type có thể cần định nghĩa rõ hơn
+                choices: question.choices?.map((choice: any) => ({
                   value: String(choice.value),
                   text: choice.text,
                 })),
@@ -174,14 +183,14 @@ const AttemptDetailPage: React.FC = () => {
             setCurrentQuestionIndex(0);
           }
         }
-      } catch (err) {
-        console.error('Error fetching attempt details:', err);
-        setError('Có lỗi xảy ra khi tải chi tiết bài thi');
+      } catch (error) {
+        console.error("Error fetching attempt details:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchAttemptDetails();
+
+    fetchAttemptDetail();
   }, [id]);
 
   useEffect(() => {
@@ -237,6 +246,10 @@ const AttemptDetailPage: React.FC = () => {
     return sortedQuestions.findIndex(q => q.id === attemptDetail.questions[currentQuestionIndex].id);
   }, [currentQuestionIndex, attemptDetail?.questions, sortedQuestions]);
 
+  const handleCloseNotification = () => {
+    setShowNotification(false);
+    navigate(-1);
+  };
 
   if (loading) {
     return (
@@ -388,7 +401,7 @@ const AttemptDetailPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => navigate('/attempts')}
+                  onClick={() => navigate(-1)}
                   className="w-full mt-4 px-4 py-3 text-base font-medium rounded-xl shadow-sm bg-slate-200 hover:bg-slate-300 text-[#0e141b] focus:outline-none"
                 >
                   Quay lại danh sách
@@ -499,6 +512,14 @@ const AttemptDetailPage: React.FC = () => {
         isOpen={isUserPopupOpen}
         onClose={() => setIsUserPopupOpen(false)}
         user={selectedUser}
+      />
+
+      {/* Notification Dialog */}
+      <NotificationDialog
+        isOpen={showNotification}
+        onClose={handleCloseNotification}
+        title="Thông báo"
+        message="Bạn không có quyền xem lại bài làm. Hãy liên hệ với giáo viên để được biết thêm thông tin."
       />
     </div>
   );

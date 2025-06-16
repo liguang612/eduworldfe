@@ -120,7 +120,7 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
           </div>
         </div>
       </div>
-      <ToastContainer position="top-center" />
+      {/* <ToastContainer /> */}
     </div>
   );
 };

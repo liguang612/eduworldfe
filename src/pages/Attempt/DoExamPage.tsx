@@ -16,7 +16,7 @@ import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import "@/components/Question/survey-custom.css";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { type ChoiceOption } from '../../api/questionApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { debounce, isJsonString, shuffleArray } from '@/lib/utils';
@@ -74,20 +74,24 @@ const DoExamPage: React.FC = () => {
             return;
           }
 
+          if (attempt && attempt.status === 'out_of_attempt') {
+            console.log('Đã hết số lần làm bài. Điều hướng và hiển thị toast ở trang sau.');
+            localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
+
+            toast.warning('Đã hết số lần làm bài cho phép');
+            navigate(`/courses/${attempt.classId}/exams`, {
+              state: {
+                subjectId: subjectId
+              }
+            });
+            return;
+          }
+
           if (attempt && attempt.id) {
             localStorage.setItem(`exam_attempt_${examId}_user_${user?.id}`, attempt.id);
             setAttemptId(attempt.id);
           } else {
             throw new Error('No attempt ID available');
-          }
-
-          if (attempt && attempt.status === 'out_of_attempt') {
-            toast.error('Đã hết số lần làm bài cho phép');
-            localStorage.removeItem(`exam_attempt_${examId}_user_${user?.id}`);
-            navigate(`/courses/${attempt.classId}/exams`, {
-              state: { subjectId: subjectId }
-            });
-            return;
           }
         } catch (error) {
           console.error('Error starting exam attempt:', error);
@@ -724,7 +728,7 @@ const DoExamPage: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Confirmation Dialog và ToastContainer */}
+      {/* Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={showSubmitConfirm}
         onClose={() => setShowSubmitConfirm(false)}
@@ -735,7 +739,6 @@ const DoExamPage: React.FC = () => {
         cancelButtonText="Tiếp tục làm"
         confirmButtonColorClass="bg-[#0d7cf2] hover:bg-[#0b68c3]"
       />
-      <ToastContainer position="top-center" />
     </div>
   );
 };

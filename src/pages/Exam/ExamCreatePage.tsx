@@ -638,7 +638,7 @@ const ExamCreatePage: React.FC = () => {
                         type="number"
                         placeholder="Nhập số phút"
                         min="0"
-                        step="5"
+                        step="1"
                         className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0d141c] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0d7cf2] focus:border-transparent border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 h-12 placeholder:text-[#6b7f99] dark:placeholder:text-slate-400 p-3 text-base font-normal leading-normal"
                         value={formData.duration}
                         onChange={handleInputChange}
@@ -655,7 +655,7 @@ const ExamCreatePage: React.FC = () => {
                       {renderQuestionTypeInputs("Vận dụng", "numApplicationQuestions", "pointsPerApplicationQuestion")}
                       {renderQuestionTypeInputs("Vận dụng cao", "numHighApplicationQuestions", "pointsPerHighApplicationQuestion")}
                     </div>
-                  </div>
+                  </div>g
 
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
                     <div className="flex justify-between items-center">

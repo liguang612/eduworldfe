@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate, useLocation } from 'react-router-dom';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 import MagnifyingGlassIcon from '@/assets/magnify_glass.svg';
 import { getExamsByClassId, type Exam, deleteExam } from '@/api/examApi';
@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const CourseExams: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { courseId, role, isCourseLoading } = context || {};
   const { user } = useAuth();
 
@@ -258,7 +259,7 @@ const CourseExams: React.FC = () => {
         cancelButtonText="Hủy"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </div>
   );
 };

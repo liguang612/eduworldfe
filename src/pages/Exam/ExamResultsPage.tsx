@@ -1,64 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getExamAttemptsByExamId, type ExamAttemptResult } from '@/api/examApi';
-
-interface CircularProgressProps {
-  percentage: number;
-  sqSize?: number;
-  strokeWidth?: number;
-}
-
-const CircularProgress: React.FC<CircularProgressProps> = ({
-  percentage,
-  sqSize = 60,
-  strokeWidth = 6,
-}) => {
-  const radius = (sqSize - strokeWidth) / 2;
-  const viewBox = `0 0 ${sqSize} ${sqSize}`;
-  const dashArray = radius * Math.PI * 2;
-  const dashOffset = dashArray - (dashArray * percentage) / 100;
-
-  let progressColor = "text-green-500";
-  if (percentage < 50) {
-    progressColor = "text-red-500";
-  } else if (percentage < 75) {
-    progressColor = "text-yellow-500";
-  }
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: sqSize, height: sqSize }}>
-      <svg width={sqSize} height={sqSize} viewBox={viewBox}>
-        <circle
-          className="text-gray-300"
-          cx={sqSize / 2}
-          cy={sqSize / 2}
-          r={radius}
-          strokeWidth={`${strokeWidth}px`}
-          stroke="currentColor"
-          fill="transparent"
-        />
-        <circle
-          className={`${progressColor} transition-all duration-300 ease-in-out`}
-          cx={sqSize / 2}
-          cy={sqSize / 2}
-          r={radius}
-          strokeWidth={`${strokeWidth}px`}
-          transform={`rotate(-90 ${sqSize / 2} ${sqSize / 2})`}
-          style={{
-            strokeDasharray: dashArray,
-            strokeDashoffset: dashOffset,
-            strokeLinecap: 'round',
-          }}
-          stroke="currentColor"
-          fill="transparent"
-        />
-      </svg>
-      <span className={`absolute text-xs font-semibold ${progressColor.replace('text-', 'text-')}`}>
-        {`${Math.round(percentage)}%`}
-      </span>
-    </div>
-  );
-};
+import { CircularProgress } from '../../components/Common/CircularProgress';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ExamResultsPage: React.FC = () => {
   const { examId } = useParams<{ courseId: string; examId: string }>();
@@ -66,6 +10,8 @@ const ExamResultsPage: React.FC = () => {
   const [attempts, setAttempts] = useState<ExamAttemptResult[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchAttempts = async () => {
@@ -121,7 +67,7 @@ const ExamResultsPage: React.FC = () => {
                   Kết quả bài thi
                 </p>
                 <p className="text-[#4e7297] text-sm font-normal leading-normal">
-                  Xem kết quả của tất cả học sinh đã làm bài thi này.
+                  {user?.role === 1 ? "Xem kết quả của tất cả học sinh đã làm bài thi này." : "Xem kết quả của bạn trong bài thi này."}
                 </p>
               </div>
             </div>
@@ -189,7 +135,7 @@ const ExamResultsPage: React.FC = () => {
                 })
               ) : (
                 <div className="text-center py-10">
-                  <p className="text-slate-500 text-lg">Chưa có học sinh nào làm bài thi này.</p>
+                  <p className="text-slate-500 text-lg">{user?.role === 1 ? "Chưa có học sinh nào làm bài thi này." : "Bạn chưa làm bài thi này."}</p>
                 </div>
               )}
             </div>

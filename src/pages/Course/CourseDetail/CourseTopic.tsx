@@ -107,7 +107,7 @@ const CourseTopic: React.FC = () => {
         imageUrls,
         courseId: course.id
       });
-      if (course.requirePostApproval) {
+      if (course.requirePostApproval && user.role === 0) {
         setPendingPosts(prev => [newPostData, ...prev]);
       } else {
         setPosts(prev => [newPostData, ...prev]);

@@ -5,6 +5,7 @@ import { ConfirmationDialog } from '../Common/ConfirmationDialog';
 import { updateChapter, deleteChapter, removeLectureFromChapter } from '../../api/courseApi';
 import { toast } from 'react-toastify';
 import AddIcon from '@/assets/add.svg';
+import EditIcon from '@/assets/edit.svg';
 import RemoveIcon from '@/assets/remove.svg';
 import { getLectures, type LectureResponse, getLecturesByIds } from '../../api/lectureApi';
 import { addLectureToChapter } from '../../api/courseApi';
@@ -164,9 +165,7 @@ export function ChapterItem({ index, chapter, onChapterUpdated, onChapterDeleted
               disabled={isUpdating}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-              </svg>
+              <img src={EditIcon} alt="Edit" className="h-5 w-5" />
             </button>
             <button
               onClick={(e) => {
