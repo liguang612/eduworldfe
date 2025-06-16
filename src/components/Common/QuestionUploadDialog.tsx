@@ -17,7 +17,6 @@ interface QuestionUploadDialogProps {
   title: string;
   confirmButtonText?: string;
   cancelButtonText?: string;
-  templateFileUrl: string;
   selectedSubjectId: string;
 }
 
@@ -27,7 +26,6 @@ export function QuestionUploadDialog({
   title,
   confirmButtonText = 'Xác nhận',
   cancelButtonText = 'Huỷ',
-  templateFileUrl,
   selectedSubjectId,
 }: QuestionUploadDialogProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -315,7 +313,7 @@ export function QuestionUploadDialog({
           <div>
             <span>Vui lòng tải tệp theo định dạng cho sẵn. </span>
             <a
-              href={templateFileUrl}
+              href={"https://storage.googleapis.com/download/storage/v1/b/eduworld-6ba8b.firebasestorage.app/o/others%2F27256667-7169-44bb-81df-83696b2c1ea3_question_sample.docx?generation=1750099244526086&alt=media"}
               download
               className="text-blue-600 hover:underline"
             >

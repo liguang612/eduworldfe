@@ -456,7 +456,6 @@ const QuestionBankPage: React.FC = () => {
         isOpen={isUploadDialogOpen}
         onClose={() => setIsUploadDialogOpen(false)}
         title="Upload câu hỏi từ file"
-        templateFileUrl="/question_template.docx"
         selectedSubjectId={selectedSubjectId}
       />
     </div>
