@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { getSubjectsByGrade } from '@/api/courseApi';
 import type { Subject } from '@/api/courseApi';
 import { getLectures, type LectureResponse } from '@/api/lectureApi';
-import { ToastContainer } from 'react-toastify';
 import LectureItem from '@/components/Lecture/LectureItem';
 
 const grades = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -169,7 +168,6 @@ const LectureListPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };

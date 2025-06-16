@@ -4,7 +4,7 @@ import { getLectureById, deleteLecture } from '@/api/lectureApi';
 import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
 import MyEditor from '@/components/Lecture/MyEditor';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Duration from '@/assets/duration.svg';
 import UserIcon from '@/assets/user.svg';
@@ -564,7 +564,6 @@ const LectureDetailPage: React.FC = () => {
         cancelButtonText="Huỷ"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      <ToastContainer />
     </div>
   );
 };

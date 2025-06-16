@@ -17,7 +17,7 @@ import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
 import 'survey-core/survey-core.css';
 import '@/components/Question/survey-custom.css';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { type ChoiceOption } from '@/api/questionApi';
 import FormatCorrectAnswer from '@/components/Question/FormatCorrectAnswer';
 
@@ -529,7 +529,6 @@ const DoEndQuestion: React.FC = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };

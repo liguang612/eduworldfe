@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 import { createReview, getReviews, getComments, createComment, getReviewStatistics, type Review, type Comment, type ReviewStatistics } from '@/api/reviewApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import SendIcon from '@/assets/send.svg';
 import ChevronDownIcon from '@/assets/chevron-down.svg';
 import ChevronUpIcon from '@/assets/chevron-up.svg';
@@ -413,7 +413,6 @@ const CourseReviewsPage: React.FC = () => {
           )}
         </div>
       </div>
-      <ToastContainer />
       {selectedUser && <ProfileDialog user={selectedUser} isOpen={isUserPopupOpen} onClose={handleCloseUserPopup} />}
     </div>
   );

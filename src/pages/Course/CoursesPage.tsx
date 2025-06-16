@@ -6,7 +6,7 @@ import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '@/ap
 import type { Course, Subject } from '@/api/courseApi';
 import { useNavigate } from 'react-router-dom';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 const CoursesPage: React.FC = () => {
   const role = JSON.parse(localStorage.getItem('user') || '{}').role;
@@ -236,7 +236,6 @@ const CoursesPage: React.FC = () => {
         confirmButtonText="Gửi yêu cầu"
         cancelButtonText="Hủy"
       />
-      <ToastContainer />
     </>
   );
 };

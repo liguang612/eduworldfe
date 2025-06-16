@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, MultipleChoiceOption, SortingOption, FillInBlankOption } from '@/components/Question/types';
 import FullPreview from '@/components/Question/FullPreview';
 import QuestionChoices from '@/components/Question/QuestionChoices';
@@ -535,7 +535,6 @@ const QuestionCreatePage: React.FC = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };

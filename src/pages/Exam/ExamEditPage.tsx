@@ -7,7 +7,6 @@ import { type Question } from '@/api/questionApi';
 import { getCourseById, type Course } from '@/api/courseApi';
 import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '@/api/examApi';
 import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import QuestionDetailPreview from "@/components/Question/QuestionDetailPreview";
@@ -1016,7 +1015,6 @@ const ExamEditPage: React.FC = () => {
           </form>
         </main>
       </div>
-      <ToastContainer />
       <SearchableDialogMulti<Question>
         isOpen={isQuestionSearchOpen}
         onClose={() => setIsQuestionSearchOpen(false)}

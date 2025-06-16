@@ -5,7 +5,7 @@ import MagnifyingGlassIcon from '@/assets/magnify_glass.svg';
 import { getExamsByClassId, type Exam, deleteExam } from '@/api/examApi';
 import { isAfter, isBefore, parseISO } from 'date-fns';
 import ExamCard from '@/components/Exam/ExamCard';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -259,7 +259,6 @@ const CourseExams: React.FC = () => {
         cancelButtonText="Hủy"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      {/* <ToastContainer /> */}
     </div>
   );
 };

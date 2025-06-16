@@ -6,7 +6,7 @@ import { uploadFile, getLectureById, updateLecture, searchQuestions } from '@/ap
 import { deleteFile } from '@/api/fileApi';
 import { getQuestionsDetails, type Question } from '@/api/questionApi';
 import type { LectureResponse } from '@/api/lectureApi';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import AddIcon from '@/assets/add.svg';
 import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti';
 import { useAuth } from '@/contexts/AuthContext';
@@ -438,7 +438,6 @@ const LectureEditPage: React.FC = () => {
         }}
         confirmButtonText="Thêm các câu hỏi đã chọn"
       />
-      <ToastContainer />
     </>
   );
 };

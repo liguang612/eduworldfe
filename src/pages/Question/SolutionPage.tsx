@@ -8,7 +8,7 @@ import QuestionPreviewSection from '@/components/Solution/QuestionPreviewSection
 import SolutionPreviewPane from '@/components/Solution/SolutionPreviewPane';
 import SolutionListItem from '@/components/Solution/SolutionListItem';
 import { deleteSolution } from '@/api/solutionApi';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -248,7 +248,6 @@ const SolutionPage: React.FC = () => {
         cancelButtonText="Hủy"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      <ToastContainer />
     </div>
   );
 };

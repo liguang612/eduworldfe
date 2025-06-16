@@ -3,8 +3,7 @@ import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import type { Course } from '@/api/courseApi';
 import { getCourseById, deleteCourse, getSubjectById } from '@/api/courseApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { getLecturesByIds, type LectureResponse } from '@/api/lectureApi';
 import CourseDrawer from '@/components/Course/CourseDrawer';
 
@@ -208,7 +207,6 @@ const CourseDetailPage: React.FC = () => {
         onConfirm={handleConfirmDelete}
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      {/* <ToastContainer /> */}
     </>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 interface ExamInstructionsProps {
@@ -120,7 +120,6 @@ const ExamInstructionsPage: React.FC<ExamInstructionsProps> = () => {
           </div>
         </div>
       </div>
-      {/* <ToastContainer /> */}
     </div>
   );
 };

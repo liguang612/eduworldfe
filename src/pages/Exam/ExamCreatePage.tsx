@@ -8,7 +8,6 @@ import AddIcon from '@/assets/add.svg';
 import { getCourseById, type Course } from '@/api/courseApi';
 import { createExam, type CreateExamRequest } from '@/api/examApi';
 import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 interface ExamFormData {
@@ -977,7 +976,6 @@ const ExamCreatePage: React.FC = () => {
         }}
         confirmButtonText="Thêm các câu hỏi đã chọn"
       />
-      <ToastContainer />
     </>
   );
 };

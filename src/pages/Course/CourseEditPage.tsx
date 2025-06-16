@@ -5,7 +5,7 @@ import type { Chapter, Course } from '@/api/courseApi';
 import { SearchableDialog } from '@/components/Common/SearchableDialog';
 import { InputDialog } from '@/components/Common/InputDialog';
 import AddIcon from '@/assets/add.svg';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ChapterItem } from '@/components/Course/ChapterItem';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
@@ -648,7 +648,6 @@ const CourseEditPage: React.FC = () => {
         onSubmit={handleNewChapter}
         submitButtonText="Tạo"
       />
-      <ToastContainer />
 
       {/* User Information Popup (ProfileDialog) */}
       <ProfileDialog

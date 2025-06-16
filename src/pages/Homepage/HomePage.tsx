@@ -10,8 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import CourseItem from '@/components/Course/CourseItem';
 import ExamCard from '@/components/Exam/ExamCard';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import ViewAllButton from '@/components/Homepage/ViewAllButton';
 import SlideToLeftIcon from '@/assets/slide_to_left.svg';
 import SlideToRightIcon from '@/assets/slide_to_right.svg';
@@ -274,7 +273,6 @@ const HomePage: React.FC = () => {
         confirmButtonText="Gửi yêu cầu"
         cancelButtonText="Hủy"
       />
-      <ToastContainer />
     </>
   );
 };

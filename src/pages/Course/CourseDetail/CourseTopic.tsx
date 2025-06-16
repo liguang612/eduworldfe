@@ -7,7 +7,7 @@ import PostItem from '@/components/Course/CourseTopic/PostItem';
 import NewPostForm from '@/components/Course/CourseTopic/NewPostForm';
 import EmptyPost from '@/assets/empty_post.svg';
 import AllApprove from '@/assets/all_approve.svg';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { getCourseById, type Course } from '@/api/courseApi';
 
@@ -291,7 +291,6 @@ const CourseTopic: React.FC = () => {
         confirmButtonText="Xóa"
         confirmButtonColorClass="bg-red-600 hover:bg-red-700"
       />
-      <ToastContainer />
     </div>
   );
 };

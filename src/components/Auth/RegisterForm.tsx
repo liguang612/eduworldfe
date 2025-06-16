@@ -5,7 +5,7 @@ import type { Resolver } from 'react-hook-form';
 import * as yup from 'yup';
 import { Link } from 'react-router-dom';
 import { registerUser } from '../../api/authApi';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 
 interface RegisterFormProps {
@@ -340,7 +340,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
           </form>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };
