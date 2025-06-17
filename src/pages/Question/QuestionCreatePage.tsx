@@ -234,7 +234,13 @@ const QuestionCreatePage: React.FC = () => {
       return;
     }
 
+    let questionsWithoutTitle = 0;
+
     const questionsWithoutAnswers = questions.filter(question => {
+      if (!question.questionText || question.questionText.trim() === '') {
+        questionsWithoutTitle++;
+      }
+
       const surveyValue = surveyValues[question.id];
       if (!surveyValue || (surveyValue.value === undefined || surveyValue.value === null || surveyValue.value === '' || (Array.isArray(surveyValue.value) && surveyValue.value.length === 0))) return true;
 
@@ -252,6 +258,11 @@ const QuestionCreatePage: React.FC = () => {
           return true;
       }
     });
+
+    if (questionsWithoutTitle > 0) {
+      toast.error(`Có ${questionsWithoutTitle} câu hỏi chưa nhập nội dung. Vui lòng nhập đầy đủ nội dung câu hỏi.`);
+      return;
+    }
 
     if (questionsWithoutAnswers.length > 0) {
       toast.error(`Có ${questionsWithoutAnswers.length} câu hỏi chưa được chọn đáp án. Vui lòng kiểm tra lại.`);
