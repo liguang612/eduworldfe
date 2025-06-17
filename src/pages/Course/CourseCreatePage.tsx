@@ -103,14 +103,13 @@ const CreateCoursePage: React.FC = () => {
 
 
   const handleTeacherSelected = (teacher: SearchUser) => {
-    if (!selectedAssistants.find(t => t.id === teacher.id)) {
+    if (teacher.id != user?.id && !selectedAssistants.find(t => t.id === teacher.id)) {
       setSelectedTeachers(prevTeachers => [...prevTeachers, teacher]);
     }
-    console.log('Teacher selected:', teacher);
   };
 
   const handleStudentSelected = (student: SearchUser) => {
-    if (!selectedStudents.find(s => s.id === student.id)) {
+    if (student.id != user?.id && !selectedStudents.find(s => s.id === student.id)) {
       setSelectedStudents(prev => [...prev, student]);
     }
   };
