@@ -11,14 +11,10 @@ import CourseResultItem from '@/components/Homepage/CourseResultItem';
 import ExamResultItem from '@/components/Homepage/ExamResultItem';
 import Sidebar from '@/components/Homepage/Sidebar';
 
-// --- TYPES & DATA ---
-
 export type StudyMode = 'Course' | 'Lecture' | 'Exam';
 export type SortOption = 'name-asc' | 'name-desc' | 'rating-desc' | 'rating-asc' | 'time-asc' | 'time-desc' | 'none';
 
 const grades = ['Tất cả', 'Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5', 'Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12'];
-
-// --- HELPER & CHILD COMPONENTS ---
 
 const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) => {
   const navigate = useNavigate();
@@ -103,7 +99,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
     }
   };
 
-  // Perform search on initial load and when filters change
   useEffect(() => {
     if (keyword) {
       performSearch();
@@ -180,7 +175,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
     }
   }, [activeMode, courses, lectures, exams, sortOption]);
 
-  // Get the count for display
   const getResultsCount = () => {
     switch (activeMode) {
       case 'Course':
@@ -194,7 +188,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
     }
   };
 
-  // Render results based on activeMode
   const renderResults = () => {
     if (loading) {
       return (
@@ -275,7 +268,6 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ initialQuery }) =
     }
   };
 
-  // Reset sort option when mode changes
   const handleModeChange = (mode: StudyMode) => {
     setActiveMode(mode);
     setSortOption(mode === 'Exam' ? 'time-asc' : 'rating-desc');

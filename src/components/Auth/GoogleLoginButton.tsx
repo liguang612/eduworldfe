@@ -20,7 +20,6 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      // Thêm scopes nếu cần
       provider.addScope('email');
       provider.addScope('profile');
 

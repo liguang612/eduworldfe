@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Thêm useMemo
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getExamAttemptDetails, type ExamAttemptDetails } from '@/api/attemptApi';
-import { type Question, type SharedMedia } from '@/api/questionApi'; // Đảm bảo ChoiceOption được import nếu cần cho Question type
+import { type Question, type SharedMedia } from '@/api/questionApi';
 import { Model } from 'survey-core';
 import { Survey } from 'survey-react-ui';
 import { BorderlessLight } from 'survey-core/themes';
@@ -52,7 +52,6 @@ const AttemptDetailPage: React.FC = () => {
     return groups;
   }, []);
 
-  // SỬA ĐỔI HÀM NÀY
   const sortQuestions = useCallback((questionsToSort: Question[] | undefined) => {
     if (!questionsToSort || questionsToSort.length === 0) return [];
 
@@ -84,7 +83,6 @@ const AttemptDetailPage: React.FC = () => {
     questionsToSort.forEach(q => {
       if (!processedIds.has(q.id)) {
         sortedResult.push(q);
-        // processedIds.add(q.id); // Không thực sự cần add ở đây nếu đây là lần cuối cùng
       }
     });
     return sortedResult;
@@ -93,12 +91,12 @@ const AttemptDetailPage: React.FC = () => {
   // Cập nhật currentQuestionIndex khi chọn câu hỏi từ danh sách đã sắp xếp
   const handleSelectQuestion = (indexInSortedList: number) => {
     if (!attemptDetail?.questions || sortedQuestions.length === 0) return;
-    // Đảm bảo indexInSortedList nằm trong phạm vi hợp lệ của sortedQuestions
+
     if (indexInSortedList < 0 || indexInSortedList >= sortedQuestions.length) return;
 
     const question = sortedQuestions[indexInSortedList];
     const originalIndex = attemptDetail.questions.findIndex(q => q.id === question.id);
-    if (originalIndex !== -1) { // Thêm kiểm tra này
+    if (originalIndex !== -1) {
       setCurrentQuestionIndex(originalIndex);
     }
   };
@@ -162,7 +160,6 @@ const AttemptDetailPage: React.FC = () => {
                 let parsedAnswer = userAnswer;
                 if (typeof userAnswer === 'string') {
                   if (question.type === 'checkbox' || question.type === 'itemConnector' || question.type === 'ranking') {
-                    // Chỉ parse nếu nó có vẻ là JSON array hoặc object
                     if (userAnswer.startsWith('[') || userAnswer.startsWith('{')) {
                       parsedAnswer = JSON.parse(userAnswer);
                     }
@@ -178,7 +175,6 @@ const AttemptDetailPage: React.FC = () => {
             models[question.id] = model;
           });
           setSurveyModels(models);
-          // Đặt câu hỏi đầu tiên làm câu hỏi hiện tại sau khi load
           if (data.questions.length > 0) {
             setCurrentQuestionIndex(0);
           }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, Presentation, FileQuestion } from 'lucide-react';
-import type { StudyMode, SortOption } from '@/pages/Homepage/SearchPage'; // Import types từ SearchPage
+import type { StudyMode, SortOption } from '@/pages/Homepage/SearchPage';
 import type { Subject } from '@/api/courseApi';
 
 interface SidebarProps {
@@ -13,7 +13,7 @@ interface SidebarProps {
   sortOption: SortOption;
   onSortChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   subjects: Subject[];
-  grades: string[]; // Thêm prop grades
+  grades: string[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeMode, onModeChange, selectedGrade, onGradeChange, selectedSubject, onSubjectChange, sortOption, onSortChange, subjects, grades }) => {

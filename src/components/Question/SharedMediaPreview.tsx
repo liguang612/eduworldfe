@@ -1,10 +1,10 @@
 import React from 'react';
 
 interface SharedMediaData {
-  type?: 'image' | 'audio' | 'text' | 'video'; // Loại media
-  url?: string; // Cho image/audio URL
-  content?: string; // Cho text content (đoạn văn)
-  fileName?: string; // Tên file đã upload
+  type?: 'image' | 'audio' | 'text' | 'video';
+  url?: string;
+  content?: string;
+  fileName?: string;
 }
 
 const SharedMediaPreview: React.FC<{ media?: SharedMediaData }> = ({ media }) => {

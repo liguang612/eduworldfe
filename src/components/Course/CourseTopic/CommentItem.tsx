@@ -110,7 +110,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
               setSelectedUser(commentUser);
               setIsUserPopupOpen(true);
             }
-            // Optionally handle the case where user info is incomplete
             // else { toast.error('Thông tin người dùng không đầy đủ.'); }
           }}
         />
@@ -206,7 +205,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
         />
       </div>
 
-      {/* User Information Popup (ProfileDialog) */}
       <ProfileDialog
         isOpen={isUserPopupOpen}
         onClose={() => setIsUserPopupOpen(false)}

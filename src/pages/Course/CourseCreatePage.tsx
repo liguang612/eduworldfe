@@ -130,7 +130,6 @@ const CreateCoursePage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // Tạo lớp học
       const courseData = await createCourse({
         name: className,
         description: description,
@@ -140,7 +139,6 @@ const CreateCoursePage: React.FC = () => {
         hidden: !isPublic,
       } as CreateCourseRequestPayload);
 
-      // Nếu có file avatar, cập nhật avatar
       if (selectedFile) {
         try {
           const isAvatarUpdated = await updateCoruseAvatar(courseData.id, selectedFile);
@@ -168,7 +166,7 @@ const CreateCoursePage: React.FC = () => {
         style={{
           '--select-button-svg': "url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724px%27 height=%2724px%27 fill=%27rgb(78,115,151)%27 viewBox=%270 0 256 256%27%3e%3cpath d=%27M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z%27%3e%3c/path%3e%3c/svg%3e')",
           fontFamily: 'Inter, "Noto Sans", sans-serif',
-        } as React.CSSProperties} // Ép kiểu để TypeScript chấp nhận biến CSS tùy chỉnh
+        } as React.CSSProperties}
       >
         <div className="flex h-full grow flex-col">
           <div className="px-40 flex flex-1 justify-center py-5">
@@ -323,7 +321,7 @@ const CreateCoursePage: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setSelectedTeachers(prev => prev.filter(t => t.id !== teacher.id))} // Nút xóa
+                      onClick={() => setSelectedTeachers(prev => prev.filter(t => t.id !== teacher.id))}
                       className="text-[#0e141b] flex items-center justify-center size-7 rounded-md hover:bg-gray-100 active:bg-gray-200 transition shrink-0"
                       aria-label="Remove teacher"
                     >

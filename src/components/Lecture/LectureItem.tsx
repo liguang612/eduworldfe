@@ -5,7 +5,7 @@ import RatingStars from '@/components/Common/RatingStars';
 interface LectureItemProps {
   id: string | number;
   title: string;
-  duration: number; // in minutes
+  duration: number;
   rating: number;
   questionCount: number;
   subjectName: string;

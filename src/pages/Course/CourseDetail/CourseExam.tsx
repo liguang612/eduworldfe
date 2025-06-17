@@ -65,34 +65,28 @@ const CourseExams: React.FC = () => {
     });
   };
 
-  // Lọc danh sách bài thi dựa trên searchTerm
   const filteredExams = exams.filter(exam =>
     exam.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const now = new Date();
 
-  // Đề thi đã kết thúc: có closeTime và hiện tại > closeTime
   const pastExams = filteredExams.filter(exam => {
     const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
     return closeTime && isAfter(now, closeTime);
   });
 
-  // Đề thi sắp diễn ra: có openTime và hiện tại < openTime (và chưa kết thúc)
   const upcomingExams = filteredExams.filter(exam => {
     const openTime = exam.openTime ? parseISO(exam.openTime) : null;
     const closeTime = exam.closeTime ? parseISO(exam.closeTime) : null;
 
-    // Nếu đã kết thúc thì không phải sắp mở
     if (closeTime && isAfter(now, closeTime)) return false;
 
-    // Nếu có openTime và hiện tại < openTime thì sắp mở
     if (openTime && isBefore(now, openTime)) return true;
 
     return false;
   });
 
-  // Đề thi đang diễn ra: không phải sắp mở và không phải đã kết thúc
   const ongoingExams = filteredExams.filter(exam => {
     const isUpcoming = upcomingExams.some(u => u.id === exam.id);
     const isPast = pastExams.some(p => p.id === exam.id);
@@ -113,12 +107,11 @@ const CourseExams: React.FC = () => {
   }
 
   const handleConfirmDelete = async () => {
-    if (!examToDeleteId || !courseId) return; // Add check for courseId
+    if (!examToDeleteId || !courseId) return;
 
     try {
       await deleteExam(examToDeleteId);
       toast.success('Xóa đề thi thành công!');
-      // Refresh danh sách đề thi
       const examsData = await getExamsByClassId(courseId);
       setExams(examsData);
     } catch (error) {

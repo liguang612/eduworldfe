@@ -22,7 +22,6 @@ const ExamResultsPage: React.FC = () => {
         setError(null);
         const data = await getExamAttemptsByExamId(examId);
 
-        // Sort data by endTime descending
         const sortedData = data.sort((a, b) => {
           const timeA = a.endTime ? new Date(a.endTime).getTime() : 0;
           const timeB = b.endTime ? new Date(b.endTime).getTime() : 0;

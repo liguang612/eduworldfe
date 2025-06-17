@@ -32,21 +32,18 @@ const SolutionPreviewPane: React.FC<SolutionPreviewPaneProps> = ({ solution, onD
           <div
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => {
-              if (solution?.creatorId && solution.creatorName && solution.creatorAvatar) { // Assuming creatorId exists on Solution
+              if (solution?.creatorId && solution.creatorName && solution.creatorAvatar) {
                 const creatorUser: User = {
                   id: solution.creatorId,
                   name: solution.creatorName,
                   avatar: solution.creatorAvatar,
-                  email: '', // Email is not available here, provide empty string or fetch separately if needed
-                  // Add other User properties if necessary, like role, school, grade, etc.
+                  email: '',
                   school: solution.creatorSchool || '',
                   grade: solution.creatorGrade ?? undefined,
                 };
                 setSelectedUser(creatorUser);
                 setIsUserPopupOpen(true);
               }
-              // Optionally handle the case where creator info is incomplete
-              // else { toast.error('Thông tin người tạo lời giải không đầy đủ.'); }
             }}
           >
             {solution.creatorAvatar ? (

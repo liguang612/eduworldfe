@@ -57,7 +57,6 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
     const existingPairs = question.choices as MatchingColumn[] || [];
     let newPairs: MatchingColumn[] = [...existingPairs];
 
-    // When adding a left item, add a pair with only the left side populated
     if (side === 'left') {
       newPairs.push({
         id: Date.now().toString(),
@@ -65,7 +64,6 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
         side: 'left'
       });
     }
-    // When adding a right item, add a pair with only the right side populated
     else if (side === 'right') {
       newPairs.push({
         id: Date.now().toString(),

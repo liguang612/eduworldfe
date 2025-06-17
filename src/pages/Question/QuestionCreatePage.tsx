@@ -9,7 +9,6 @@ import { uploadSharedMedia, type LocationState, type SurveyValue } from '@/api/q
 import RemoveIcon from '@/assets/remove.svg';
 
 
-// --- Main Page Component ---
 const QuestionCreatePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ const QuestionCreatePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [surveyValues, setSurveyValues] = useState<{ [key: string]: SurveyValue }>({});
 
-  // Hiển thị thông báo khi có dữ liệu được import
   React.useEffect(() => {
     if (importedQuestions && importedQuestions.length > 0) {
       toast.success(`Đã import thành công ${importedQuestions.length} câu hỏi từ file!`);
@@ -114,13 +112,12 @@ const QuestionCreatePage: React.FC = () => {
           type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('audio/') ? 'audio' : 'video',
           url: e.target?.result as string,
           fileName: file.name,
-          file: file // Store the actual File object
+          file: file
         });
       };
       if (file.type.startsWith('image/') || file.type.startsWith('video/') || file.type.startsWith('audio/')) {
-        reader.readAsDataURL(file); // Read as Data URL for preview
+        reader.readAsDataURL(file);
       } else {
-        // For other types (though we accept only image/audio/video for now), maybe handle differently or show error
         toast.error('Định dạng file không được hỗ trợ.');
         setSharedMedia(undefined);
       }
@@ -141,7 +138,6 @@ const QuestionCreatePage: React.FC = () => {
     }
   };
 
-  // Question handlers
   const addNewQuestion = () => {
     setQuestions(prevQuestions => [
       ...prevQuestions,
@@ -160,13 +156,11 @@ const QuestionCreatePage: React.FC = () => {
     setQuestions(prevQuestions => prevQuestions.filter(q => q.id !== id));
   };
 
-  // Update handlers
   const updateQuestionField = <K extends keyof IndividualQuestion>(index: number, field: K, value: IndividualQuestion[K]) => {
     setQuestions(prevQuestions =>
       prevQuestions.map((q, i) => {
         if (i !== index) return q;
 
-        // If changing the question type, initialize with appropriate default choices
         if (field === 'type') {
           const questionType = value as string;
           let choices: IndividualQuestion['choices'] = [];
@@ -234,19 +228,16 @@ const QuestionCreatePage: React.FC = () => {
     });
   }, [questions]);
 
-  // Save handlers
   const handleSaveQuestions = async () => {
     if (!subjectId) {
       toast.error('Vui lòng chọn môn học trước khi tạo câu hỏi.');
       return;
     }
 
-    // Kiểm tra xem tất cả câu hỏi đã có đáp án chưa
     const questionsWithoutAnswers = questions.filter(question => {
       const surveyValue = surveyValues[question.id];
       if (!surveyValue || (surveyValue.value === undefined || surveyValue.value === null || surveyValue.value === '' || (Array.isArray(surveyValue.value) && surveyValue.value.length === 0))) return true;
 
-      // Kiểm tra riêng cho từng loại câu hỏi
       switch (question.type) {
         case 'radio':
         case 'checkbox':

@@ -6,7 +6,7 @@ interface StarRatingDisplayProps {
 }
 
 const StarRatingDisplay: React.FC<StarRatingDisplayProps> = ({ rating, totalStars = 5 }) => {
-  const percentage = Math.max(0, Math.min(100, (rating / totalStars) * 100)); // Đảm bảo tỷ lệ từ 0 đến 100
+  const percentage = Math.max(0, Math.min(100, (rating / totalStars) * 100));
 
   return (
     <div className="relative inline-flex" aria-label={`Rating: ${rating} out of ${totalStars} stars`}>

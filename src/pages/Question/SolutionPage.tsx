@@ -60,7 +60,7 @@ const SolutionPage: React.FC = () => {
   };
 
   const handleDeleteSolution = async (solutionId: string) => {
-    if (!questionId) return; // Should not happen if we are on this page
+    if (!questionId) return;
 
     setSolutionToDeleteId(solutionId);
     setIsDeleteDialogOpen(true);
@@ -113,7 +113,6 @@ const SolutionPage: React.FC = () => {
         toast.success('Đã từ chối lời giải!');
       }
 
-      // Refresh solutions list
       const solutionsData = await getSolutionsByQuestionId(questionId!);
       const newApprovedSolutions = solutionsData.filter(s => s.status === 1);
       const newPendingSolutions = solutionsData.filter(s => s.status === 0);

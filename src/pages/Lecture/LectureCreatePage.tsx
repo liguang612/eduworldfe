@@ -166,7 +166,7 @@ const LectureEditPage: React.FC = () => {
                   <select
                     id="grade-select"
                     name="grade"
-                    value={selectedGrade} // Controlled component
+                    value={selectedGrade}
                     onChange={handleGradeChange}
                     className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
                   >
@@ -184,7 +184,7 @@ const LectureEditPage: React.FC = () => {
                     name="subject"
                     value={selectedSubjectId}
                     onChange={handleSubjectChange}
-                    disabled={subjects.length === 0} // Disable if no subjects
+                    disabled={subjects.length === 0}
                     className="appearance-none cursor-pointer bg-transparent border-none text-[#0e141b] text-sm font-medium focus:outline-none focus:ring-0 p-0 pr-5 sm:pr-6 bg-[image:var(--select-button-svg-black)] bg-no-repeat bg-right center leading-tight"
                   >
                     {subjects.length === 0 && <option value="">-- Chọn lớp để xem môn --</option>}

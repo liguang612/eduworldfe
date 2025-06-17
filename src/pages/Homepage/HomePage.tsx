@@ -1,4 +1,3 @@
-// HomePage.tsx
 import React from 'react';
 import Slider from 'react-slick';
 import { useAuth } from '@/contexts/AuthContext';

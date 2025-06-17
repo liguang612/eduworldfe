@@ -24,11 +24,9 @@ const CourseEditPage: React.FC = () => {
   const [approvePost, setApprovePost] = useState<boolean>(false);
   const { user } = useAuth();
 
-  // State for user information popup
   const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null);
 
-  // State cho teacher assistants và students
   const [isTeacherSearchOpen, setIsTeacherSearchOpen] = useState(false);
   const [isStudentSearchOpen, setIsStudentSearchOpen] = useState(false);
   const [selectedAssistants, setSelectedAssistants] = useState<SearchUser[]>([]);
@@ -37,15 +35,13 @@ const CourseEditPage: React.FC = () => {
   const [_isRejecting, setIsRejecting] = useState(false);
   const [_isApproving, setIsApproving] = useState(false);
 
-  // State cho chapters
   const [chaptersData, setChaptersData] = useState<Chapter[]>([]);
   const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
-  const [isCreatingChapter, setIsCreatingChapter] = useState(false); // New state for chapter creation loading
+  const [isCreatingChapter, setIsCreatingChapter] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // New state for course name and description
   const [courseName, setCourseName] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
 
@@ -110,7 +106,6 @@ const CourseEditPage: React.FC = () => {
     setHidden(event.target.value === 'private');
   };
 
-  // Handlers cho teacher assistants
   const openTeacherSearchDialog = () => {
     setIsTeacherSearchOpen(true);
   };
@@ -121,7 +116,6 @@ const CourseEditPage: React.FC = () => {
     }
   };
 
-  // Handlers cho students
   const openStudentSearchDialog = () => {
     setIsStudentSearchOpen(true);
   };
@@ -132,7 +126,6 @@ const CourseEditPage: React.FC = () => {
     }
   };
 
-  // Render function cho dialog items
   const renderUserItemDialog = (user: SearchUser, onSelect: (user: SearchUser) => void) => (
     <div
       key={user.id}
@@ -176,12 +169,10 @@ const CourseEditPage: React.FC = () => {
     try {
       setIsSubmitting(true);
 
-      // Upload avatar if changed
       if (selectedFile) {
         await updateCoruseAvatar(course.id, selectedFile);
       }
 
-      // Update course details
       await updateCourse(course.id, {
         name: courseName,
         description: courseDescription,
@@ -265,7 +256,7 @@ const CourseEditPage: React.FC = () => {
       <div className="layout-container flex h-full grow flex-col">
         {/* Header đã được bỏ */}
         <div className="px-40 flex flex-1 justify-center py-5">
-          <div className="layout-content-container flex flex-col w-full max-w-[960px] py-5 flex-1"> {/* Thay đổi width để rộng hơn */}
+          <div className="layout-content-container flex flex-col w-full max-w-[960px] py-5 flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">
                 <p className="text-[#0e141b] tracking-light text-[32px] font-bold leading-tight">Chỉnh sửa khóa học</p>

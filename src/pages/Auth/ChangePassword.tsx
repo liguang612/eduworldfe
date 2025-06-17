@@ -43,7 +43,7 @@ const ChangePassword = () => {
       });
 
       toast.success('Đổi mật khẩu thành công!');
-      reset(); // Reset form sau khi thành công
+      reset();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu');
     } finally {

@@ -97,10 +97,8 @@ export default function AccountPage() {
         }
       });
 
-      // Cập nhật originalData sau khi lưu thành công
       setOriginalData(formData);
 
-      // Cập nhật thông tin user trong AuthContext nếu có thay đổi
       const updatedFields: Record<string, any> = {};
       Object.keys(formData).forEach(key => {
         if (formData[key as keyof typeof formData] !== originalData[key as keyof typeof originalData]) {

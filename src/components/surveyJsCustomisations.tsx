@@ -47,7 +47,7 @@ export class QuestionItemConnectorModel extends Question {
     if (!Array.isArray(parsedItems)) return [];
 
     return parsedItems.map((item, index) => ({
-      id: String(item.id || item.value || `item-${index}-${Math.random().toString(36).substring(2, 7)}`), // Đảm bảo có id duy nhất
+      id: String(item.id || item.value || `item-${index}-${Math.random().toString(36).substring(2, 7)}`),
       label: String(item.label || item.text || `Mục ${index + 1}`)
     }));
   }
@@ -109,9 +109,8 @@ export class SurveyQuestionItemConnector extends SurveyQuestionElementBase {
     return this.questionBase as QuestionItemConnectorModel;
   }
 
-  // Hàm này được gọi khi giá trị (kết nối) của ItemConnector thay đổi
   private handleConnectionsChange = (connections: Connection[]) => {
-    this.questionModel.value = connections; // Cập nhật giá trị của câu hỏi SurveyJS
+    this.questionModel.value = connections;
   };
 
   renderElement(): JSX.Element {

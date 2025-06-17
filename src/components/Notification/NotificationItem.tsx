@@ -1,4 +1,3 @@
-// src/components/NotificationItem.tsx
 import React, { useState } from 'react';
 import { type NotificationData, markNotificationAsRead } from '@/api/notificationApi';
 import DotFillIcon from '@/assets/dot_fill.svg';

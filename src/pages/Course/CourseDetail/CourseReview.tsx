@@ -50,13 +50,11 @@ const CourseReviewsPage: React.FC = () => {
           const stats = await getReviewStatistics(1, course.id);
           setStatistics(stats);
 
-          // Fetch first page of reviews
           const reviewsData = await getReviews(1, course.id, 0);
           setReviews(reviewsData.reviews.filter(review => review.userId !== user?.id));
           setCurrentPage(reviewsData.currentPage);
           setTotalPages(reviewsData.totalPages);
 
-          // Find user's own review
           const userReview = reviewsData.reviews.find(review => review.userId === user?.id);
           if (userReview) {
             setSubmittedReview(userReview);

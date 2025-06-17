@@ -84,7 +84,6 @@ const AttemptListPage: React.FC = () => {
         setError(null);
         const data = await getExamAttemptsByStatus(activeTab as 'in_progress' | 'submitted');
 
-        // Sort data by endTime descending, fallback to startTime descending if endTime is null
         const sortedData = data.sort((a, b) => {
           const timeA = a.endTime ? new Date(a.endTime).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0);
           const timeB = b.endTime ? new Date(b.endTime).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0);

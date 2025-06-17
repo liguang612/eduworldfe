@@ -73,7 +73,7 @@ export function QuestionUploadDialog({
         }
 
         let type: ParsedQuestion['type'] = 'radio';
-        let level = 2; // Mặc định là "Thông hiểu"
+        let level = 2;
         let questionText = '';
 
         if (radioMatch) {
@@ -94,7 +94,6 @@ export function QuestionUploadDialog({
           questionText = shortAnswerMatch[2];
         }
 
-        // Validate level (phải từ 1-4, nếu không hợp lệ thì dùng mặc định)
         if (level < 1 || level > 4 || isNaN(level)) {
           level = 2;
         }
@@ -233,7 +232,6 @@ export function QuestionUploadDialog({
             autoClose: 3000,
           });
 
-          // Chuyển hướng đến trang tạo câu hỏi với dữ liệu đã import
           navigate('/question-bank/new', {
             state: {
               subjectId: selectedSubjectId,

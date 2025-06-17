@@ -23,13 +23,11 @@ const CourseTopic: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
-  // Pagination states
   const [communityPage, setCommunityPage] = useState(0);
   const [pendingPage, setPendingPage] = useState(0);
   const [communityHasMore, setCommunityHasMore] = useState(true);
   const [pendingHasMore, setPendingHasMore] = useState(true);
 
-  // Get course data
   const fetchCourse = async () => {
     const response = await getCourseById(id || '');
     setCourse(response);
@@ -38,7 +36,6 @@ const CourseTopic: React.FC = () => {
     fetchCourse();
   }, []);
 
-  // Fetch initial posts
   const fetchInitialPosts = async () => {
     if (!course) return;
 
@@ -177,10 +174,8 @@ const CourseTopic: React.FC = () => {
     }
   };
 
-
-
   if (!user) {
-    return <div className="text-center py-20 text-gray-600">Please log in to view this content.</div>;
+    return <div className="text-center py-20 text-gray-600">Vui lòng đăng nhập để xem nội dung này.</div>;
   }
 
   const currentPosts = activeTab === 'community' ? posts : pendingPosts;

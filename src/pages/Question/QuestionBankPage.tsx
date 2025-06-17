@@ -1,5 +1,3 @@
-// QuestionBankPage.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { getQuestions, getQuestionDetail, type Question } from '@/api/questionApi';
 import { type Subject, getSubjectsByGrade } from '@/api/courseApi';
@@ -17,9 +15,6 @@ const levelColorClasses: { [key: string]: string } = {
   'Vận dụng': 'bg-orange-100 text-orange-800',
   'Vận dụng cao': 'bg-red-100 text-red-800',
 };
-
-
-
 
 const QuestionBankPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,17 +53,14 @@ const QuestionBankPage: React.FC = () => {
           .sort((a, b) => a.name.localeCompare(b.name));
         setSubjects(sortData);
 
-        // Nếu có selectedSubjectId đã lưu và nó thuộc danh sách môn học hiện tại
         if (selectedSubjectId) {
           const subjectExists = sortData.some(subject => subject.id === selectedSubjectId);
           if (!subjectExists) {
-            // Nếu môn học đã chọn không tồn tại trong danh sách mới, chọn môn học đầu tiên
             const newSubjectId = sortData[0]?.id || '';
             setSelectedSubjectId(newSubjectId);
             localStorage.setItem('selectedSubjectId', newSubjectId);
           }
         } else if (sortData.length > 0) {
-          // Nếu chưa có môn học nào được chọn, chọn môn học đầu tiên
           const newSubjectId = sortData[0].id;
           setSelectedSubjectId(newSubjectId);
           localStorage.setItem('selectedSubjectId', newSubjectId);
@@ -149,7 +141,6 @@ const QuestionBankPage: React.FC = () => {
 
   const handleSort = (column: 'title' | 'level' | 'createdAt') => {
     if (sortColumn === column) {
-      // Reverse
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
@@ -172,7 +163,6 @@ const QuestionBankPage: React.FC = () => {
     }
   };
 
-  // Hàm format ngày tháng
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -193,7 +183,6 @@ const QuestionBankPage: React.FC = () => {
     }
   };
 
-  // Sắp xếp danh sách câu hỏi trước khi hiển thị
   const sortedQuestions = [...questions].sort((a, b) => {
     const direction = sortDirection === 'asc' ? 1 : -1;
     if (sortColumn === 'title') {
@@ -203,12 +192,11 @@ const QuestionBankPage: React.FC = () => {
     } else if (sortColumn === 'createdAt') {
       return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * direction;
     }
-    return 0; // Không sắp xếp nếu cột không hợp lệ
+    return 0;
   });
 
   const handleQuestionDeleted = () => {
     setSelectedQuestion(null);
-    // Refresh the questions list
     if (selectedSubjectId && userId) {
       getQuestions(userId, selectedSubjectId).then(data => {
         setQuestions(data);
@@ -234,9 +222,6 @@ const QuestionBankPage: React.FC = () => {
       }
     }
   };
-
-  // START: Added for DOCX processing
-
 
   return (
     <div

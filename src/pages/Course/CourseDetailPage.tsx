@@ -66,11 +66,10 @@ const CourseDetailPage: React.FC = () => {
             setSubject(subjectData);
           } catch (subjectError) {
             console.error('Error fetching subject:', subjectError);
-            toast.warn('Không thể tải thông tin môn học.'); // Non-critical error
+            toast.warn('Không thể tải thông tin môn học.');
           }
         }
 
-        // Automatically navigate to the 'lectures' sub-route if on the base course/:id path
         const basePath = `/courses/${courseId}`;
         if (location.pathname === basePath || location.pathname === `${basePath}/`) {
           navigate('lectures', { replace: true, relative: 'path' });

@@ -46,7 +46,6 @@ const LectureDetailPage: React.FC = () => {
   const [loadingReviews, setLoadingReviews] = useState<boolean>(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  // State for user information popup
   const [isUserPopupOpen, setIsUserPopupOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -68,7 +67,6 @@ const LectureDetailPage: React.FC = () => {
           document.title = data.name;
           setIsFavorited(data.favourite);
 
-          // Fetch statistics
           const stats = await getReviewStatistics(2, id);
           setStatistics(stats);
 
@@ -151,10 +149,8 @@ const LectureDetailPage: React.FC = () => {
     if (!id || !lecture) return;
 
     try {
-      // Collect media URLs from lecture content
       const mediaUrls = collectMediaUrls(JSON.parse(lecture.contents));
 
-      // Delete each media file
       for (const url of mediaUrls) {
         try {
           deleteFile(url);
@@ -164,7 +160,6 @@ const LectureDetailPage: React.FC = () => {
         }
       }
 
-      // Delete the lecture
       await deleteLecture(id);
       toast.success('Xóa bài giảng thành công!');
       navigate('/lectures');

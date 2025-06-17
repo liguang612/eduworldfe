@@ -244,9 +244,7 @@ button {
   /* Thin scrollbar styles */
   .thin-scrollbar::-webkit-scrollbar {
     height: 4px;
-    /* Chiều cao của scrollbar ngang */
     width: 4px;
-    /* Chiều rộng của scrollbar dọc */
   }
 
   .thin-scrollbar::-webkit-scrollbar-track {

@@ -1,4 +1,3 @@
-// src/components/NotificationPopup.tsx
 import React, { useState, useEffect } from 'react';
 import NotificationItem from './NotificationItem';
 import ReloadIcon from '@/assets/reload.svg';

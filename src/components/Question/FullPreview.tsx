@@ -24,7 +24,6 @@ const FullPreview: React.FC<{
   data: FullQuestionSetData,
   onSurveyValueChange?: (questionId: string, value: SurveyValue) => void
 }> = ({ data, onSurveyValueChange }) => {
-  // Check for incomplete questions
   const incompleteQuestions: IncompleteQuestion[] = data.questions.map((q, index) => {
     const issues: string[] = [];
     if (!q.questionText.trim()) {

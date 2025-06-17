@@ -48,7 +48,6 @@ const DoExamPage: React.FC = () => {
   const [currentMediaQuestions, setCurrentMediaQuestions] = useState<Question[]>([]);
   const [sortedQuestions, setSortedQuestions] = useState<Question[]>([]);
 
-  // State for timer
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState(false);
 
@@ -131,9 +130,7 @@ const DoExamPage: React.FC = () => {
     const mediaGroupEntries: [number, Question[]][] = [];
     Object.values(groups).forEach(group => {
       if (group.length > 0 && group[0].sharedMedia) {
-        // Tìm index của câu hỏi đầu tiên trong group này trong mảng questionsToSort gốc
         const firstQuestionOriginalIndex = questionsToSort.findIndex(q => q.id === group[0].id);
-        // Chỉ thêm vào nếu tìm thấy (luôn nên tìm thấy nếu group[0] từ questionsToSort)
         if (firstQuestionOriginalIndex !== -1) {
           mediaGroupEntries.push([firstQuestionOriginalIndex, group]);
         }
@@ -168,7 +165,6 @@ const DoExamPage: React.FC = () => {
     }
   }, [questions, sortQuestions]);
 
-  // handleSelectQuestion 
   const handleSelectQuestion = (index: number) => {
     if (index >= 0 && index < sortedQuestions.length) {
       const question = sortedQuestions[index];
@@ -229,7 +225,6 @@ const DoExamPage: React.FC = () => {
         }
         setLoadingQuestions(true);
 
-        // Get exam details
         const examDetailsResponse = await getExamAttemptDetails(attemptId);
         setExam(examDetailsResponse);
 
@@ -283,7 +278,6 @@ const DoExamPage: React.FC = () => {
 
         setSurveyModels(models);
 
-        // Set timer and load saved answers
         if (examDetailsResponse.duration > 0) {
           if (examDetailsResponse.status === 'in_progress' && examDetailsResponse.startTime) {
             const startTime = new Date(examDetailsResponse.startTime);
@@ -297,7 +291,6 @@ const DoExamPage: React.FC = () => {
           setIsTimerActive(true);
         }
 
-        // Load saved answers
         if (examDetailsResponse.answers) {
           const updatedQuestions = [...formattedQuestions];
           Object.entries(examDetailsResponse.answers).forEach(([questionId, answer]) => {
@@ -353,9 +346,8 @@ const DoExamPage: React.FC = () => {
     );
   };
 
-  // handleClearResponse
   const handleClearResponse = () => {
-    const currentQ = questions[currentQuestionIndex]; // Lấy từ mảng questions gốc
+    const currentQ = questions[currentQuestionIndex];
     if (currentQ) {
       const model = surveyModels[currentQ.id];
       if (model) {
@@ -376,7 +368,6 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  // answeredQuestionsCount
   const answeredQuestionsCount = useMemo(
     () => {
       return questions.filter(q => {
@@ -389,7 +380,6 @@ const DoExamPage: React.FC = () => {
     [questions, surveyModels]
   );
 
-  // progressPercentage
   const progressPercentage = useMemo(
     () => (questions.length > 0 ? (answeredQuestionsCount / questions.length) * 100 : 0),
     [answeredQuestionsCount, questions.length]
@@ -412,7 +402,6 @@ const DoExamPage: React.FC = () => {
     [attemptId]
   );
 
-  // handleSurveyValueChange
   const handleSurveyValueChange = (questionId: string, model: Model) => {
     const value = model.getValue(`question_${questionId}`);
     const isAnswered = value !== undefined && value !== null &&
@@ -441,7 +430,6 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  // submitExam
   const submitExam = async () => {
     try {
       setIsGrading(true);
@@ -480,7 +468,6 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  // handleSubmit
   const handleSubmit = async () => {
     if (timeLeft !== null && timeLeft > 0) {
       setShowSubmitConfirm(true);
@@ -488,13 +475,11 @@ const DoExamPage: React.FC = () => {
     }
   };
 
-  // handleConfirmSubmit
   const handleConfirmSubmit = () => {
     setShowSubmitConfirm(false);
     submitExam();
   };
 
-  // formatTime
   const formatTime = (seconds: number | null): string => {
     if (seconds === null) return '00:00';
     const minutes = Math.floor(seconds / 60);
@@ -502,7 +487,6 @@ const DoExamPage: React.FC = () => {
     return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // currentQuestionInSortedListIndex
   const currentQuestionInSortedListIndex = useMemo(() => {
     if (!questions[currentQuestionIndex] || sortedQuestions.length === 0) return -1;
     return sortedQuestions.findIndex(q => q.id === questions[currentQuestionIndex].id);
@@ -517,7 +501,7 @@ const DoExamPage: React.FC = () => {
     return <div>Không tìm thấy câu hỏi nào cho đề thi này.</div>;
   }
 
-  const currentQuestion = questions[currentQuestionIndex]; // Vẫn lấy từ mảng questions gốc
+  const currentQuestion = questions[currentQuestionIndex];
 
   const rootStyle = {
     "--checkbox-tick-svg": "url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,250,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e')",
@@ -570,7 +554,6 @@ const DoExamPage: React.FC = () => {
                 {/* Question List - Render từ sortedQuestions */}
                 <div className="flex flex-col gap-2">
                   {sortedQuestions.map((q_sorted, index_in_sorted_list) => {
-                    // Tìm câu hỏi gốc tương ứng để lấy trạng thái isFlagged, selectedOptionIndex
                     const originalQuestionData = questions.find(oq => oq.id === q_sorted.id) || q_sorted;
                     const isCurrentlySelected = originalQuestionData.id === questions[currentQuestionIndex]?.id;
 

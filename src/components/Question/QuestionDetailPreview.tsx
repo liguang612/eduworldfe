@@ -108,7 +108,6 @@ const QuestionDetailPreview: React.FC<QuestionDetailPreviewProps> = ({ question,
   model.showCompleteButton = false;
   model.mode = 'display';
 
-  // Set correct answers based on question type
   if (question.type === 'radio' || question.type === 'checkbox') {
     model.setValue(`question_${question.id}`, getCorrectAnswer());
   } else if (question.type === 'ranking') {

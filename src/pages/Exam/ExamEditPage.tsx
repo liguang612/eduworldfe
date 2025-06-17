@@ -39,12 +39,11 @@ interface ExamFormData {
 
 type ActiveTabType = 'general' | 'other' | 'questionBank';
 
-// Hàm trợ giúp để chuyển đổi chuỗi ISO (UTC) sang chuỗi datetime-local
 const formatISOToLocalDateTimeString = (isoString: string | null | undefined): string => {
   if (!isoString) return '';
-  const date = new Date(isoString); // Date object này sẽ giữ thông tin múi giờ
+  const date = new Date(isoString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() trả về 0-11
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -90,7 +89,6 @@ const ExamEditPage: React.FC = () => {
   const [isQuestionSearchOpen, setIsQuestionSearchOpen] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
-  // Thêm các state mới cho chức năng tìm kiếm và sắp xếp trong tab kho câu hỏi
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [loadingAvailableQuestions, setLoadingAvailableQuestions] = useState(false);
   const [searchInput, setSearchInput] = useState<string>('');
@@ -99,11 +97,9 @@ const ExamEditPage: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectAll, setSelectAll] = useState(false);
 
-  // Thêm state mới cho Dialog
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
-  // Thêm hàm helper để đếm số lượng câu hỏi theo từng loại
   const countQuestionsByLevel = (questions: Question[]) => {
     return questions.reduce((acc, q) => {
       const level = q.level;
@@ -147,7 +143,6 @@ const ExamEditPage: React.FC = () => {
         const exam = response.exam;
         const questions = response.questions;
 
-        // Cập nhật form data từ dữ liệu đề thi
         setFormData({
           examName: exam.title,
           numRecognitionQuestions: exam.easyCount.toString(),
@@ -159,7 +154,6 @@ const ExamEditPage: React.FC = () => {
           numHighApplicationQuestions: exam.veryHardCount.toString(),
           pointsPerHighApplicationQuestion: exam.veryHardScore.toString(),
           enableOpenDateTime: !!exam.openTime,
-          // Sử dụng hàm trợ giúp để định dạng thời gian cho input datetime-local
           openDateTime: formatISOToLocalDateTimeString(exam.openTime),
           enableCloseDateTime: !!exam.closeTime,
           closeDateTime: formatISOToLocalDateTimeString(exam.closeTime),
@@ -173,7 +167,6 @@ const ExamEditPage: React.FC = () => {
           maxRetakeAttempts: exam.maxAttempts.toString(),
         });
 
-        // Cập nhật danh sách câu hỏi đã chọn
         setSelectedQuestions(questions);
       } catch (error) {
         console.error('Error fetching exam:', error);
@@ -287,7 +280,6 @@ const ExamEditPage: React.FC = () => {
       return;
     }
 
-    // Kiểm tra số lượng câu hỏi trong kho
     const questionCounts = countQuestionsByLevel(selectedQuestions);
     const requiredCounts = {
       easy: parseInt(formData.numRecognitionQuestions) || 0,
@@ -313,11 +305,10 @@ const ExamEditPage: React.FC = () => {
       return;
     }
 
-    // Chuyển đổi thời gian từ local (từ input datetime-local) sang UTC
     const convertToUTC = (localDateTime: string) => {
       if (!localDateTime) return undefined;
-      const date = new Date(localDateTime); // Date này được hiểu là local time
-      return date.toISOString(); // Chuyển sang UTC
+      const date = new Date(localDateTime);
+      return date.toISOString();
     };
 
     const openTimeUTC = formData.enableOpenDateTime ? convertToUTC(formData.openDateTime) : undefined;
@@ -476,7 +467,6 @@ const ExamEditPage: React.FC = () => {
     </div>
   );
 
-  // Hàm lấy văn bản hiển thị cho mức độ câu hỏi
   const getLevelText = (level: number) => {
     switch (level) {
       case 1:
@@ -492,7 +482,6 @@ const ExamEditPage: React.FC = () => {
     }
   };
 
-  // Hàm format ngày tháng
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -513,7 +502,6 @@ const ExamEditPage: React.FC = () => {
     }
   };
 
-  // Màu cho từng level câu hỏi
   const levelColorClasses: { [key: string]: string } = {
     'Nhận biết': 'bg-green-100 text-green-800',
     'Thông hiểu': 'bg-blue-100 text-blue-800',
@@ -521,10 +509,8 @@ const ExamEditPage: React.FC = () => {
     'Vận dụng cao': 'bg-red-100 text-red-800',
   };
 
-  // Hàm xử lý sắp xếp câu hỏi
   const handleSort = (column: 'title' | 'level' | 'createdAt') => {
     if (sortColumn === column) {
-      // Đảo chiều sắp xếp
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
@@ -532,7 +518,6 @@ const ExamEditPage: React.FC = () => {
     }
   };
 
-  // Sắp xếp danh sách câu hỏi
   const sortedAvailableQuestions = [...availableQuestions].sort((a, b) => {
     const direction = sortDirection === 'asc' ? 1 : -1;
     if (sortColumn === 'title') {
@@ -545,7 +530,6 @@ const ExamEditPage: React.FC = () => {
     return 0;
   });
 
-  // Hàm xử lý tìm kiếm câu hỏi
   const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -564,13 +548,11 @@ const ExamEditPage: React.FC = () => {
     }
   };
 
-  // Hàm xử lý chọn/bỏ chọn tất cả câu hỏi
   const handleSelectAll = () => {
     const newSelectAll = !selectAll;
     setSelectAll(newSelectAll);
 
     if (newSelectAll) {
-      // Nếu chọn tất cả, thêm tất cả câu hỏi chưa được chọn vào danh sách
       const allSelectedIds = selectedQuestions.map(q => q.id);
       const newSelectedQuestions = [
         ...selectedQuestions,
@@ -582,19 +564,15 @@ const ExamEditPage: React.FC = () => {
     }
   };
 
-  // Hàm xử lý chọn/bỏ chọn một câu hỏi
   const handleSelectQuestion = (question: Question) => {
     const isSelected = selectedQuestions.some(q => q.id === question.id);
 
     if (isSelected) {
-      // Nếu đã chọn, bỏ chọn
       setSelectedQuestions(prev => prev.filter(q => q.id !== question.id));
       setSelectAll(false);
     } else {
-      // Nếu chưa chọn, thêm vào danh sách
       setSelectedQuestions(prev => [...prev, question]);
 
-      // Kiểm tra nếu tất cả đã được chọn
       const allSelectedAfterAdd = availableQuestions.every(q =>
         selectedQuestions.some(sq => sq.id === q.id) || q.id === question.id
       );

@@ -39,7 +39,6 @@ const LectureEditPage: React.FC = () => {
 
   const [mediaUsageMap, setMediaUsageMap] = useState<Map<string, boolean>>(new Map());
 
-  // Function to collect media URLs from contents
   const collectMediaUrls = (contents: any[]) => {
     const urls = new Map<string, boolean>();
 
@@ -60,29 +59,25 @@ const LectureEditPage: React.FC = () => {
   useEffect(() => {
     const fetchLecture = async () => {
       if (!id) return;
-      // setIsLoading(true);
+      setIsLoading(true);
 
       try {
         const data = await getLectureById(id, undefined);
         setLecture(data);
 
-        // Set form values
         setLectureName(data.name);
         setLectureDescription(data.description);
         if (editorRef.current) editorRef.current = (data.contents ? JSON.parse(data.contents) : undefined);
 
-        // Collect initial media URLs
         if (data.contents) {
           const contents = JSON.parse(data.contents);
           setMediaUsageMap(collectMediaUrls(contents));
         }
 
-        // Set duration
         const totalMinutes = data.duration;
         setDurationHours(Math.floor(totalMinutes / 60));
         setDurationMinutes(totalMinutes % 60);
 
-        // Fetch questions details if there are endQuestions
         if (data.endQuestions && data.endQuestions.length > 0) {
           setIsLoadingQuestions(true);
           try {
@@ -160,7 +155,6 @@ const LectureEditPage: React.FC = () => {
       const contents = [...editorValue];
       const processedContents = await handleMedia(contents);
 
-      // Delete unused media files
       for (const [url, isUsed] of mediaUsageMap.entries()) {
         if (!isUsed) {
           try {
@@ -198,7 +192,6 @@ const LectureEditPage: React.FC = () => {
     }
   };
 
-  // Cập nhật hàm searchQuestions để sử dụng API từ lectureApi.ts
   const searchQuestionsHandler = async (keyword: string) => {
     if (!user || !lecture) return [];
     const data = await searchQuestions(keyword, lecture.subjectId, user.id);

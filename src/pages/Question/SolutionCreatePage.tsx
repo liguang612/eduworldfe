@@ -125,7 +125,6 @@ const SolutionCreatePage: React.FC = () => {
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
         <div className="text-lg font-medium text-gray-700">Đang tải câu hỏi...</div>
-        {/* You could add a spinner component here */}
       </div>
     );
   }
@@ -136,7 +135,7 @@ const SolutionCreatePage: React.FC = () => {
         <div className="text-xl font-semibold text-red-600 mb-4">Không thể tải câu hỏi</div>
         <p className="text-gray-700">Câu hỏi bạn đang tìm kiếm không tồn tại hoặc đã có lỗi xảy ra.</p>
         <button
-          onClick={() => navigate(-1)} // Go back
+          onClick={() => navigate(-1)}
           className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           Quay lại

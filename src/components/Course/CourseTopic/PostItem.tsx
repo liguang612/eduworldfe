@@ -167,12 +167,11 @@ const PostItem: React.FC<PostItemProps> = ({
     try {
       setIsSaving(true);
 
-      // Upload new images first
+      // Upload ảnh mới trước 
       const uploadPromises = editedImageUrls
         .filter(url => url.startsWith('blob:'))
         .map(async (blobUrl) => {
           try {
-            // Convert blob URL to File object
             const response = await fetch(blobUrl);
             const blob = await response.blob();
             const filename = blobUrl.split('/').pop() || 'image.jpg';
@@ -188,16 +187,14 @@ const PostItem: React.FC<PostItemProps> = ({
           }
         });
 
-      // Wait for all uploads to complete
       const uploadResults = await Promise.all(uploadPromises);
 
-      // Replace blob URLs with uploaded URLs
       const finalImageUrls = editedImageUrls.map(url => {
         const uploadResult = uploadResults.find(result => result.blobUrl === url);
         return uploadResult ? uploadResult.uploadedUrl : url;
       });
 
-      // Check if content or images have changed
+      // Kiểm tra nội dung hoặc ảnh có thay đổi không
       if (editedContent.trim() !== post.content || JSON.stringify(finalImageUrls) !== JSON.stringify(post.imageUrls)) {
         onEditPost(post.id, editedContent.trim(), finalImageUrls);
       }
@@ -502,7 +499,6 @@ const PostItem: React.FC<PostItemProps> = ({
           confirmButtonColorClass="bg-red-600 hover:bg-red-700"
         />
 
-        {/* User Information Popup (ProfileDialog) */}
         <ProfileDialog
           isOpen={isUserPopupOpen}
           onClose={() => setIsUserPopupOpen(false)}

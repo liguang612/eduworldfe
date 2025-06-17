@@ -75,7 +75,7 @@ const DoEndQuestion: React.FC = () => {
         // Thêm tất cả câu hỏi trong nhóm vào các vị trí liên tiếp
         group.forEach((q, groupIndex) => {
           const insertIndex = firstQuestionIndex + groupIndex;
-          // Đảm bảo mảng sorted đủ dài
+
           while (sorted.length <= insertIndex) {
             sorted.push(null);
           }
@@ -156,7 +156,7 @@ const DoEndQuestion: React.FC = () => {
 
           const models: { [key: string]: Model } = {};
           formattedQuestions.forEach(question => {
-            const surveyJson: any = { // Thêm any để tránh lỗi type với SurveyJS JSON
+            const surveyJson: any = {
               elements: [{
                 name: `question_${question.id}`,
                 title: question.title,
@@ -165,12 +165,12 @@ const DoEndQuestion: React.FC = () => {
                     question.type === 'itemConnector' ? 'itemConnector' :
                       question.type === 'ranking' ? 'ranking' : 'text',
                 choices: question.choices?.map((choice: ChoiceOption) => ({
-                  value: String(choice.value), // SurveyJS thường làm việc tốt nhất với value là string
+                  value: String(choice.value),
                   text: choice.text,
                 })),
               }]
             };
-            // Thêm leftItems và rightItems cho itemConnector
+
             if (question.type === 'itemConnector' && question.matchingColumns) {
               surveyJson.elements[0].leftItems = question.matchingColumns
                 .filter(col => col.side === 'left')
@@ -336,10 +336,9 @@ const DoEndQuestion: React.FC = () => {
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
       style={rootStyle as React.CSSProperties}
     >
-      {/* ... (Phần isGrading loading) ... */}
       <div className="layout-container flex h-full grow flex-col">
         <div className="gap-1 px-6 flex flex-1 py-5">
-          {/* ... (Cột trái: danh sách câu hỏi, thông tin user, progress bar) ... */}
+          {/* Cột trái  */}
           <div className="layout-content-container flex flex-col w-80">
             <div className="flex h-full min-h-[700px] flex-col justify-between bg-slate-50 p-4">
               <div className="flex flex-col gap-4">
@@ -420,7 +419,7 @@ const DoEndQuestion: React.FC = () => {
 
           {/* Cột phải: Hiển thị câu hỏi */}
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-            {/* ... (Thông tin bài giảng) ... */}
+            {/* Thông tin bài giảng */}
             <div className="flex flex-col gap-2 p-4 border-b border-slate-200">
               <h1 className="text-[#0d141c] font-bold leading-tight tracking-[-0.015em] text-xl">
                 {lectureName}

@@ -38,7 +38,6 @@ const QuestionEditPage: React.FC = () => {
     { value: "shortAnswer", title: "Điền vào chỗ trống", description: "Nhập đáp án đúng" },
   ];
 
-  // Question Handlers
   const addNewQuestion = () => {
     const newId = Date.now().toString();
     setQuestions(prevQuestions => [
@@ -64,7 +63,6 @@ const QuestionEditPage: React.FC = () => {
     });
   };
 
-  // Init question(s)
   const getCorrectAnswer = (question: IndividualQuestion) => {
     switch (question.type) {
       case 'radio':
@@ -133,14 +131,12 @@ const QuestionEditPage: React.FC = () => {
           }
         });
 
-        // Handle shared media if exists
         if (question.sharedMedia) {
           if (question.sharedMedia.mediaType === 0 && question.sharedMedia.text) {
             setSharedMedia({
               type: 'text',
               content: question.sharedMedia.text
             });
-            // Check if shared media is used by other questions
             if (question.sharedMedia.usageCount > 1) {
               setSharedMediaUsageCount(question.sharedMedia.usageCount);
               setSharedMediaId(question.sharedMedia.id);
@@ -152,7 +148,6 @@ const QuestionEditPage: React.FC = () => {
               url: `${question.sharedMedia.mediaUrl}`,
               fileName: question.sharedMedia.title
             });
-            // Check if shared media is used by other questions
             if (question.sharedMedia.usageCount > 1) {
               setSharedMediaUsageCount(question.sharedMedia.usageCount);
               setSharedMediaId(question.sharedMedia.id);
@@ -222,7 +217,6 @@ const QuestionEditPage: React.FC = () => {
     }
   };
 
-  // --- Shared Media Handlers ---
   const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -258,7 +252,6 @@ const QuestionEditPage: React.FC = () => {
     }
   };
 
-  // --- Individual Question Handlers ---
   const updateQuestionField = <K extends keyof IndividualQuestion>(index: number, field: K, value: IndividualQuestion[K]) => {
     setQuestions(prevQuestions =>
       prevQuestions.map((q, i) => {
@@ -387,11 +380,9 @@ const QuestionEditPage: React.FC = () => {
     try {
       let currentSharedMediaId: string | undefined = sharedMediaId || undefined;
 
-      // Handle shared media if exists
       if (sharedMedia) {
         if (sharedMedia.type === 'text' && sharedMedia.content) {
           if (sharedMediaId) {
-            // Update existing shared media
             const response = await questionApi.updateSharedMedia(sharedMediaId, {
               title: 'Shared Text',
               mediaType: 0,
@@ -399,7 +390,6 @@ const QuestionEditPage: React.FC = () => {
             });
             currentSharedMediaId = response.id;
           } else {
-            // Create new shared media
             const response = await questionApi.uploadSharedMedia({
               file: new File([sharedMedia.content], 'text.txt', { type: 'text/plain' }),
               title: 'Shared Text',
@@ -410,7 +400,6 @@ const QuestionEditPage: React.FC = () => {
           }
         } else if (sharedMedia.file) {
           if (sharedMediaId) {
-            // Update existing shared media
             const response = await questionApi.updateSharedMedia(sharedMediaId, {
               file: sharedMedia.file,
               title: sharedMedia.fileName || 'Untitled Media',
@@ -418,7 +407,6 @@ const QuestionEditPage: React.FC = () => {
             });
             currentSharedMediaId = response.id;
           } else {
-            // Create new shared media
             const response = await questionApi.uploadSharedMedia({
               file: sharedMedia.file,
               title: sharedMedia.fileName || 'Untitled Media',
@@ -429,13 +417,11 @@ const QuestionEditPage: React.FC = () => {
         }
       }
 
-      // Process each question
       for (const question of questions) {
         const surveyValue = surveyValues[question.id];
         const isNewQuestion = newQuestionIds.has(question.id);
 
         if (isNewQuestion) {
-          // Create new question
           const createdQuestion = await questionApi.createQuestion({
             title: question.questionText,
             type: question.type === 'radio' && (question.choices as MultipleChoiceOption[])?.[0]?.allowMultiple
@@ -447,7 +433,6 @@ const QuestionEditPage: React.FC = () => {
             categories: question.tags.split(' ').filter(tag => tag !== '').map(tag => tag[0] === '#' ? tag : `#${tag}`)
           });
 
-          // Create choices based on question type
           if (question.type === 'itemConnector') {
             const leftItems = (question.choices as any[]).filter(c => c.side === 'left');
             const rightItems = (question.choices as any[]).filter(c => c.side === 'right');
@@ -520,7 +505,6 @@ const QuestionEditPage: React.FC = () => {
             categories: question.tags.split(' ').filter(tag => tag !== '').map(tag => tag[0] === '#' ? tag : `#${tag}`)
           });
 
-          // Update choices based on question type
           if (question.type === 'itemConnector') {
             const leftItems = (question.choices as any[]).filter(c => c.side === 'left');
             const rightItems = (question.choices as any[]).filter(c => c.side === 'right');

@@ -14,7 +14,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
@@ -33,7 +32,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
     };
   }, [isOpen, onClose]);
 
-  // Fetch user data when dialog opens and user prop is available
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) {
@@ -58,7 +56,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
     if (isOpen) {
       fetchUserData();
     } else {
-      // Reset state when closing
       setFetchedUser(null);
       setLoading(false);
       setError(null);
@@ -69,7 +66,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
     return null;
   }
 
-  // Display loading, error, or user data
   if (loading) {
     return (
       <div
@@ -102,7 +98,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
     );
   }
 
-  // Use fetchedUser for display
   if (!fetchedUser) {
     return (
       <div
@@ -122,7 +117,6 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, user }) 
     );
   }
 
-  // Display fetched user data
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.4)]"

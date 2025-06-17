@@ -33,7 +33,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Upload all images in parallel
+      // Upload ảnh đồng thời
       const uploadPromises = selectedFiles.map(file =>
         uploadFile(file, 'posts')
           .catch(error => {

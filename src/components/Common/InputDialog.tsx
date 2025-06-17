@@ -27,7 +27,6 @@ export function InputDialog({
     }
   }, [isOpen]);
 
-  // Handle Enter key press
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Enter' && inputValue.trim()) {

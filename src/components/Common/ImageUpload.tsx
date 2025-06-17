@@ -17,7 +17,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, folder = 'av
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Preview image
+    // Preview ảnh
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result as string);

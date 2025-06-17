@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-// import StarRatingDisplay from '@/components/Course/StarRatingDisplay'; // No longer needed
 import CourseItem from '@/components/Course/CourseItem';
 
 import { getSubjectsByGrade, getCoursesBySubject, requestJoinCourse } from '@/api/courseApi';
