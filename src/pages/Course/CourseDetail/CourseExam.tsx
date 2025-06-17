@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext, useNavigate, useLocation } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import type { CourseDetailContextType } from '@/pages/Course/CourseDetailPage';
 import MagnifyingGlassIcon from '@/assets/magnify_glass.svg';
 import { getExamsByClassId, type Exam, deleteExam } from '@/api/examApi';
