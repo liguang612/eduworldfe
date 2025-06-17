@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SearchableDialogMulti } from '@/components/Common/SearchableDialogMulti';
 import { useAuth } from '@/contexts/AuthContext';
 import { searchQuestions } from '@/api/lectureApi';
-import { type Question } from '@/api/questionApi';
+import { type Question, getQuestionDetail } from '@/api/questionApi';
 import { getCourseById, type Course } from '@/api/courseApi';
 import { updateExam, type CreateExamRequest, getExamQuestionsDetails } from '@/api/examApi';
 import { toast } from 'react-toastify';
@@ -101,6 +101,7 @@ const ExamEditPage: React.FC = () => {
 
   // Thêm state mới cho Dialog
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   // Thêm hàm helper để đếm số lượng câu hỏi theo từng loại
   const countQuestionsByLevel = (questions: Question[]) => {
@@ -547,6 +548,7 @@ const ExamEditPage: React.FC = () => {
   // Hàm xử lý tìm kiếm câu hỏi
   const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       setIsSearchingQuestions(true);
       try {
         if (!user || !course?.subjectId) return;
@@ -617,8 +619,17 @@ const ExamEditPage: React.FC = () => {
     }
   }, [activeTab, course?.subjectId, user]);
 
-  const handleOpenPreview = (question: Question) => {
-    setPreviewQuestion(question);
+  const handleOpenPreview = async (question: Question) => {
+    try {
+      setIsLoadingPreview(true);
+      const detail = await getQuestionDetail(question.id);
+      setPreviewQuestion(detail);
+    } catch (error) {
+      console.error('Error fetching question detail:', error);
+      toast.error('Có lỗi xảy ra khi tải chi tiết câu hỏi');
+    } finally {
+      setIsLoadingPreview(false);
+    }
   };
 
   const handleClosePreview = () => {
@@ -919,9 +930,14 @@ const ExamEditPage: React.FC = () => {
                                         e.stopPropagation();
                                         handleOpenPreview(q);
                                       }}
-                                      className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 active:bg-gray-200 transition"
+                                      disabled={isLoadingPreview}
+                                      className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 active:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                      <img src={PreviewIcon} alt="Preview" className="w-6 h-6" />
+                                      {isLoadingPreview ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                                      ) : (
+                                        <img src={PreviewIcon} alt="Preview" className="w-6 h-6" />
+                                      )}
                                     </button>
                                   </td>
                                 </tr>
@@ -1056,13 +1072,22 @@ const ExamEditPage: React.FC = () => {
         }}
         confirmButtonText="Thêm các câu hỏi đã chọn"
       />
-      <Dialog open={!!previewQuestion} onOpenChange={() => handleClosePreview()}>
-        <DialogContent className="max-w-4xl">
-          {previewQuestion && (
-            <QuestionDetailPreview
-              question={previewQuestion}
-              showFunction={false}
-            />
+      <Dialog open={!!previewQuestion || isLoadingPreview} onOpenChange={() => handleClosePreview()}>
+        <DialogContent className="!max-w-[60vw] !w-[60vw] max-h-[80vh] overflow-y-auto">
+          {isLoadingPreview ? (
+            <div className="flex justify-center items-center p-8">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="text-blue-600">Đang tải chi tiết câu hỏi...</span>
+              </div>
+            </div>
+          ) : (
+            previewQuestion && (
+              <QuestionDetailPreview
+                question={previewQuestion}
+                showFunction={false}
+              />
+            )
           )}
         </DialogContent>
       </Dialog>

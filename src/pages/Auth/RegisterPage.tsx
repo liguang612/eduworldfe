@@ -6,7 +6,9 @@ import Header from '@/components/Common/Header';
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const sampleData = location.state?.sampleData;
+  const googleData = location.state?.googleData;
+
+  console.log(googleData);
 
   const handleRegisterSuccess = () => {
     navigate('/login');
@@ -15,7 +17,7 @@ const RegisterPage: React.FC = () => {
   return (
     <div>
       <Header />
-      <RegisterForm onRegisterSuccess={handleRegisterSuccess} googleData={sampleData} />
+      <RegisterForm onRegisterSuccess={handleRegisterSuccess} googleData={googleData} />
     </div>
   );
 };

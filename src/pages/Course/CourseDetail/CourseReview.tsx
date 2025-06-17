@@ -251,12 +251,67 @@ const CourseReviewsPage: React.FC = () => {
                   ))}
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{submittedReview.comment}</p>
-                <button
-                  onClick={handleEditReview}
-                  className="mt-3 flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-9 px-3 bg-[#e7edf3] hover:bg-[#dde3ec] text-[#0e141b] text-xs font-bold leading-normal tracking-[0.015em]"
-                >
-                  <span className="truncate">Chỉnh sửa đánh giá</span>
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={handleEditReview}
+                    className="flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-md h-9 px-3 bg-[#e7edf3] hover:bg-[#dde3ec] text-[#0e141b] text-xs font-bold leading-normal tracking-[0.015em]"
+                  >
+                    <span className="truncate">Chỉnh sửa đánh giá</span>
+                  </button>
+                  <button
+                    onClick={() => toggleComments(submittedReview.id)}
+                    className="flex items-center text-xs hover:text-[#1368bd]"
+                  >
+                    <span>{expandedComments[submittedReview.id] ? 'Ẩn bình luận' : 'Xem bình luận'}</span>
+                    <img
+                      src={expandedComments[submittedReview.id] ? ChevronUpIcon : ChevronDownIcon}
+                      alt={expandedComments[submittedReview.id] ? 'up' : 'down'}
+                      className="w-4 h-4 ml-1"
+                    />
+                  </button>
+                </div>
+
+                {expandedComments[submittedReview.id] && (
+                  <div className="mt-4 space-y-3">
+                    {comments[submittedReview.id]?.map((comment) => (
+                      <div key={comment.id} className={`pl-4 border-l-2 ${comment.userRole === 1 || comment.userRole === 2 ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                        <div className="flex items-center mb-1 cursor-pointer" onClick={() => handleUserClick({
+                          id: comment.userId,
+                          name: comment.userName,
+                          avatar: comment.userAvatar,
+                          school: comment.userSchool,
+                          grade: comment.userGrade,
+                          role: comment.userRole,
+                        })}>
+                          <img src={comment.userAvatar} alt={comment.userName} className="w-6 h-6 rounded-full mr-2" />
+                          <span className="font-semibold text-[#0d141b] mr-2">{comment.userName}</span>
+                          {renderUserRoleChip(comment.userId)}
+                          <span className="text-xs text-gray-500">
+                            {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{comment.content}</p>
+                      </div>
+                    ))}
+                    {(user?.role === 0 || user?.role === 1 || user?.role === 2) && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newComment[submittedReview.id] || ''}
+                          onChange={(e) => setNewComment(prev => ({ ...prev, [submittedReview.id]: e.target.value }))}
+                          placeholder="Viết bình luận..."
+                          className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-[#1980e6] text-sm focus:border-[#1980e6]"
+                        />
+                        <button
+                          onClick={() => handleSubmitComment(submittedReview.id)}
+                          className="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-2 hover:bg-slate-50 leading-normal tracking-[0.015em]"
+                        >
+                          <img src={SendIcon} alt="send" className="w-8 h-8" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">

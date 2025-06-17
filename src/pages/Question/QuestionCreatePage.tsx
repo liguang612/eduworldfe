@@ -207,6 +207,33 @@ const QuestionCreatePage: React.FC = () => {
     }));
   }, []);
 
+  const handleRemoveChoice = useCallback((questionId: string, removedChoiceId: string) => {
+    setSurveyValues(prevAnswers => {
+      const question = questions.find(q => q.id === questionId);
+      if (!question) return prevAnswers;
+
+      const currentSurveyValue = prevAnswers[questionId];
+      if (currentSurveyValue === undefined) return prevAnswers;
+
+      if (question.type === 'itemConnector') {
+        currentSurveyValue.value = currentSurveyValue.value.filter(
+          (pair: { from: string, to: string }) =>
+            pair.from !== removedChoiceId && pair.to !== removedChoiceId
+        );
+      } else if (question.type === 'radio') {
+        if (currentSurveyValue.value === removedChoiceId) {
+          currentSurveyValue.value = undefined;
+        }
+      } else if (Array.isArray(currentSurveyValue.value) && question.type === 'checkbox') {
+        currentSurveyValue.value = currentSurveyValue.value.filter(id => id !== removedChoiceId);
+      } else if (Array.isArray(currentSurveyValue.value) && question.type === 'ranking') {
+        currentSurveyValue.value = currentSurveyValue.value.filter(id => id !== removedChoiceId);
+      }
+
+      return prevAnswers;
+    });
+  }, [questions]);
+
   // Save handlers
   const handleSaveQuestions = async () => {
     if (!subjectId) {
@@ -497,6 +524,7 @@ const QuestionCreatePage: React.FC = () => {
                 <QuestionChoices
                   question={question}
                   onUpdateChoices={(choices) => updateQuestionChoices(index, choices)}
+                  onRemoveChoice={(id) => handleRemoveChoice(question.id, id)}
                 />
               </div>
             ))}

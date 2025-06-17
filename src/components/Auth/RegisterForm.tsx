@@ -62,14 +62,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
   } = useForm<FormData>({
     resolver: yupResolver(schema) as Resolver<FormData>,
     defaultValues: {
-      role: googleData?.role || 'student',
-      name: googleData?.fullName || '',
-      email: googleData?.email || '',
+      role: 'student',
+      name: '',
+      email: '',
       password: '',
-      grade: googleData?.grade || '',
-      school: googleData?.school || '',
-      address: googleData?.address || '',
-      birthday: googleData?.birthday || '',
+      grade: '',
+      school: '',
+      address: '',
+      birthday: '',
     },
   });
 
@@ -83,13 +83,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
 
   useEffect(() => {
     if (googleData) {
-      if (googleData.fullName) setValue('name', googleData.fullName);
-      if (googleData.email) setValue('email', googleData.email);
-      if (googleData.role) setValue('role', googleData.role);
-      if (googleData.grade) setValue('grade', googleData.grade);
-      if (googleData.school) setValue('school', googleData.school);
-      if (googleData.address) setValue('address', googleData.address);
-      if (googleData.birthday) setValue('birthday', googleData.birthday);
+      if (googleData.fullName) setValue('name', googleData.fullName, { shouldValidate: true });
+      if (googleData.email) setValue('email', googleData.email, { shouldValidate: true });
+      if (googleData.role) setValue('role', googleData.role, { shouldValidate: true });
+      if (googleData.grade) setValue('grade', googleData.grade, { shouldValidate: true });
+      if (googleData.school) setValue('school', googleData.school, { shouldValidate: true });
+      if (googleData.address) setValue('address', googleData.address, { shouldValidate: true });
+      if (googleData.birthday) setValue('birthday', googleData.birthday, { shouldValidate: true });
+      if (googleData.avatar) setSelectedAvatarPreview(googleData.avatar);
     }
   }, [googleData, setValue]);
 
@@ -109,6 +110,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
       formData.append('school', data.school);
       if (data.birthday) formData.append('birthday', data.birthday);
       if (selectedFile) formData.append('avatar', selectedFile);
+      else if (googleData?.avatar) formData.append('googleAvatar', googleData.avatar);
 
       await registerUser(formData);
 
@@ -146,8 +148,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
     fontFamily: 'Inter, "Noto Sans", sans-serif',
   };
 
-  console.log(selectedAvatarPreview);
-
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden"
@@ -180,7 +180,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
                   <input
                     {...register('email')}
                     placeholder="nguyenvana@gmail.com"
-                    className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${errors.email ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal`}
+                    disabled={!!googleData?.email}
+                    className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${errors.email ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal ${googleData?.email ? 'bg-gray-100' : ''}`}
                   />
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                 </label>

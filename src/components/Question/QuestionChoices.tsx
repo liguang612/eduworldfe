@@ -109,19 +109,22 @@ const QuestionChoices: React.FC<QuestionChoicesProps> = ({ question, onUpdateCho
       case 'radio':
       case 'checkbox':
         onUpdateChoices((question.choices as MultipleChoiceOption[] || []).filter(choice => choice.id !== id));
+        if (onRemoveChoice) {
+          onRemoveChoice(id);
+        }
         break;
       case 'itemConnector':
-        // Remove the choice
         const updatedChoices = (question.choices as MatchingColumn[] || []).filter(choice => choice.id !== id);
         onUpdateChoices(updatedChoices);
-
-        // Update surveyValue to remove any pairs containing the removed choice
         if (onRemoveChoice) {
           onRemoveChoice(id);
         }
         break;
       case 'ranking':
         onUpdateChoices((question.choices as SortingOption[] || []).filter(option => option.id !== id));
+        if (onRemoveChoice) {
+          onRemoveChoice(id);
+        }
         break;
       default:
         break;
