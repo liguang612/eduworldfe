@@ -81,7 +81,7 @@ const ItemConnector: React.FC<ItemConnectorProps> = ({
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleLeftItemClick(item.id); }}
                 role="button"
               >
-                {item.label}
+                <p>{item.label}</p>
               </div>
             ))}
           </div>
@@ -101,7 +101,7 @@ const ItemConnector: React.FC<ItemConnectorProps> = ({
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleRightItemClick(item.id); }}
                   role="button"
                 >
-                  {item.label}
+                  <p>{item.label}</p>
                 </div>
               );
             })}
