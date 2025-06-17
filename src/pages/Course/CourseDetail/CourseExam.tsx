@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 const CourseExams: React.FC = () => {
   const context = useOutletContext<CourseDetailContextType>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { courseId, role, isCourseLoading } = context || {};
   const { user } = useAuth();
 
