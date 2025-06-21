@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import type { Course } from '@/api/courseApi';
-import { getCourseById, deleteCourse, getSubjectById } from '@/api/courseApi';
+import { getCourseById, deleteCourse, getSubjectById, requestJoinCourse } from '@/api/courseApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import { toast } from 'react-toastify';
 import { getLecturesByIds, type LectureResponse } from '@/api/lectureApi';
@@ -37,10 +37,12 @@ const CourseDetailPage: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [subject, setSubject] = useState<Subject | null>(null);
   const [chapterLectures, setChapterLectures] = useState<{ [key: string]: LectureResponse[] }>({});
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
 
   const courseId = courseIdFromParams;
 
-  const userRole = JSON.parse(localStorage.getItem('user') || '{}').role as number | null;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = user.role as number | null;
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
@@ -58,6 +60,12 @@ const CourseDetailPage: React.FC = () => {
 
       try {
         const courseData = await getCourseById(courseId);
+
+        if (!courseData) {
+          toast.error('Không thể tải thông tin khóa học. Vui lòng thử lại.');
+          return;
+        }
+
         setCourse(courseData);
 
         if (courseData?.subjectId) {
@@ -74,11 +82,15 @@ const CourseDetailPage: React.FC = () => {
         if (location.pathname === basePath || location.pathname === `${basePath}/`) {
           navigate('lectures', { replace: true, relative: 'path' });
         }
+      } catch (error: any) {
+        // console.error('Error fetching course details:', error);
 
-      } catch (error) {
-        console.error('Error fetching course details:', error);
-        toast.error('Không thể tải thông tin khóa học. Vui lòng thử lại.');
-        navigate('/courses');
+        if (user.role === 0 && error.response.status === 403) {
+          setShowJoinDialog(true);
+          return;
+        }
+        toast.error('Bạn không có quyền truy cập vào khóa học này.');
+        navigate(-1);
       } finally {
         setIsCourseLoading(false);
       }
@@ -108,9 +120,28 @@ const CourseDetailPage: React.FC = () => {
     });
   }, [course, chapterLectures]);
 
-
   const openDeleteDialog = () => setIsDeleteDialogOpen(true);
   const closeDeleteDialog = () => setIsDeleteDialogOpen(false);
+
+  const handleJoinRequest = async () => {
+    if (!courseId) return;
+
+    try {
+      const response = await requestJoinCourse(courseId);
+      if (response === 200000) {
+        toast.success('Gửi yêu cầu thành công.');
+      } else if (response === 200001) {
+        toast.warning('Bạn đã gửi yêu cầu tham gia lớp học rồi');
+      } else if (response === 200002) {
+        toast.error('Bạn đã tham gia lớp học này. Hãy reload lại trang để truy cập lớp học');
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
+    } finally {
+      setShowJoinDialog(false);
+      navigate('/courses');
+    }
+  };
 
   const handleConfirmDelete = async () => {
     if (!courseId) return;
@@ -128,6 +159,25 @@ const CourseDetailPage: React.FC = () => {
 
   if (isCourseLoading && !course) {
     return <div className="flex justify-center items-center min-h-screen bg-slate-50">Đang tải thông tin khóa học...</div>;
+  }
+
+  if (showJoinDialog) {
+    return (
+      <div className="relative flex min-h-screen bg-slate-50 group/design-root">
+        <ConfirmationDialog
+          isOpen={showJoinDialog}
+          onClose={() => {
+            setShowJoinDialog(false);
+            navigate(-1);
+          }}
+          onConfirm={handleJoinRequest}
+          title="Yêu cầu tham gia lớp học"
+          message={`Bạn chưa phải là thành viên của lớp học này. Bạn có muốn gửi yêu cầu tham gia không?`}
+          confirmButtonText="Gửi yêu cầu"
+          cancelButtonText="Hủy"
+        />
+      </div>
+    );
   }
 
   if (!course && !isCourseLoading) {

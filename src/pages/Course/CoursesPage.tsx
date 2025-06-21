@@ -83,6 +83,7 @@ const CoursesPage: React.FC = () => {
     if (role === 0 && !course.students.some(student => student.id === userId)) {
       setSelectedCourse(course);
       setShowJoinDialog(true);
+      console.log(course.id);
     } else {
       navigate(`/courses/${course.id}`);
     }

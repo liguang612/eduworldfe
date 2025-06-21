@@ -117,7 +117,7 @@ export const searchUserByEmail = async (email: string, role: number): Promise<Se
   }
 };
 
-export const getCourseById = async (courseId: string): Promise<Course> => {
+export const getCourseById = async (courseId: string): Promise<Course | null> => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.get(`${API_URL}/courses/${courseId}`, {

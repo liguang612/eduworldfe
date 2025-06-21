@@ -130,11 +130,11 @@ const LectureDetailPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Đang tải...</div>;
   }
 
   if (!lecture) {
-    return <div>Lecture not found</div>;
+    return <div>Không tìm thấy bài giảng hoặc bạn không có quyền truy cập vào bài giảng này</div>;
   }
 
   const openDeleteDialog = () => {
