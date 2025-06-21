@@ -61,6 +61,13 @@ const CourseEditPage: React.FC = () => {
       }
       try {
         const courseData = await getCourseById(courseId);
+
+        if (!courseData) {
+          toast.error('Không tải được dữ liệu, vui lòng thử lại sau!');
+          navigate(-1);
+          return;
+        }
+
         setCourse(courseData);
         setSelectedAvatarPreview(courseData.avatar ? `${courseData.avatar}` : '');
         setHidden(courseData.hidden);
