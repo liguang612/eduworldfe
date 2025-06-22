@@ -1,4 +1,4 @@
-xmlContent <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
   xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex"
   xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex"
@@ -35,35 +35,34 @@ xmlContent <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
   xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh w16sdtfl w16du wp14">
   <w:body>
-    <w:p w14:paraId="0CF51194" w14:textId="4FEADF94" w:rsidR="00832FEF" w:rsidRDefault="00832FEF" w:rsidP="00832FEF">
+    <w:p w14:paraId="0093885F" w14:textId="7ABBD2F9" w:rsidR="0038158E" w:rsidRPr="00FD7314" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
       <w:r>
         <w:rPr>
           <w:lang w:val="vi-VN"/>
         </w:rPr>
-        <w:t>&lt;</w:t>
+        <w:t>&lt;radio level=3&gt;</w:t>
       </w:r>
       <w:r>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
         </w:rPr>
-        <w:t>radio</w:t>
-      </w:r>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t xml:space="preserve">&gt;Câu hỏi </w:t>
-      </w:r>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>trắc nghiệm 1 đáp án đúng (Tô đậm đáp án đúng)</w:t>
+        <w:t>Bằng cách liệt kê các phần tử, hãy viết tập hợp sau: Tập hợp K các tháng (dương lịch) có 31 ngày trong năm.</w:t>
       </w:r>
       <w:r>
         <w:rPr>
@@ -72,52 +71,114 @@ xmlContent <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <w:t>&lt;/&gt;</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="30B00686" w14:textId="77777777" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF" w:rsidP="00832FEF">
+    <w:p w14:paraId="7E95AA9B" w14:textId="2CFC2012" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
-      <w:r w:rsidRPr="00832FEF">
+      <w:r>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
-        <w:t>Đáp án A</w:t>
+        <w:t>K = {tháng 1; tháng 3; tháng 5; tháng 7; tháng 9; tháng 11};</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="6BF71F83" w14:textId="77777777" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF" w:rsidP="00832FEF">
+    <w:p w14:paraId="4EBEE655" w14:textId="5F671393" w:rsidR="0038158E" w:rsidRPr="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
           <w:b/>
           <w:bCs/>
-          <w:lang w:val="vi-VN"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
-      <w:r w:rsidRPr="00832FEF">
+      <w:r w:rsidRPr="0038158E">
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
           <w:b/>
           <w:bCs/>
-          <w:lang w:val="vi-VN"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
-        <w:t>Đáp án B</w:t>
+        <w:t>K = {tháng 1; tháng 3; tháng 5; tháng 7; tháng 8; tháng 10; tháng 12};</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="0280E6D2" w14:textId="77777777" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF" w:rsidP="00832FEF">
+    <w:p w14:paraId="0C97259F" w14:textId="1066E1B8" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
-      <w:r w:rsidRPr="00832FEF">
+      <w:r>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
-        <w:t>Đáp án C</w:t>
+        <w:t>K = {tháng 2; tháng 4; tháng 6; tháng 8; tháng 10; tháng 12};</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="03401851" w14:textId="1C7312F4" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
+    <w:p w14:paraId="1D8AF6F7" w14:textId="55EE1839" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>K = {tháng 1; tháng 3; tháng 4; tháng 7; tháng 8; tháng 11; tháng 12};</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5B1E4488" w14:textId="77777777" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
           <w:lang w:val="vi-VN"/>
         </w:rPr>
       </w:pPr>
@@ -125,135 +186,313 @@ xmlContent <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <w:rPr>
           <w:lang w:val="vi-VN"/>
         </w:rPr>
-        <w:t>&lt;checkbox&gt;Câu hỏi trắc nghiệm nhiều đáp án đúng (Tô đậm các đáp án đúng)&lt;/&gt;</w:t>
+        <w:t>&lt;radio level=3&gt;</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
+        </w:rPr>
+        <w:t xml:space="preserve">Cho tập hợp U = {x </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
+        </w:rPr>
+        <w:t>∈</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
+        </w:rPr>
+        <w:t xml:space="preserve"> N | x là số chia hết cho 3 và x nhỏ hơn 10}</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="FFFFFF"/>
+          <w:lang w:val="vi-VN"/>
+        </w:rPr>
+        <w:t>.</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="369CD540" w14:textId="5BB235EA" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF">
+    <w:p w14:paraId="608D0C8C" w14:textId="15C5AA2D" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>Trong các phát biểu sau có bao nhiêu phát biểu đúng:</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="1E2730ED" w14:textId="77777777" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>(I) U = {0; 3; 6; 9}.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="608CB44F" w14:textId="77777777" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t xml:space="preserve">(II) 12 </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>∈</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t xml:space="preserve"> U.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="10EE2E18" w14:textId="77777777" w:rsidR="0038158E" w:rsidRDefault="0038158E" w:rsidP="0038158E">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t xml:space="preserve">(III) 5 </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math" w:cs="Cambria Math"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>∉</w:t>
+      </w:r>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t xml:space="preserve"> U.</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="5F8F7516" w14:textId="1C6AF7B5" w:rsidR="0038158E" w:rsidRPr="00FD7314" w:rsidRDefault="0038158E" w:rsidP="0038158E">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:lang w:val="vi-VN"/>
+        </w:rPr>
+        <w:t>&lt;/&gt;</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="0037840A" w14:textId="791234E7" w:rsidR="00B657B1" w:rsidRDefault="00B657B1" w:rsidP="00B657B1">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>0;</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="6CD1157F" w14:textId="4A84680B" w:rsidR="00B657B1" w:rsidRDefault="00B657B1" w:rsidP="00B657B1">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
+        </w:rPr>
+        <w:t>1;</w:t>
+      </w:r>
+    </w:p>
+    <w:p w14:paraId="2C32AD3D" w14:textId="54985E03" w:rsidR="00B657B1" w:rsidRPr="00B657B1" w:rsidRDefault="00B657B1" w:rsidP="00B657B1">
+      <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
+        <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
           <w:b/>
           <w:bCs/>
-          <w:lang w:val="vi-VN"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
-      <w:r w:rsidRPr="00832FEF">
+      <w:r w:rsidRPr="00B657B1">
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
           <w:b/>
           <w:bCs/>
-          <w:lang w:val="vi-VN"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
-        <w:t>Đáp án A</w:t>
+        <w:t>2;</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="367A31AE" w14:textId="6ADE5604" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
+    <w:p w14:paraId="2F2CC7DD" w14:textId="745B8821" w:rsidR="00B657B1" w:rsidRDefault="00B657B1" w:rsidP="00B657B1">
       <w:pPr>
+        <w:pStyle w:val="NormalWeb"/>
+        <w:spacing w:before="0" w:beforeAutospacing="0" w:after="240" w:afterAutospacing="0" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
       </w:pPr>
       <w:r>
         <w:rPr>
-          <w:lang w:val="vi-VN"/>
+          <w:rFonts w:ascii="Open Sans" w:hAnsi="Open Sans" w:cs="Open Sans"/>
+          <w:color w:val="000000"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
         </w:rPr>
-        <w:t>Đáp án B</w:t>
+        <w:t>3.</w:t>
       </w:r>
     </w:p>
-    <w:p w14:paraId="28B17E40" w14:textId="1F12FD6F" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF">
+    <w:p w14:paraId="20053EC5" w14:textId="3F01524B" w:rsidR="00832FEF" w:rsidRPr="003F0234" w:rsidRDefault="00832FEF" w:rsidP="003F0234">
       <w:pPr>
+        <w:spacing w:after="240" w:line="360" w:lineRule="atLeast"/>
+        <w:ind w:left="48" w:right="48"/>
+        <w:jc w:val="both"/>
         <w:rPr>
+          <w:rFonts w:ascii="Open Sans" w:eastAsia="Times New Roman" w:hAnsi="Open Sans" w:cs="Open Sans"/>
           <w:b/>
           <w:bCs/>
+          <w:color w:val="000000"/>
+          <w:kern w:val="0"/>
+          <w:sz w:val="27"/>
+          <w:szCs w:val="27"/>
           <w:lang w:val="vi-VN"/>
+          <w14:ligatures w14:val="none"/>
         </w:rPr>
       </w:pPr>
-      <w:r w:rsidRPr="00832FEF">
-        <w:rPr>
-          <w:b/>
-          <w:bCs/>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>Đáp án C</w:t>
-      </w:r>
     </w:p>
-    <w:p w14:paraId="7DAFE9CE" w14:textId="307CBCED" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>&lt;ranking&gt;Câu hỏi sắp xếp (sắp xếp các đáp án theo thứ tự đúng.&lt;/&gt;</w:t>
-      </w:r>
-    </w:p>
-    <w:p w14:paraId="20B330DC" w14:textId="3C03D694" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>Vị trí 1</w:t>
-      </w:r>
-    </w:p>
-    <w:p w14:paraId="4689ECC2" w14:textId="31A26CF2" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>Vị trí 2</w:t>
-      </w:r>
-    </w:p>
-    <w:p w14:paraId="474139DB" w14:textId="0568F4DB" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>Vị trí 3</w:t>
-      </w:r>
-    </w:p>
-    <w:p w14:paraId="0231E358" w14:textId="24147F9A" w:rsidR="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>&lt;shortAnswer&gt;Câu hỏi tự luận ngắn &lt;/&gt;</w:t>
-      </w:r>
-    </w:p>
-    <w:p w14:paraId="20053EC5" w14:textId="64B9A5A8" w:rsidR="00832FEF" w:rsidRPr="00832FEF" w:rsidRDefault="00832FEF">
-      <w:pPr>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-      </w:pPr>
-      <w:r>
-        <w:rPr>
-          <w:lang w:val="vi-VN"/>
-        </w:rPr>
-        <w:t>Nhập đáp án đúng ở đây.</w:t>
-      </w:r>
-    </w:p>
-    <w:sectPr w:rsidR="00832FEF" w:rsidRPr="00832FEF">
+    <w:sectPr w:rsidR="00832FEF" w:rsidRPr="003F0234">
       <w:pgSz w:w="12240" w:h="15840"/>
       <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/>
       <w:cols w:space="708"/>

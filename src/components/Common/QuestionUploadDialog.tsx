@@ -46,6 +46,8 @@ export function QuestionUploadDialog({
 
     const questions: ParsedQuestion[] = [];
     let currentQuestion: ParsedQuestion | null = null;
+    let isCollectingQuestionText = false;
+    let questionTextParts: string[] = [];
 
     const extractText = (p: Element): string => {
       const textNodes = p.getElementsByTagNameNS(WORD_NAMESPACE, "t");
@@ -57,73 +59,106 @@ export function QuestionUploadDialog({
       return boldNodes.length > 0;
     };
 
-    for (const p of paragraphs) {
-      const text = extractText(p);
+    const isQuestionStart = (text: string): boolean => {
+      return /<radio(?:\s+level=(\d+))?>/.test(text) ||
+        /<checkbox(?:\s+level=(\d+))?>/.test(text) ||
+        /<ranking(?:\s+level=(\d+))?>/.test(text) ||
+        /<shortAnswer(?:\s+level=(\d+))?>/.test(text);
+    };
 
-      const radioMatch = text.match(/<radio(?:\s+level=(\d+))?>(.*?)<\/>/);
-      const checkboxMatch = text.match(/<checkbox(?:\s+level=(\d+))?>(.*?)<\/>/);
-      const rankingMatch = text.match(/<ranking(?:\s+level=(\d+))?>(.*?)<\/>/);
-      const shortAnswerMatch = text.match(/<shortAnswer(?:\s+level=(\d+))?>(.*?)<\/>/);
+    const isQuestionEnd = (text: string): boolean => {
+      return text.includes('</>');
+    };
 
-      const questionTypeMatch = radioMatch || checkboxMatch || rankingMatch || shortAnswerMatch;
+    const extractQuestionInfo = (text: string): { type: ParsedQuestion['type'], level: number, startText: string } | null => {
+      const radioMatch = text.match(/<radio(?:\s+level=(\d+))?>(.*?)(?:<\/>)?$/);
+      const checkboxMatch = text.match(/<checkbox(?:\s+level=(\d+))?>(.*?)(?:<\/>)?$/);
+      const rankingMatch = text.match(/<ranking(?:\s+level=(\d+))?>(.*?)(?:<\/>)?$/);
+      const shortAnswerMatch = text.match(/<shortAnswer(?:\s+level=(\d+))?>(.*?)(?:<\/>)?$/);
 
-      if (questionTypeMatch) {
-        if (currentQuestion) {
-          questions.push(currentQuestion);
-        }
-
-        let type: ParsedQuestion['type'] = 'radio';
-        let level = 2;
-        let questionText = '';
-
-        if (radioMatch) {
-          type = 'radio';
-          level = radioMatch[1] ? parseInt(radioMatch[1]) : 2;
-          questionText = radioMatch[2];
-        } else if (checkboxMatch) {
-          type = 'checkbox';
-          level = checkboxMatch[1] ? parseInt(checkboxMatch[1]) : 2;
-          questionText = checkboxMatch[2];
-        } else if (rankingMatch) {
-          type = 'ranking';
-          level = rankingMatch[1] ? parseInt(rankingMatch[1]) : 2;
-          questionText = rankingMatch[2];
-        } else if (shortAnswerMatch) {
-          type = 'shortAnswer';
-          level = shortAnswerMatch[1] ? parseInt(shortAnswerMatch[1]) : 2;
-          questionText = shortAnswerMatch[2];
-        }
-
-        if (level < 1 || level > 4 || isNaN(level)) {
-          level = 2;
-        }
-
-        currentQuestion = {
-          type: type,
-          questionText: questionText.trim(),
-          level: level,
-          answers: [],
+      if (radioMatch) {
+        return {
+          type: 'radio',
+          level: radioMatch[1] ? parseInt(radioMatch[1]) : 2,
+          startText: radioMatch[2] || ''
         };
-      } else if (currentQuestion && text.trim()) {
+      } else if (checkboxMatch) {
+        return {
+          type: 'checkbox',
+          level: checkboxMatch[1] ? parseInt(checkboxMatch[1]) : 2,
+          startText: checkboxMatch[2] || ''
+        };
+      } else if (rankingMatch) {
+        return {
+          type: 'ranking',
+          level: rankingMatch[1] ? parseInt(rankingMatch[1]) : 2,
+          startText: rankingMatch[2] || ''
+        };
+      } else if (shortAnswerMatch) {
+        return {
+          type: 'shortAnswer',
+          level: shortAnswerMatch[1] ? parseInt(shortAnswerMatch[1]) : 2,
+          startText: shortAnswerMatch[2] || ''
+        };
+      }
+      return null;
+    };
+
+    for (const p of paragraphs) {
+      const trimmedText = extractText(p).trim();
+
+      if (isQuestionStart(trimmedText)) {
+        if (currentQuestion) questions.push(currentQuestion);
+
+        const questionInfo = extractQuestionInfo(trimmedText);
+        if (questionInfo) {
+          let level = questionInfo.level;
+          if (level < 1 || level > 4 || isNaN(level)) {
+            level = 2;
+          }
+
+          currentQuestion = {
+            type: questionInfo.type,
+            questionText: questionInfo.startText,
+            level: level,
+            answers: [],
+          };
+
+          if (isQuestionEnd(trimmedText)) {
+            isCollectingQuestionText = false;
+            questionTextParts = [];
+          } else {
+            isCollectingQuestionText = true;
+            questionTextParts = [questionInfo.startText];
+          }
+        }
+      } else if (currentQuestion && isCollectingQuestionText) {
+        if (isQuestionEnd(trimmedText)) {
+          currentQuestion.questionText = questionTextParts.join('\n').trim();
+
+          isCollectingQuestionText = false;
+          questionTextParts = [];
+        } else if (trimmedText) {
+          questionTextParts.push(trimmedText);
+        }
+      } else if (currentQuestion && !isCollectingQuestionText && trimmedText) {
         if (currentQuestion.type === 'shortAnswer') {
           currentQuestion.answers.push({
-            text: text.trim(),
+            text: trimmedText,
             isCorrect: true,
           });
           questions.push(currentQuestion);
           currentQuestion = null;
         } else {
           currentQuestion.answers.push({
-            text: text.trim(),
+            text: trimmedText,
             isCorrect: isCorrect(p),
           });
         }
       }
     }
 
-    if (currentQuestion) {
-      questions.push(currentQuestion);
-    }
+    if (currentQuestion) questions.push(currentQuestion);
 
     return questions;
   };
