@@ -170,14 +170,14 @@ const QuestionBankPage: React.FC = () => {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return 'Today';
+      return 'Hôm nay';
     } else if (diffDays === 1) {
-      return 'Yesterday';
+      return 'Hôm qua';
     } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
+      return `${diffDays} ngày trước`;
     } else if (diffDays < 30) {
       const weeks = Math.floor(diffDays / 7);
-      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      return `${weeks} ${weeks === 1 ? 'tuần' : 'tuần'} trước`;
     } else {
       return date.toLocaleDateString();
     }

@@ -5,8 +5,9 @@ import type { IndividualQuestion, SharedMediaData, FullQuestionSetData, Multiple
 import FullPreview from '@/components/Question/FullPreview';
 import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
-import { uploadSharedMedia, type LocationState, type SurveyValue } from '@/api/questionApi';
+import { uploadSharedMedia, type LocationState, type SurveyValue, type MediaItem } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
+import { MediaLibraryDialog } from '@/components/Common/MediaLibraryDialog';
 
 
 const QuestionCreatePage: React.FC = () => {
@@ -19,6 +20,8 @@ const QuestionCreatePage: React.FC = () => {
   const [questions, setQuestions] = useState<IndividualQuestion[]>(importedQuestions || []);
   const [isSaving, setIsSaving] = useState(false);
   const [surveyValues, setSurveyValues] = useState<{ [key: string]: SurveyValue }>({});
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
   React.useEffect(() => {
     if (importedQuestions && importedQuestions.length > 0) {
@@ -273,7 +276,9 @@ const QuestionCreatePage: React.FC = () => {
     try {
       let sharedMediaId = null;
       if (sharedMedia) {
-        if (sharedMedia.type === 'text' && sharedMedia.content) {
+        if (sharedMedia.libraryMediaId) {
+          sharedMediaId = sharedMedia.libraryMediaId;
+        } else if (sharedMedia.type === 'text' && sharedMedia.content) {
           const response = await questionApi.createSharedMedia({
             title: 'Shared Text',
             mediaType: 0,
@@ -388,6 +393,23 @@ const QuestionCreatePage: React.FC = () => {
     questions: questions,
   };
 
+  const handleMediaFromLibrary = (media: MediaItem) => {
+    if (media.mediaType === 0) {
+      setSharedMedia({
+        type: 'text',
+        content: media.text,
+        libraryMediaId: media.id
+      });
+    } else {
+      setSharedMedia({
+        type: media.mediaType === 1 ? 'image' : media.mediaType === 2 ? 'audio' : 'video',
+        url: media.mediaUrl,
+        fileName: media.title,
+        libraryMediaId: media.id
+      });
+    }
+  };
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-100 group/design-root"
@@ -418,27 +440,66 @@ const QuestionCreatePage: React.FC = () => {
                   <span className="text-sm text-gray-500">HOẶC</span>
                 </div>
                 <div className='flex flex-row gap-2 items-center'>
-                  <label htmlFor="media-upload-button" className="block text-sm font-medium text-gray-700 mb-1">Tải lên hình ảnh/audio/video</label>
-                  <input
-                    id="media-upload-button"
-                    type="file"
-                    accept="image/*,audio/*,video/*"
-                    onChange={handleMediaUpload}
-                    ref={fileInputRef}
-                    className="block w-full text-sm text-slate-500
-                                   file:mr-4 file:py-2 file:px-4
-                                   file:rounded-full file:border-0
-                                   file:text-sm file:font-semibold
-                                   file:bg-blue-50 file:text-blue-700
-                                   hover:file:bg-blue-100"
-                  />
-                  {sharedMedia?.file && (
+                  <label className="block text-sm font-medium text-gray-700">Tải lên hình ảnh/audio/video</label>
+                  <div className="relative">
                     <button
-                      onClick={handleRemoveFile}
-                      className="ml-auto flex items-center justify-center h-10 px-4 text-white text-sm font-bold rounded-xl hover:bg-slate-50 tracking-wide"
+                      type="button"
+                      className="flex items-center justify-center h-10 px-4 bg-[#1980e6] text-slate-50 rounded-xl text-sm font-bold leading-normal hover:bg-blue-700"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                      <img src={RemoveIcon} alt="Remove" className="" />
+                      Tải lên
+                      <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
                     </button>
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div className="py-1" role="none">
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setIsMediaLibraryOpen(true);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            Chọn từ kho media
+                          </a>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              fileInputRef.current?.click();
+                              setIsDropdownOpen(false);
+                            }}
+                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            Từ máy tính
+                          </a>
+                          <input
+                            id="media-upload-button"
+                            type="file"
+                            accept="image/*,audio/*,video/*"
+                            onChange={handleMediaUpload}
+                            ref={fileInputRef}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {(sharedMedia && sharedMedia.type !== 'text' && sharedMedia.fileName) && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-sm text-[#0e141b] font-medium truncate max-w-[180px]">{sharedMedia.fileName}</span>
+                      <button
+                        onClick={handleRemoveFile}
+                        className="flex items-center justify-center h-8 w-8 text-white text-sm font-bold rounded-full hover:bg-slate-50 transition"
+                        title="Xóa media"
+                      >
+                        <img src={RemoveIcon} alt="Remove" className="" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -553,18 +614,23 @@ const QuestionCreatePage: React.FC = () => {
               onClick={handleCancel}
               className="flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#e7edf3] text-[#0e141b] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300"
             >
-              <span className="truncate">Cancel</span>
+              <span className="truncate">Huỷ</span>
             </button>
             <button
               onClick={handleSaveQuestions}
               disabled={isSaving}
               className={`flex min-w-[84px] max-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1980e6] text-slate-50 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <span className="truncate">{isSaving ? 'Saving...' : 'Save All Questions'}</span>
+              <span className="truncate">{isSaving ? 'Lưu...' : 'Lưu câu hỏi'}</span>
             </button>
           </div>
         </div>
       </div>
+      <MediaLibraryDialog
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        onMediaSelect={handleMediaFromLibrary}
+      />
     </div>
   );
 };

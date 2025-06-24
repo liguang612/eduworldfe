@@ -11,6 +11,15 @@ export interface SharedMedia {
   usageCount: number;
 }
 
+export interface MediaItem {
+  id: string;
+  title: string;
+  text: string;
+  mediaUrl: string;
+  mediaType: number;
+  usageCount: number;
+}
+
 export interface Question {
   id: string;
   title: string;
@@ -394,14 +403,40 @@ export const getQuestionsBySharedMedia = async (sharedMediaId: string): Promise<
 export const getQuestionsDetails = async (questionIds: string[]): Promise<Question[]> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/questions/details`, questionIds, {
+    const response = await axios.post(`${API_URL}/questions/details`, {
+      questionIds
+    }, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
     return response.data;
   } catch (error: any) {
-    console.error('Failed to fetch questions by IDs:', error.response ? error.response.data : error.message);
+    console.error('Failed to get questions details:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+export const getSharedMedia = async (mediaType?: number, userId?: string): Promise<MediaItem[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const params = new URLSearchParams();
+
+    if (mediaType !== undefined) {
+      params.append('mediaType', mediaType.toString());
+    }
+    if (userId) {
+      params.append('userId', userId);
+    }
+
+    const response = await axios.get(`${API_URL}/shared-media?${params.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to get shared media:', error.response ? error.response.data : error.message);
     throw error;
   }
 };

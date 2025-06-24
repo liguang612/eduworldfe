@@ -6,8 +6,10 @@ import FullPreview from '@/components/Question/FullPreview';
 import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
 import { type LocationState, type SurveyValue, getQuestionsBySharedMedia } from '@/api/questionApi';
-import RemoveIcon from '@/assets/remove.svg';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
+import { MediaLibraryDialog } from '@/components/Common/MediaLibraryDialog';
+import type { MediaItem } from '@/api/questionApi';
+import RemoveIcon from '@/assets/remove.svg';
 
 const QuestionEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +26,8 @@ const QuestionEditPage: React.FC = () => {
   const [sharedMediaUsageCount, setSharedMediaUsageCount] = useState(0);
   const [sharedMediaId, setSharedMediaId] = useState<string | null>(null);
   const [newQuestionIds, setNewQuestionIds] = useState<Set<string>>(new Set());
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const levelOptions = [
     { label: 'Nhận biết', value: 1 },
@@ -250,6 +254,7 @@ const QuestionEditPage: React.FC = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setSharedMediaId(null);
   };
 
   const updateQuestionField = <K extends keyof IndividualQuestion>(index: number, field: K, value: IndividualQuestion[K]) => {
@@ -392,7 +397,9 @@ const QuestionEditPage: React.FC = () => {
       let currentSharedMediaId: string | undefined = sharedMediaId || undefined;
 
       if (sharedMedia) {
-        if (sharedMedia.type === 'text' && sharedMedia.content) {
+        if (sharedMedia.libraryMediaId) {
+          currentSharedMediaId = sharedMedia.libraryMediaId;
+        } else if (sharedMedia.type === 'text' && sharedMedia.content) {
           if (sharedMediaId) {
             const response = await questionApi.updateSharedMedia(sharedMediaId, {
               title: 'Shared Text',
@@ -599,6 +606,23 @@ const QuestionEditPage: React.FC = () => {
     questions: questions,
   };
 
+  const handleMediaFromLibrary = (media: MediaItem) => {
+    if (media.mediaType === 0) {
+      setSharedMedia({
+        type: 'text',
+        content: media.text,
+        libraryMediaId: media.id
+      });
+    } else {
+      setSharedMedia({
+        type: media.mediaType === 1 ? 'image' : media.mediaType === 2 ? 'audio' : 'video',
+        url: media.mediaUrl,
+        fileName: media.title,
+        libraryMediaId: media.id
+      });
+    }
+  };
+
   return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-slate-100 group/design-root"
@@ -630,26 +654,65 @@ const QuestionEditPage: React.FC = () => {
                 </div>
                 <div className='flex flex-row gap-2 items-center'>
                   <label htmlFor="media-upload-button" className="block text-sm font-medium text-gray-700 mb-1">Tải lên hình ảnh/audio/video</label>
-                  <input
-                    id="media-upload-button"
-                    type="file"
-                    accept="image/*,audio/*,video/*"
-                    onChange={handleMediaUpload}
-                    ref={fileInputRef}
-                    className="block w-full text-sm text-slate-500
-                                   file:mr-4 file:py-2 file:px-4
-                                   file:rounded-full file:border-0
-                                   file:text-sm file:font-semibold
-                                   file:bg-blue-50 file:text-blue-700
-                                   hover:file:bg-blue-100"
-                  />
-                  {sharedMedia?.file && (
+                  <div className="relative">
                     <button
-                      onClick={handleRemoveFile}
-                      className="ml-auto flex items-center justify-center h-10 px-4 text-white text-sm font-bold rounded-xl hover:bg-slate-50 tracking-wide"
+                      type="button"
+                      className="flex items-center justify-center h-10 px-4 bg-[#1980e6] text-slate-50 rounded-xl text-sm font-bold leading-normal hover:bg-blue-700"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                      <img src={RemoveIcon} alt="Remove" className="" />
+                      Tải lên
+                      <svg className="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
                     </button>
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div className="py-1" role="none">
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setIsMediaLibraryOpen(true);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            Chọn từ kho media
+                          </a>
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              fileInputRef.current?.click();
+                              setIsDropdownOpen(false);
+                            }}
+                            className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            Từ máy tính
+                          </a>
+                          <input
+                            id="media-upload-button"
+                            type="file"
+                            accept="image/*,audio/*,video/*"
+                            onChange={handleMediaUpload}
+                            ref={fileInputRef}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {(sharedMedia && sharedMedia.type !== 'text' && sharedMedia.fileName) && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <span className="text-sm text-[#0e141b] font-medium truncate max-w-[180px]">{sharedMedia.fileName}</span>
+                      <button
+                        onClick={handleRemoveFile}
+                        className="flex items-center justify-center h-8 w-8 text-white text-sm font-bold rounded-full hover:bg-slate-50 transition"
+                        title="Xóa media"
+                      >
+                        <img src={RemoveIcon} alt="Remove" className="" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -790,6 +853,12 @@ const QuestionEditPage: React.FC = () => {
         confirmButtonText="Load thêm"
         cancelButtonText="Không"
         confirmButtonColorClass="bg-blue-600 hover:bg-blue-700"
+      />
+
+      <MediaLibraryDialog
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        onMediaSelect={handleMediaFromLibrary}
       />
     </div>
   );

@@ -54,6 +54,7 @@ export interface SharedMediaData {
   fileName?: string;
   content?: string;
   file?: File;
+  libraryMediaId?: string;
 }
 
 export interface FullQuestionSetData {
