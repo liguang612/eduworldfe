@@ -13,7 +13,7 @@ const schema = yup.object().shape({
 });
 
 interface LoginFormProps {
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (role: number) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           avatar: response.data.avatar,
           role: response.data.role,
         });
-        if (onLoginSuccess) onLoginSuccess();
+        if (onLoginSuccess) onLoginSuccess(response.data.role);
       } else {
         setLoginError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
       }

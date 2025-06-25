@@ -6,9 +6,12 @@ import Header from '@/components/Common/Header';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleLoginSuccess = () => {
-    console.log('login success');
-    navigate('/');
+  const handleLoginSuccess = (role: number) => {
+    if (role === 100) {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
   };
 
   return (

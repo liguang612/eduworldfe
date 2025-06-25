@@ -223,7 +223,6 @@ export function QuestionUploadDialog({
     }
   };
 
-  // Parse plain text (.txt) file
   const parseTxtContent = (txt: string): ParsedQuestion[] => {
     const lines = txt.split(/\r?\n/);
     const questions: ParsedQuestion[] = [];
@@ -290,9 +289,8 @@ export function QuestionUploadDialog({
         continue;
       }
       if (!current) continue;
-      // Nếu đang collect questionText
+
       if (collectingQuestionText) {
-        // Nếu gặp dòng bắt đầu bằng (x) hoặc () thì chuyển sang collect answer
         if (/^\(x\)|^\(\d+\)|^\(\)/.test(line)) {
           collectingQuestionText = false;
         } else if (line !== '') {
@@ -300,24 +298,20 @@ export function QuestionUploadDialog({
           continue;
         }
       }
-      // Nếu là đáp án
+
       if (!collectingQuestionText && line !== '') {
         if (currentType === 'radio' || currentType === 'checkbox') {
-          // (x) Đáp án đúng, () Đáp án sai
           const match = line.match(/^\((x|\s*)\)\s*(.*)$/i);
           if (match) {
             current.answers.push({ text: match[2], isCorrect: match[1].toLowerCase() === 'x' });
           } else {
-            // Nếu không match thì nối vào đáp án trước (nhiều dòng)
             if (current.answers.length > 0) {
               current.answers[current.answers.length - 1].text += '\n' + line;
             }
           }
         } else if (currentType === 'ranking') {
-          // (1) text, (2) text, ...
           const match = line.match(/^\((\d+)\)\s*(.*)$/);
           if (match) {
-            // Đáp án đúng là theo thứ tự số thứ tự (orderIndex = số thứ tự)
             current.answers.push({ text: match[2], isCorrect: true });
           } else {
             if (current.answers.length > 0) {
@@ -325,7 +319,6 @@ export function QuestionUploadDialog({
             }
           }
         } else if (currentType === 'shortAnswer') {
-          // Đáp án đúng duy nhất, collect tất cả các dòng
           const match = line.match(/^\((x|\s*)\)\s*(.*)$/i);
           if (match) {
             current.answers.push({ text: match[2], isCorrect: match[1].toLowerCase() === 'x' });
@@ -333,6 +326,7 @@ export function QuestionUploadDialog({
         }
       }
     }
+
     // push cuối cùng nếu còn
     if (current) {
       if (currentType === 'shortAnswer' && answerParts.length > 0) {
@@ -417,7 +411,6 @@ export function QuestionUploadDialog({
         }
         reader.readAsArrayBuffer(selectedFile);
       } else if (isTxt) {
-        // Xử lý file txt
         const reader = new FileReader();
         reader.onload = (event) => {
           try {

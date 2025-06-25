@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import { useAuth } from '@/contexts/AuthContext';
 import { getHighlightCourses, getUpcomingExams } from '@/api/homeApi';
@@ -17,14 +17,20 @@ import SlideToRightIcon from '@/assets/slide_to_right.svg';
 const HomePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [heroSearchValue, setHeroSearchValue] = React.useState('');
-  const [highlightCourses, setHighlightCourses] = React.useState<Course[]>([]);
-  const [upcomingExams, setUpcomingExams] = React.useState<Exam[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [showJoinDialog, setShowJoinDialog] = React.useState(false);
-  const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null);
+  const [heroSearchValue, setHeroSearchValue] = useState('');
+  const [highlightCourses, setHighlightCourses] = useState<Course[]>([]);
+  const [upcomingExams, setUpcomingExams] = useState<Exam[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (user && user.role === 100) {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     document.title = 'EduWorld - HomePage';
     const fetchData = async () => {
       try {

@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface GoogleLoginButtonProps {
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (role: number) => void;
 }
 
 const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess }) => {
@@ -74,7 +74,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
           avatar: data.userInfo.avatar,
           role: data.userInfo.role
         });
-        if (onLoginSuccess) onLoginSuccess();
+        if (onLoginSuccess) onLoginSuccess(data.userInfo.role);
       }
     } catch (error) {
       console.error('Google login error:', error);

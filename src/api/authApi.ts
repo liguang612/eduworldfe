@@ -34,7 +34,7 @@ export interface User {
   name: string;
   email?: string;
   avatar?: string;
-  role?: number;
+  role?: number; // 0: học sinh, 1: giáo viên, 100: admin
   birthday?: string;
   school?: string;
   grade?: number;
@@ -42,6 +42,7 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   isVerified?: boolean;
+  isActive?: boolean;
 }
 
 export const registerUser = async (payload: FormData) => {

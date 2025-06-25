@@ -7,7 +7,7 @@ import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
 import { type LocationState, type SurveyValue, getQuestionsBySharedMedia } from '@/api/questionApi';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
-import { MediaLibraryDialog } from '@/components/Common/MediaLibraryDialog';
+import { MediaLibraryDialog } from '@/components/Question/MediaLibraryDialog';
 import type { MediaItem } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
 

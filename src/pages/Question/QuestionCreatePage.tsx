@@ -7,7 +7,7 @@ import QuestionChoices from '@/components/Question/QuestionChoices';
 import * as questionApi from '@/api/questionApi';
 import { uploadSharedMedia, type LocationState, type SurveyValue, type MediaItem } from '@/api/questionApi';
 import RemoveIcon from '@/assets/remove.svg';
-import { MediaLibraryDialog } from '@/components/Common/MediaLibraryDialog';
+import { MediaLibraryDialog } from '@/components/Question/MediaLibraryDialog';
 
 
 const QuestionCreatePage: React.FC = () => {

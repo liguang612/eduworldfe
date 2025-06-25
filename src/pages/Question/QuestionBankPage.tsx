@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import QuestionDetailPreview from '@/components/Question/QuestionDetailPreview';
 import { searchQuestions } from '@/api/lectureApi';
 import { toast } from 'react-toastify';
-import { QuestionUploadDialog } from '@/components/Common/QuestionUploadDialog';
+import { QuestionUploadDialog } from '@/components/Question/QuestionUploadDialog';
 
 const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 

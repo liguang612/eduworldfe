@@ -36,20 +36,18 @@ export function MediaLibraryDialog({ isOpen, onClose, onMediaSelect }: MediaLibr
   const { user } = useAuth();
   const [previewMedia, setPreviewMedia] = useState<MediaItem | null>(null);
 
-  // Load media when tab changes or dialog opens
   useEffect(() => {
     if (isOpen) {
       loadMedia();
     }
   }, [activeTab, isOpen]);
 
-  // Filter items when search term changes
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredItems(mediaItems);
     } else {
       const filtered = mediaItems.filter(item =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase())
+        item.title.toLowerCase().includes(searchTerm.toLowerCase().trim())
       );
       setFilteredItems(filtered);
     }
@@ -164,7 +162,6 @@ export function MediaLibraryDialog({ isOpen, onClose, onMediaSelect }: MediaLibr
     );
   };
 
-  // Dialog preview
   const renderPreviewDialog = () => {
     if (!previewMedia) return null;
     return (

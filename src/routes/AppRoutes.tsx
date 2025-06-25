@@ -37,6 +37,12 @@ import ExamPages from '@/pages/Exam/ExamPages';
 import ExamResultsPage from '@/pages/Exam/ExamResultsPage';
 import FavouritePage from '@/pages/Favourite/FavouritePage';
 import SearchResultsPage from '@/pages/Homepage/SearchPage';
+import AdminLayout from '@/pages/Admin/AdminLayout';
+import DashboardPage from '@/pages/Admin/DashboardPage';
+import UserManagementPage from '@/pages/Admin/UserManagementPage';
+import CourseManagementPage from '@/pages/Admin/CourseManagementPage';
+import LectureManagementPage from '@/pages/Admin/LectureManagementPage';
+import ExamManagementPage from '@/pages/Admin/ExamManagementPage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -340,6 +346,24 @@ const AppRoutes: React.FC = () => (
         </ProtectedRoute>
       }
     />
+
+    {/* Admin */}
+    <Route
+      path="/admin"
+      element={
+        <ProtectedRoute allowedRoles={[100]}>
+          <AdminLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route path="dashboard" element={<DashboardPage />} />
+      <Route path="users" element={<UserManagementPage />} />
+      <Route path="courses" element={<CourseManagementPage />} />
+      <Route path="lectures" element={<LectureManagementPage />} />
+      <Route path="exams" element={<ExamManagementPage />} />
+      <Route path="account" element={<AccountPage />} />
+      <Route path="change-password" element={<ChangePassword />} />
+    </Route>
 
     {/* Favorite */}
     <Route

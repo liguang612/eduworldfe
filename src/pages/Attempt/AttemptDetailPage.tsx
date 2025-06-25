@@ -15,7 +15,7 @@ import DotFillIcon from '@/assets/dot_fill.svg';
 import { checkAnswerCorrectness } from '@/lib/utils';
 import ProfileDialog from '@/components/Auth/UserInformationPopup';
 import type { User } from '@/contexts/AuthContext';
-import { NotificationDialog } from "../../components/Common/NotificationDialog";
+import { NotificationDialog } from "../../components/Notification/NotificationDialog";
 
 const AttemptDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
