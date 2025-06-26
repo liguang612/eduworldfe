@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BookOpen, ClipboardCheck, FileVideo, LayoutDashboard, Users } from "lucide-react";
+import { HardDrive, LayoutDashboard, Users } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -40,21 +40,26 @@ const AdminLayout = () => {
       href: "/admin/users",
       icon: <Users className="h-5 w-5" />,
     },
+    // {
+    //   title: "Khóa học",
+    //   href: "/admin/courses",
+    //   icon: <BookOpen className="h-5 w-5" />,
+    // },
+    // {
+    //   title: "Bài giảng",
+    //   href: "/admin/lectures",
+    //   icon: <FileVideo className="h-5 w-5" />,
+    // },
+    // {
+    //   title: "Đề thi",
+    //   href: "/admin/exams",
+    //   icon: <ClipboardCheck className="h-5 w-5" />,
+    // },
     {
-      title: "Khóa học",
-      href: "/admin/courses",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-    {
-      title: "Bài giảng",
-      href: "/admin/lectures",
-      icon: <FileVideo className="h-5 w-5" />,
-    },
-    {
-      title: "Đề thi",
-      href: "/admin/exams",
-      icon: <ClipboardCheck className="h-5 w-5" />,
-    },
+      title: "Dung lượng sử dụng",
+      href: "/admin/storage",
+      icon: <HardDrive className="h-5 w-5" />,
+    }
   ];
 
   return (

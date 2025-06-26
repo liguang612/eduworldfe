@@ -1,4 +1,5 @@
 import axios from '@/config/axios';
+import { handleStorageLimitError } from '@/lib/utils';
 
 export interface LectureResponse {
   id: string;
@@ -68,14 +69,19 @@ export const uploadFile = async (file: File, type: string): Promise<string> => {
   formData.append('file', file);
   formData.append('type', type);
 
-  const response = await axios.post(`api/files/upload`, formData, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  try {
+    const response = await axios.post(`api/files/upload`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-  return response.data.url;
+    return response.data.url;
+  } catch (error: any) {
+    handleStorageLimitError(error);
+    throw error;
+  }
 };
 
 export const createLecture = async (lectureData: {

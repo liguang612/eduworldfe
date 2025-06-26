@@ -477,14 +477,6 @@ const QuestionCreatePage: React.FC = () => {
                           >
                             Từ máy tính
                           </a>
-                          <input
-                            id="media-upload-button"
-                            type="file"
-                            accept="image/*,audio/*,video/*"
-                            onChange={handleMediaUpload}
-                            ref={fileInputRef}
-                            className="hidden"
-                          />
                         </div>
                       </div>
                     )}
@@ -630,6 +622,14 @@ const QuestionCreatePage: React.FC = () => {
         isOpen={isMediaLibraryOpen}
         onClose={() => setIsMediaLibraryOpen(false)}
         onMediaSelect={handleMediaFromLibrary}
+      />
+      <input
+        id="media-upload-button"
+        type="file"
+        accept="image/*,audio/*,video/*"
+        onChange={handleMediaUpload}
+        ref={fileInputRef}
+        className="hidden"
       />
     </div>
   );

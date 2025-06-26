@@ -28,32 +28,20 @@ export interface DashboardResponse {
 // Dữ liệu mock
 const mockDashboardData: DashboardResponse = {
   stats: {
-    totalTeachers: 45,
-    totalStudents: 1234,
-    todayActiveUsers: 89,
-    todayLogins: 156
+    totalTeachers: 0,
+    totalStudents: 0,
+    todayActiveUsers: 0,
+    todayLogins: 0
   },
   monthlyUserChart: [
-    { month: "2024-01", teacherCount: 12, studentCount: 156 },
-    { month: "2024-02", teacherCount: 15, studentCount: 234 },
-    { month: "2024-03", teacherCount: 18, studentCount: 345 },
-    { month: "2024-04", teacherCount: 22, studentCount: 456 },
-    { month: "2024-05", teacherCount: 28, studentCount: 567 },
-    { month: "2024-06", teacherCount: 32, studentCount: 678 },
-    { month: "2024-07", teacherCount: 35, studentCount: 789 },
-    { month: "2024-08", teacherCount: 38, studentCount: 890 },
-    { month: "2024-09", teacherCount: 40, studentCount: 987 },
-    { month: "2024-10", teacherCount: 42, studentCount: 1056 },
-    { month: "2024-11", teacherCount: 44, studentCount: 1123 },
-    { month: "2024-12", teacherCount: 45, studentCount: 1234 }
   ],
   dailyUserChart: Array.from({ length: 30 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (29 - i));
     return {
       date: date.toISOString().split('T')[0],
-      teacherCount: Math.floor(Math.random() * 20) + 15,
-      studentCount: Math.floor(Math.random() * 100) + 50
+      teacherCount: 0,
+      studentCount: 0
     };
   })
 };
@@ -88,6 +76,9 @@ export interface UserResponse {
   createdAt: string;
   isActive: boolean;
   searchScore?: number;
+  storageLimit?: number;
+  totalStorageUsed?: number;
+  fileCount?: number;
 }
 
 export interface UserSearchRequest {
@@ -177,4 +168,96 @@ export const resetUserPassword = async (userId: string): Promise<string> => {
     console.error('Failed to reset user password:', error.response ? error.response.data : error.message);
     throw error;
   }
+};
+
+// Storage Usage APIs
+export interface TeacherStorageInfo {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  birthday: string;
+  totalStorageUsed: number;
+  fileCount: number;
+  storageLimit: number;
+}
+
+export interface UserFileInfo {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  fileType: string;
+  uploadTime: string;
+}
+
+export interface StorageSearchRequest {
+  name?: string;
+  email?: string;
+  page: number;
+  size: number;
+}
+
+export interface StorageSearchResponse {
+  teachers: TeacherStorageInfo[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+export const getTeachersStorageUsage = async (searchParams?: StorageSearchRequest): Promise<StorageSearchResponse> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.post('/api/storage-usage/teachers', searchParams || { page: 0, size: 10 }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.data;
+};
+
+export const getUserFiles = async (userId: string): Promise<UserFileInfo[]> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.get(`/api/storage-usage/users/${userId}/files`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return response.data;
+};
+
+export const getUserTotalStorage = async (userId: string): Promise<number> => {
+  const token = localStorage.getItem('token');
+
+  const response = await axios.get(`/api/storage-usage/users/${userId}/total`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return response.data;
+};
+
+export const getSystemTotalStorage = async (): Promise<number> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.get('/api/storage-usage/total', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  return response.data;
+};
+
+export const updateUserStorageLimit = async (userId: string, storageLimit: number): Promise<void> => {
+  const token = localStorage.getItem('token');
+  const response = await axios.put(`/api/storage-usage/admin/users/${userId}/storage-limit`,
+    { storageLimit },
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  return response.data;
 }; 

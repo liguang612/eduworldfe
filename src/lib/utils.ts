@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { toast } from 'react-toastify';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -104,5 +105,19 @@ export function translateMessage(message: string) {
       return 'Bạn không có quyền chỉnh sửa bình luận này';
     default:
       return message;
+  }
+}
+
+export function handleStorageLimitError(error: any) {
+  if (error.response?.status === 413) {
+    const errorData = error.response.data;
+    const message = errorData.message || 'Giới hạn dung lượng đã hết. Vui lòng liên hệ quản trị viên để tăng giới hạn dung lượng.';
+    toast.error(message, {
+      position: "top-right",
+      autoClose: false,
+      hideProgressBar: true,
+    });
+  } else {
+    toast.error('Không thể upload file. Vui lòng thử lại.');
   }
 }

@@ -1,4 +1,5 @@
-import axios from '../config/axios';
+import axios from '@/config/axios';
+import { handleStorageLimitError } from '@/lib/utils';
 
 const API_URL = '/api';
 
@@ -304,13 +305,18 @@ export const uploadSharedMedia = async (data: UploadSharedMediaRequest) => {
     formData.append('text', data.text);
   }
 
-  const response = await axios.post(`${API_URL}/shared-media/upload`, formData, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+  try {
+    const response = await axios.post(`${API_URL}/shared-media/upload`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    handleStorageLimitError(error);
+    throw error;
+  }
 };
 
 export const updateSharedMedia = async (mediaId: string, data: UploadSharedMediaRequest) => {
@@ -325,13 +331,18 @@ export const updateSharedMedia = async (mediaId: string, data: UploadSharedMedia
     formData.append('text', data.text);
   }
 
-  const response = await axios.post(`${API_URL}/shared-media/upload/${mediaId}`, formData, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+  try {
+    const response = await axios.post(`${API_URL}/shared-media/upload/${mediaId}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    handleStorageLimitError(error);
+    throw error;
+  }
 };
 
 // Hàm chuyển đổi loại câu hỏi sang định dạng API

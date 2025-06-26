@@ -1,4 +1,5 @@
 import axios from '@/config/axios';
+import { handleStorageLimitError } from '@/lib/utils';
 
 const FILE_API_URL = '/api/files';
 
@@ -185,12 +186,17 @@ export const uploadFile = async (file: File, type: string): Promise<string> => {
   formData.append('file', file);
   formData.append('type', type);
 
-  const response = await axios.post(`${FILE_API_URL}/upload`, formData, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': undefined,
-    },
-  });
+  try {
+    const response = await axios.post(`${FILE_API_URL}/upload`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': undefined,
+      },
+    });
 
-  return response.data.url;
+    return response.data.url;
+  } catch (error: any) {
+    handleStorageLimitError(error);
+    throw error;
+  }
 };

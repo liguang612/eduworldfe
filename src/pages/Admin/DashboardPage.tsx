@@ -74,32 +74,32 @@ const DashboardPage = () => {
           title="Giáo viên"
           value={dashboardData.stats.totalTeachers.toString()}
           icon={<Users size={24} />}
-          change="+18.1%"
-          changeType='increase'
+          // change="+18.1%" 
+          // changeType='increase'
           onClick={() => navigate('/admin/users')}
         />
         <StatCard
           title="Học sinh"
           value={dashboardData.stats.totalStudents.toString()}
           icon={<BookOpen size={24} />}
-          change="+20.1%"
-          changeType='increase'
+          // change="+20.1%"
+          // changeType='increase'
           onClick={() => navigate('/admin/users')}
         />
         <StatCard
           title="Người dùng hoạt động hôm nay"
           value={dashboardData.stats.todayActiveUsers.toString()}
           icon={<FileText size={24} />}
-          change="-3.2%"
-          changeType='decrease'
+          // change="-3.2%"
+          // changeType='decrease'
           onClick={() => navigate('/admin/users')}
         />
         <StatCard
           title="Lượt đăng nhập hôm nay"
           value={dashboardData.stats.todayLogins.toString()}
           icon={<Activity size={24} />}
-          change="+5.4%"
-          changeType='increase'
+          // change="+5.4%"
+          // changeType='increase'
           onClick={() => navigate('/admin/users')}
         />
       </div>

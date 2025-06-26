@@ -1,0 +1,30 @@
+{
+  "id": "c0342d20-94b0-4edd-96e4-15436ea9d525",
+  "name": "test chặn storage limit",
+  "description": "test chặn storage limit",
+  "contents": "[{\"children\":[{\"text\":\"Xem video sau nhé các em:\"}],\"id\":\"G_4F-d7y2J\",\"type\":\"p\"},{\"id\":\"llxdt7G7f9\",\"type\":\"p\",\"children\":[{\"text\":\"\"}]},{\"id\":\"gpgXmSeZJq\",\"type\":\"p\",\"children\":[{\"text\":\"\"}]},{\"children\":[{\"text\":\"\"}],\"isUpload\":true,\"name\":\"\",\"type\":\"video\",\"url\":\"https://storage.googleapis.com/download/storage/v1/b/eduworld-6ba8b.firebasestorage.app/o/videos%2Fa9442fc1-681b-458e-b4c1-c7fd6e077a73_uploaded_file_1750921992561.mp4?generation=1750921996782622&alt=media\",\"id\":\"-74mh4gnF4\"},{\"children\":[{\"text\":\"\"}],\"type\":\"p\",\"id\":\"I3jlJ8a7zH\"}]",
+  "endQuestions": [],
+  "categories": [],
+  "pdfUrl": null,
+  "subjectId": "d0f99e97-c29c-4e78-90b9-4be178432166",
+  "subjectName": "Đạo đức",
+  "grade": 2,
+  "teacher": {
+    "id": "ad90dd93-6449-4500-aa06-ea2e4e6ed5db",
+    "email": "test@example.com",
+    "passwordHash": "$2a$10$iURcJR0iHaS97jwBwEvnCuuvDNjctT5qjlEExfQy5RxbfmuuadUVm",
+    "name": "Bùi Văn B",
+    "birthday": "2002-10-02T17:00:00.000+00:00",
+    "school": "Tên trường mới",
+    "grade": 10,
+    "address": "Địa chỉ mới 2",
+    "role": 1,
+    "avatar": "https://storage.googleapis.com/download/storage/v1/b/eduworld-6ba8b.firebasestorage.app/o/users%2F6de7d3f7-89cd-4ba6-a68c-2cab64d2417a_Ragnar_Sohlman_(1870-1948).jpg?generation=1748569990888598&alt=media",
+    "createdAt": "2025-06-19T17:00:00.000+00:00",
+    "isActive": true,
+    "storageLimit": 15728640
+  },
+  "duration": 10,
+  "favourite": false,
+  "averageRating": 0.0
+}

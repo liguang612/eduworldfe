@@ -43,6 +43,7 @@ import UserManagementPage from '@/pages/Admin/UserManagementPage';
 import CourseManagementPage from '@/pages/Admin/CourseManagementPage';
 import LectureManagementPage from '@/pages/Admin/LectureManagementPage';
 import ExamManagementPage from '@/pages/Admin/ExamManagementPage';
+import StorageUsagePage from '@/pages/Admin/StorageUsagePage';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -363,6 +364,7 @@ const AppRoutes: React.FC = () => (
       <Route path="exams" element={<ExamManagementPage />} />
       <Route path="account" element={<AccountPage />} />
       <Route path="change-password" element={<ChangePassword />} />
+      <Route path="storage" element={<StorageUsagePage />} />
     </Route>
 
     {/* Favorite */}
