@@ -7,6 +7,7 @@ import {
   clearAllNotifications,
   type NotificationData,
 } from '../../api/notificationApi';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 const NOTIFICATIONS_PAGE_SIZE = 5;
 
@@ -19,11 +20,11 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
   onHasUnreadChange,
   onClose
 }) => {
+  const { notifications: realtimeNotifications, markAllAsRead, clearAll, isConnected } = useNotifications();
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
-
 
   const updateHasUnread = (notificationsList: NotificationData[]) => {
     const hasUnread = notificationsList.some(n => !n.read);
@@ -56,6 +57,8 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     setIsLoading(true);
     try {
       await markAllNotificationsAsRead();
+      markAllAsRead();
+
       const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
       setNotifications(updatedNotifications);
       updateHasUnread(updatedNotifications);
@@ -70,7 +73,9 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     setIsLoading(true);
     try {
       await clearAllNotifications();
+      clearAll();
       setNotifications([]);
+
       setNextCursor(null);
       setHasMoreNotifications(false);
       updateHasUnread([]);
@@ -89,6 +94,10 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     onClose();
   };
 
+  const allNotifications = [...realtimeNotifications, ...notifications.filter(n =>
+    !realtimeNotifications.some(rn => rn.id === n.id)
+  )];
+
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -106,9 +115,11 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
               <img src={ReloadIcon} alt="Refetch Notifications" className="h-4 w-4" />
             </button>
           )}
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+            title={isConnected ? 'Đã kết nối' : 'Mất kết nối'} />
         </div>
         <div className="flex items-center gap-2">
-          {notifications.length > 0 && (
+          {allNotifications.length > 0 && (
             <button
               onClick={handleMarkAllRead}
               className="text-xs text-[#0D7CF2] hover:underline"
@@ -116,7 +127,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
               Đánh dấu tất cả đã đọc
             </button>
           )}
-          {notifications.length > 0 && (
+          {allNotifications.length > 0 && (
             <button
               onClick={handleClearAll}
               className="text-xs text-red-600 hover:underline"
@@ -127,11 +138,11 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
         </div>
       </div>
       <div className="flex flex-col">
-        {notifications.length === 0 ? (
+        {allNotifications.length === 0 ? (
           <p className="text-center text-gray-500 py-10">Không có thông báo mới.</p>
         ) : (
           <>
-            {notifications.map((notif) => (
+              {allNotifications.map((notif) => (
               <NotificationItem
                 key={notif.id}
                 data={notif}

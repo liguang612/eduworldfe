@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Logo from '../../assets/logo.svg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import BellIcon from '@/assets/bell.svg';
 import NotificationPopup from '../Notification/NotificationPopup';
 
@@ -9,11 +10,11 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { hasUnread } = useNotifications();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
 
   const notificationPopupRef = useRef<HTMLDivElement>(null);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
@@ -57,10 +58,6 @@ const Header: React.FC = () => {
 
   const handleToggleNotifications = () => {
     setShowNotifications(prev => !prev);
-  };
-
-  const handleHasUnreadChange = (hasUnreadNotifications: boolean) => {
-    setHasUnread(hasUnreadNotifications);
   };
 
   return (
@@ -108,7 +105,6 @@ const Header: React.FC = () => {
               <div ref={notificationPopupRef} className="absolute right-0 top-full mt-2 z-50">
                 <NotificationPopup
                   onClose={() => setShowNotifications(false)}
-                  onHasUnreadChange={handleHasUnreadChange}
                 />
               </div>
             )}

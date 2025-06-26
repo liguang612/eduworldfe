@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { type NotificationData, markNotificationAsRead } from '@/api/notificationApi';
 import DotFillIcon from '@/assets/dot_fill.svg';
 import StudentAddedToCourseIcon from '@/assets/student_added_to_course.svg';
@@ -22,14 +22,9 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ data, onClick }) => {
-  const [isRead, setIsRead] = useState(data.read);
   const navigate = useNavigate();
 
   const handleItemClick = async () => {
-    if (!isRead) {
-      setIsRead(true);
-    }
-
     onClick?.(data.id);
 
     try {
@@ -38,9 +33,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ data, onClick }) =>
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
-      if (!data.read) {
-        setIsRead(false);
-      }
     }
 
     if (data.type === 'STUDENT_ADDED_TO_COURSE') {
@@ -241,13 +233,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ data, onClick }) =>
 
   return (
     <div
-      className={`flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 ${!isRead ? 'bg-slate-50' : 'bg-white'}`}
+      className={`flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 ${!data.read ? 'bg-slate-50' : 'bg-white'}`}
       onClick={handleItemClick}
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {getIconComponent(data)}
         <div className="flex flex-col flex-1 justify-center min-w-0">
-          <p className={`text-[#0e141b] text-sm font-medium leading-normal line-clamp-1 ${!isRead ? 'font-bold' : 'font-medium'}`}>{getTitle(data)}</p>
+          <p className={`text-[#0e141b] text-sm font-medium leading-normal line-clamp-1 ${!data.read ? 'font-bold' : 'font-medium'}`}>{getTitle(data)}</p>
           <div className="text-[#4e7297] text-xs font-normal leading-normal text-wrap line-clamp-2">
             {getMessage(data)}
           </div>
@@ -255,7 +247,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ data, onClick }) =>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <p className="text-[#4e7297] text-xs font-normal leading-normal">{formatTimeAgo(data.createdAt)}</p>
-        {!isRead && (
+        {!data.read && (
           <img
             src={DotFillIcon}
             alt={"Unread"}
