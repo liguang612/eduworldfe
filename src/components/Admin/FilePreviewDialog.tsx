@@ -57,10 +57,6 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ isOpen, onClose, 
     }
   };
 
-  const canPreview = (fileType: string) => {
-    return ['image', 'video', 'audio'].includes(fileType.toLowerCase());
-  };
-
   const renderFilePreview = () => {
     const fileType = file.fileType.toLowerCase();
 

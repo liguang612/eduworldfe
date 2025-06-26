@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { MoreHorizontal, ArrowUpDown, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import UserDetailDialog from '@/components/Admin/UserDetailDialog';
 import PasswordDisplayDialog from '@/components/Admin/PasswordDisplayDialog';
 import RoleChangePopup from '@/components/Admin/RoleChangePopup';
