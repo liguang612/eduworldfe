@@ -45,11 +45,18 @@ export interface User {
   isActive?: boolean;
 }
 
-export const registerUser = async (payload: FormData) => {
+export const registerUser = async (payload: FormData, googleToken?: string) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'multipart/form-data'
+  };
+  if (googleToken) {
+    headers.Authorization = `Bearer ${googleToken}`;
+  }
+
+  console.log(headers);
+
   const response = await axios.post(`${API_URL}/register`, payload, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+    headers
   });
   return response.data;
 };

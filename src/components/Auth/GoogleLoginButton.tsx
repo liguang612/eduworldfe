@@ -59,7 +59,8 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
             googleData: {
               fullName: data.userInfo.fullName,
               email: data.userInfo.email,
-              avatar: data.userInfo.avatar
+              avatar: data.userInfo.avatar,
+              token: idToken,
             }
           }
         });

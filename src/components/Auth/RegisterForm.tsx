@@ -19,13 +19,18 @@ interface RegisterFormProps {
     address?: string;
     birthday?: string;
     avatar?: string;
+    token?: string;
   };
 }
 
 const schema = yup.object().shape({
   name: yup.string().required('Tên là bắt buộc'),
   email: yup.string().email('Email không hợp lệ').required('Email là bắt buộc'),
-  password: yup.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự').required('Mật khẩu là bắt buộc'),
+  password: yup.string().when('$googleData', {
+    is: (googleData: any) => !googleData,
+    then: (schema) => schema.min(8, 'Mật khẩu phải có ít nhất 8 ký tự').required('Mật khẩu là bắt buộc'),
+    otherwise: (schema) => schema.optional(),
+  }),
   role: yup.string().oneOf(['student', 'teacher'] as const).required('Vai trò là bắt buộc'),
   grade: yup.string().when('role', {
     is: 'student',
@@ -61,6 +66,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
     setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema) as Resolver<FormData>,
+    context: { googleData },
     defaultValues: {
       role: 'student',
       name: '',
@@ -99,11 +105,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
     setRegisterError(null);
 
     try {
-
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('email', data.email);
-      formData.append('password', data.password);
+      if (data.password) formData.append('password', data.password);
       formData.append('role', data.role === 'teacher' ? '1' : '0');
       formData.append('address', data.address || '');
       if (data.grade) formData.append('grade', data.grade);
@@ -112,7 +117,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
       if (selectedFile) formData.append('avatar', selectedFile);
       else if (googleData?.avatar) formData.append('googleAvatar', googleData.avatar);
 
-      await registerUser(formData);
+      await registerUser(formData, googleData?.token);
 
       toast.success('Đăng ký thành công');
       onRegisterSuccess();
@@ -189,22 +194,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, googleDa
               <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4">Vui lòng nhập địa chỉ email hợp lệ</p>
 
               {/* Password */}
-              <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                <label className="flex flex-col min-w-40 flex-1">
-                  <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mật khẩu</p>
-                  <input
-                    {...register('password')}
-                    type="password"
-                    placeholder="Nhập mật khẩu của bạn"
-                    className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${errors.password ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal`}
-                  />
-                  {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-                </label>
-              </div>
-              <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4">Mật khẩu phải có ít nhất 8 ký tự</p>
+              {!googleData && (
+                <>
+                  <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+                    <label className="flex flex-col min-w-40 flex-1">
+                      <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Mật khẩu</p>
+                      <input
+                        {...register('password')}
+                        type="password"
+                        placeholder="Nhập mật khẩu của bạn"
+                        className={`form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e141b] focus:outline-0 focus:ring-0 border ${errors.password ? 'border-red-500' : 'border-[#d0dbe7]'} bg-slate-50 focus:border-[#d0dbe7] h-14 placeholder:text-[#4e7397] p-[15px] text-base font-normal leading-normal`}
+                      />
+                      {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+                    </label>
+                  </div>
+                  <p className="text-[#4e7397] text-sm font-normal leading-normal pb-3 pt-1 px-4">Mật khẩu phải có ít nhất 8 ký tự</p>
+                </>
+              )}
 
               {/* Role */}
-
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4">
                 <label className="flex flex-col min-w-40 flex-1">
                   <p className="text-[#0e141b] text-base font-medium leading-normal pb-2">Bạn là: </p>
