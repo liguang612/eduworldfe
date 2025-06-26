@@ -92,7 +92,7 @@ const Header: React.FC = () => {
             Kết quả
           </a>}
         </div>
-        <div className="flex justify-end gap-4">
+        {(user?.role === 0 || user?.role === 1) && <div className="flex justify-end gap-4">
           <div className="relative flex gap-2 items-center">
             <button
               ref={notificationButtonRef}
@@ -113,7 +113,7 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </div>}
         {!user ? (
           location.pathname === '/register' ? (
             <button

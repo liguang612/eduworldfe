@@ -1,49 +1,69 @@
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface RoleChangePopupProps {
-  onRoleChange: (role: number) => void;
-  currentRole: number;
+  user: {
+    id: string;
+    name: string;
+    role: number;
+  };
+  onRoleChange: (userId: string, newRole: number) => void;
 }
 
-const RoleChangePopup: React.FC<RoleChangePopupProps> = ({ onRoleChange, currentRole }) => {
+const RoleChangePopup: React.FC<RoleChangePopupProps> = ({ user, onRoleChange }) => {
+  const getRoleOptions = (currentRole: number) => {
+    switch (currentRole) {
+      case 0:
+        return [
+          { label: 'Chuyển thành giáo viên', value: 1 },
+          { label: 'Chuyển thành quản trị viên', value: 100 }
+        ];
+      case 1:
+        return [
+          { label: 'Chuyển thành học sinh', value: 0 },
+          { label: 'Chuyển thành quản trị viên', value: 100 }
+        ];
+      case 100:
+        return [
+          { label: 'Chuyển thành học sinh', value: 0 },
+          { label: 'Chuyển thành giáo viên', value: 1 }
+        ];
+      default:
+        return [
+          { label: 'Chuyển thành học sinh', value: 0 },
+          { label: 'Chuyển thành giáo viên', value: 1 },
+          { label: 'Chuyển thành quản trị viên', value: 100 }
+        ];
+    }
+  };
+
+  const roleOptions = getRoleOptions(user.role);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 px-2 py-1 text-sm">
-          Thay đổi role
-          <ChevronDown className="ml-1 h-3 w-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem
-          onClick={() => onRoleChange(0)}
-          disabled={currentRole === 0}
-          className="flex items-center justify-between"
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="flex items-center justify-between cursor-pointer">
+        <span>Thay đổi vai trò</span>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="w-48">
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={() => onRoleChange(user.id, roleOptions[0].value)}
         >
-          <span>Chuyển thành Học sinh</span>
-          {currentRole === 0 && <span className="text-xs text-gray-500">(Hiện tại)</span>}
+          {roleOptions[0].label}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onRoleChange(1)}
-          disabled={currentRole === 1}
-          className="flex items-center justify-between"
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={() => onRoleChange(user.id, roleOptions[1].value)}
         >
-          <span>Chuyển thành Giáo viên</span>
-          {currentRole === 1 && <span className="text-xs text-gray-500">(Hiện tại)</span>}
+          {roleOptions[1].label}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onRoleChange(100)}
-          disabled={currentRole === 100}
-          className="flex items-center justify-between"
-        >
-          <span>Chuyển thành Admin</span>
-          {currentRole === 100 && <span className="text-xs text-gray-500">(Hiện tại)</span>}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
   );
 };
 

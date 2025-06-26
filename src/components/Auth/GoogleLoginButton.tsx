@@ -52,8 +52,6 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onLoginSuccess })
         throw new Error('Invalid JSON response from server');
       }
 
-      console.log(data);
-
       if (data.newUser) {
         toast.warning('Bạn chưa từng tạo tài khoản trong hệ thống, hãy điền thêm thông tin để bắt dầu tham gia nhé.');
         navigate('/register', {

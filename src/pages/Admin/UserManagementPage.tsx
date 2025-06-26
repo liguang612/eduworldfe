@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import UserDetailDialog from '@/components/Admin/UserDetailDialog';
 import PasswordDisplayDialog from '@/components/Admin/PasswordDisplayDialog';
+import RoleChangePopup from '@/components/Admin/RoleChangePopup';
 import { ConfirmationDialog } from '@/components/Common/ConfirmationDialog';
 import type { UserResponse, UserSearchRequest } from '@/api/adminApi';
 import { searchUsers, changeUserRole, toggleUserStatus, resetUserPassword } from '@/api/adminApi';
 import { toast } from 'react-toastify';
+import { useDebounce } from '@/hooks/use-debounce';
 
 type SortKey = keyof UserResponse | '';
 
@@ -20,6 +22,9 @@ const UserManagementPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Debounced search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
@@ -29,6 +34,7 @@ const UserManagementPage: React.FC = () => {
   // Data
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Dialogs
   const [isRoleChangeOpen, setIsRoleChangeOpen] = useState(false);
@@ -42,10 +48,13 @@ const UserManagementPage: React.FC = () => {
   // Fetch users
   const fetchUsers = async () => {
     setIsLoading(true);
+    if (debouncedSearchTerm) {
+      setIsSearching(true);
+    }
     try {
       const request: UserSearchRequest = {
-        name: searchTerm || undefined,
-        email: searchTerm || undefined,
+        name: debouncedSearchTerm || undefined,
+        email: debouncedSearchTerm || undefined,
         role: roleFilter,
         isActive: statusFilter,
         page: currentPage,
@@ -57,23 +66,30 @@ const UserManagementPage: React.FC = () => {
       setTotalPages(response.totalPages);
       setTotalElements(response.totalElements);
     } catch (error: any) {
-      console.error('Failed to fetch users:', error);
       toast.error('Không thể tải danh sách người dùng');
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
   useEffect(() => {
     fetchUsers();
-  }, [searchTerm, roleFilter, statusFilter, currentPage, pageSize]);
+  }, [debouncedSearchTerm, roleFilter, statusFilter, currentPage, pageSize]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [debouncedSearchTerm, roleFilter, statusFilter]);
 
   const handleViewDetails = (user: UserResponse) => {
     setSelectedUser(user);
     setIsDetailOpen(true);
   };
 
-  const handleRoleChange = (user: UserResponse, newRole: number) => {
+  const handleRoleChange = (userId: string, newRole: number) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
     setActionUser(user);
     setPendingRole(newRole);
     setIsRoleChangeOpen(true);
@@ -84,10 +100,10 @@ const UserManagementPage: React.FC = () => {
 
     try {
       await changeUserRole(actionUser.id, pendingRole);
-      toast.success('Thay đổi role thành công!');
-      fetchUsers(); // Refresh data
+      toast.success('Thay đổi vai trò thành công!');
+      fetchUsers();
     } catch (error: any) {
-      toast.error('Không thể thay đổi role');
+      toast.error('Có lỗi xảy ra');
     } finally {
       setIsRoleChangeOpen(false);
       setActionUser(null);
@@ -211,6 +227,11 @@ const UserManagementPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#d0dbe7] focus:outline-none focus:ring-2 focus:ring-[#1980e6] focus:border-transparent text-sm"
               />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#1980e6]"></div>
+                </div>
+              )}
             </div>
             <select
               value={roleFilter || ''}
@@ -241,6 +262,7 @@ const UserManagementPage: React.FC = () => {
               <tr className="bg-white">
                 <SortableHeader sortKey="name">Người dùng</SortableHeader>
                 <SortableHeader sortKey="role">Vai trò</SortableHeader>
+                <SortableHeader sortKey="birthday">Ngày sinh</SortableHeader>
                 <SortableHeader sortKey="createdAt">Ngày tham gia</SortableHeader>
                 <SortableHeader sortKey="isActive">Trạng thái</SortableHeader>
                 <th className="px-4 py-3 text-left text-[#0e141b] text-sm font-bold leading-normal">Thao tác</th>
@@ -280,6 +302,9 @@ const UserManagementPage: React.FC = () => {
                         {getRoleLabel(user.role)}
                       </span>
                     </td>
+                    <td className="p-4 text-[#0e141b]">
+                      {user.birthday ? new Date(user.birthday).toLocaleDateString('vi-VN') : 'Không có'}
+                    </td>
                     <td className="p-4 text-[#4e7397]">
                       {new Date(user.createdAt).toLocaleDateString('vi-VN')}
                     </td>
@@ -300,13 +325,10 @@ const UserManagementPage: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleViewDetails(user)}>
                             Xem chi tiết
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleRoleChange(user, user.role === 0 ? 1 : 0)}>
-                            Thay đổi vai trò
-                          </DropdownMenuItem>
+                          <RoleChangePopup user={user} onRoleChange={handleRoleChange} />
                           <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
                             {user.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
                           </DropdownMenuItem>
@@ -327,7 +349,7 @@ const UserManagementPage: React.FC = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-[#4e7397]">
-              Hiển thị {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, totalElements)} của {totalElements} người dùng
+              {currentPage * pageSize + 1} - {Math.min((currentPage + 1) * pageSize, totalElements)} / {totalElements} người dùng
             </div>
             <div className="flex gap-2">
               <Button

@@ -50,7 +50,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <HomePage />
           </Layout>
@@ -60,7 +60,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/search"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <SearchResultsPage initialQuery={useLocation().state?.initialQuery || ''} />
           </Layout>
@@ -81,7 +81,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/account"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <AccountPage />
           </Layout>
@@ -91,7 +91,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/change-password"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <ChangePassword />
           </Layout>
@@ -103,7 +103,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <CoursesPage />
           </Layout>
@@ -112,7 +112,7 @@ const AppRoutes: React.FC = () => (
     />
     <Route path="/courses/:id"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <CourseDetailPage />
           </Layout>
@@ -150,7 +150,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/lectures"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <LecturesPage />
           </Layout>
@@ -160,7 +160,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/lectures/:id"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <LectureDetailPage />
           </Layout>
@@ -190,7 +190,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/lectures/:id/end-questions"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <DoEndQuestion />
           </Layout>
@@ -202,7 +202,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <QuestionBank />
           </Layout>
@@ -233,7 +233,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/:questionId/solutions"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <SolutionPage />
           </Layout>
@@ -243,7 +243,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/question-bank/:questionId/solutions/create"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <SolutionCreatePage />
           </Layout>
@@ -255,7 +255,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/exams"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <ExamPages />
           </Layout>
@@ -307,7 +307,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/attempts"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <AttemptListPage />
           </Layout>
@@ -327,7 +327,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/attempt/:id"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <AttemptDetailPage />
           </Layout>
@@ -339,7 +339,7 @@ const AppRoutes: React.FC = () => (
     <Route
       path="/courses/:courseId/exams/:examId/results"
       element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={[0, 1]}>
           <Layout>
             <ExamResultsPage />
           </Layout>

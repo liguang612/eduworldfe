@@ -46,7 +46,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         setLoginError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
       }
     } catch (error: any) {
-      setLoginError('Email hoặc mật khẩu không đúng.');
+      let message = error.response.data;
+      const prefix = "An unexpected error occurred: ";
+      if (message.startsWith(prefix)) message = message.slice(prefix.length);
+
+      setLoginError(message);
     }
   };
 
