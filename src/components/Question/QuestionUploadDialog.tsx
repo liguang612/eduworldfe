@@ -8,7 +8,7 @@ interface ParsedQuestion {
   type: 'radio' | 'checkbox' | 'ranking' | 'shortAnswer';
   questionText: string;
   level: number;
-  answers: { text: string; isCorrect: boolean }[];
+  answers: { text: string; isCorrect: boolean; orderIndex?: number }[];
 }
 
 interface QuestionUploadDialogProps {
@@ -147,6 +147,22 @@ export function QuestionUploadDialog({
           });
           questions.push(currentQuestion);
           currentQuestion = null;
+        } else if (currentQuestion.type === 'ranking') {
+          const match = trimmedText.match(/^\((\d+)\)\s*(.*)$/);
+          if (match) {
+            const orderIndex = parseInt(match[1]);
+            currentQuestion.answers.push({
+              text: match[2],
+              isCorrect: false,
+              orderIndex: orderIndex
+            });
+          } else {
+            currentQuestion.answers.push({
+              text: trimmedText,
+              isCorrect: false,
+              orderIndex: currentQuestion.answers.length + 1
+            });
+          }
         } else {
           currentQuestion.answers.push({
             text: trimmedText,
@@ -192,7 +208,7 @@ export function QuestionUploadDialog({
           choices = pq.answers.map((answer, answerIndex) => ({
             id: `choice_${id}_${answerIndex}`,
             content: answer.text,
-            orderIndex: answerIndex + 1,
+            orderIndex: answer.orderIndex || answerIndex + 1,
             value: `choice_${id}_${answerIndex}`
           } as SortingOption));
           break;
@@ -312,7 +328,12 @@ export function QuestionUploadDialog({
         } else if (currentType === 'ranking') {
           const match = line.match(/^\((\d+)\)\s*(.*)$/);
           if (match) {
-            current.answers.push({ text: match[2], isCorrect: true });
+            const orderIndex = parseInt(match[1]);
+            current.answers.push({
+              text: match[2],
+              isCorrect: false,
+              orderIndex: orderIndex
+            });
           } else {
             if (current.answers.length > 0) {
               current.answers[current.answers.length - 1].text += '\n' + line;
