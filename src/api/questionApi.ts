@@ -414,9 +414,7 @@ export const getQuestionsBySharedMedia = async (sharedMediaId: string): Promise<
 export const getQuestionsDetails = async (questionIds: string[]): Promise<Question[]> => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/questions/details`, {
-      questionIds
-    }, {
+    const response = await axios.post(`${API_URL}/questions/details`, questionIds, {
       headers: {
         Authorization: `Bearer ${token}`
       }
