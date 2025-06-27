@@ -106,6 +106,57 @@ export interface ResetPasswordResponse {
   password: string;
 }
 
+// New User Registration APIs
+export interface NewUserToday {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  school?: string;
+  grade?: number;
+  address?: string;
+  role: number;
+  birthday?: string;
+  createdAt: string;
+  isActive: boolean;
+  storageLimit?: number;
+}
+
+// Login History APIs
+export interface LoginToday {
+  id: string;
+  loginTime: string;
+  loginMethod: string;
+  ipAddress: string;
+  userAgent: string;
+  user: {
+    id: string;
+    name: string;
+    avatar?: string;
+    email: string;
+    school?: string;
+    grade?: number;
+    role: number;
+  };
+}
+
+export interface LoginDetail {
+  id: string;
+  loginTime: string;
+  loginMethod: string;
+  ipAddress: string;
+  userAgent: string;
+  user: {
+    id: string;
+    name: string;
+    avatar?: string;
+    email: string;
+    school?: string;
+    grade?: number;
+    role: number;
+  };
+}
+
 // Lấy danh sách user với phân trang và tìm kiếm
 export const searchUsers = async (request: UserSearchRequest): Promise<UserSearchResponse> => {
   try {
@@ -260,4 +311,49 @@ export const updateUserStorageLimit = async (userId: string, storageLimit: numbe
     }
   );
   return response.data;
+};
+
+export const getNewUsersInMonth = async (year: number, month: number): Promise<NewUserToday[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`/api/admin/users/new-month?year=${year}&month=${month}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to get new users in month:', error.response ? error.response.data : error.message);
+    return [];
+  }
+};
+
+export const getLoginsInDay = async (date: string): Promise<LoginToday[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`/api/admin/logins/today?date=${date}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to get logins in day:', error.response ? error.response.data : error.message);
+    return [];
+  }
+};
+
+export const getLoginDetail = async (loginId: string): Promise<LoginDetail | null> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`/api/admin/logins/${loginId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to get login detail:', error.response ? error.response.data : error.message);
+  }
+  return null;
 }; 

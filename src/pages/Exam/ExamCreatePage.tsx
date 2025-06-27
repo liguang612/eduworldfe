@@ -660,7 +660,7 @@ const ExamCreatePage: React.FC = () => {
                       {renderQuestionTypeInputs("Vận dụng", "numApplicationQuestions", "pointsPerApplicationQuestion")}
                       {renderQuestionTypeInputs("Vận dụng cao", "numHighApplicationQuestions", "pointsPerHighApplicationQuestion")}
                     </div>
-                  </div>g
+                  </div>
 
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg space-y-2">
                     <div className="flex justify-between items-center">
