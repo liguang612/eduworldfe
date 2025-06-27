@@ -2,9 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { LoginToday, LoginDetail } from '@/api/adminApi';
-import { getLoginDetail } from '@/api/adminApi';
 import LoginDetailDialog from '@/components/Admin/LoginDetailDialog';
-import { toast } from 'react-toastify';
 
 interface LoginsDialogProps {
   isOpen: boolean;
@@ -23,7 +21,6 @@ const LoginsDialog: React.FC<LoginsDialogProps> = ({
 }) => {
   const [selectedLogin, setSelectedLogin] = React.useState<LoginDetail | null>(null);
   const [isDetailOpen, setIsDetailOpen] = React.useState(false);
-  const [isLoadingDetail, setIsLoadingDetail] = React.useState(false);
 
   const getRoleLabel = (role: number) => {
     switch (role) {
@@ -44,21 +41,17 @@ const LoginsDialog: React.FC<LoginsDialogProps> = ({
   };
 
   const handleViewDetails = async (login: LoginToday) => {
-    setIsLoadingDetail(true);
-    try {
-      const loginDetail = await getLoginDetail(login.id);
-      if (loginDetail) {
-        setSelectedLogin(loginDetail);
-        setIsDetailOpen(true);
-      } else {
-        toast.error('Không thể lấy thông tin chi tiết phiên đăng nhập');
-      }
-    } catch (error) {
-      console.error('Failed to get login detail:', error);
-      toast.error('Có lỗi xảy ra khi lấy thông tin chi tiết');
-    } finally {
-      setIsLoadingDetail(false);
-    }
+    const loginDetail: LoginDetail = {
+      id: login.id,
+      loginTime: login.loginTime,
+      loginMethod: login.loginMethod,
+      ipAddress: login.ipAddress,
+      userAgent: login.userAgent,
+      user: login.user
+    };
+
+    setSelectedLogin(loginDetail);
+    setIsDetailOpen(true);
   };
 
   return (
@@ -89,20 +82,20 @@ const LoginsDialog: React.FC<LoginsDialogProps> = ({
                   >
                     <div className="flex items-center gap-4">
                       <img
-                        src={login.avatar || '/src/assets/user.svg'}
-                        alt={login.name}
+                        src={login.user.avatar || '/src/assets/user.svg'}
+                        alt={login.user.name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
                       <div>
-                        <h3 className="font-medium text-[#0e141b]">{login.name}</h3>
-                        <p className="text-sm text-[#4e7397]">{login.email}</p>
+                        <h3 className="font-medium text-[#0e141b]">{login.user.name}</h3>
+                        <p className="text-sm text-[#4e7397]">{login.user.email}</p>
                         <p className="text-xs text-[#4e7397]">IP: {login.ipAddress}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className={`px-3 py-1 text-sm font-medium rounded-full ${getRoleColor(login.role)}`}>
-                        {getRoleLabel(login.role)}
+                      <span className={`px-3 py-1 text-sm font-medium rounded-full ${getRoleColor(login.user.role)}`}>
+                        {getRoleLabel(login.user.role)}
                       </span>
                       <div className="text-right">
                         <p className="text-sm text-[#4e7397]">
@@ -116,13 +109,8 @@ const LoginsDialog: React.FC<LoginsDialogProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewDetails(login)}
-                        disabled={isLoadingDetail}
                       >
-                        {isLoadingDetail ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        ) : (
-                          'Xem chi tiết'
-                        )}
+                        Xem chi tiết
                       </Button>
                     </div>
                   </div>
