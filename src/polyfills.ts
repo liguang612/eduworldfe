@@ -1,4 +1,5 @@
 // Các cái này là bổ sung cho các thư viện cần thiết cho WebSocket
+import { Buffer } from 'buffer';
 
 if (typeof global === 'undefined') {
   (window as any).global = window;
@@ -14,4 +15,5 @@ if (typeof Buffer === 'undefined') {
     alloc: (size: number) => new Uint8Array(size),
     allocUnsafe: (size: number) => new Uint8Array(size),
   };
-} 
+}
+(window as any).Buffer = Buffer;
